@@ -37,6 +37,7 @@ func printUsage(out io.Writer) {
 	fmt.Fprintln(out, "Usage:")
 	fmt.Fprintln(out, "  nexus chat    [--resume ID] [--show-thinking] [--model PROVIDER:MODEL]")
 	fmt.Fprintln(out, "                [--permission-mode MODE] [--cwd DIR] [--db PATH]")
+	fmt.Fprintln(out, "                [--no-tui]   force text mode (skip interactive TUI)")
 	fmt.Fprintln(out, "")
 	fmt.Fprintln(out, "  nexus config  [--provider NAME] [--model MODEL] [--api-key KEY]")
 	fmt.Fprintln(out, "                [--region REGION] [--project-id ID] [--base-url URL]")

@@ -1,0 +1,267 @@
+package main
+
+import (
+	"context"
+	"sync"
+	"sync/atomic"
+
+	tea "github.com/charmbracelet/bubbletea"
+	"github.com/EngineerProjects/nexus-engine/internal/tui"
+	tuimodel "github.com/EngineerProjects/nexus-engine/internal/tui/model"
+	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+)
+
+// nexusWorkspace implements tui.Workspace by wrapping an sdk.Client.
+// It bridges the engine's callback-based event model with the BubbleTea
+// tea.Program.Send() pattern.
+type nexusWorkspace struct {
+	client   *sdk.Client
+	model    string
+	workDir  string
+	permMode string
+
+	// program is set by Subscribe; accessed under mu.
+	mu      sync.RWMutex
+	program *tea.Program
+
+	// active session
+	sessionMu sync.Mutex
+	session   *sdk.Session
+
+	// busy tracks whether a turn is in flight.
+	busy atomic.Bool
+}
+
+// newNexusWorkspace creates a nexusWorkspace. The workspace registers its own
+// callbacks on the ClientConfig so that events are forwarded to the TUI.
+func newNexusWorkspace(options runtimeOptions) (*nexusWorkspace, error) {
+	w := &nexusWorkspace{
+		model:    options.Model.String(),
+		workDir:  options.WorkingDir,
+		permMode: string(options.PermissionMode),
+	}
+
+	client, err := newClient(
+		options,
+		w.promptFn,
+		w.onProgress,
+		w.onChunk,
+	)
+	if err != nil {
+		return nil, err
+	}
+	w.client = client
+	return w, nil
+}
+
+// ─── tui.Workspace implementation ─────────────────────────────────────────────
+
+func (w *nexusWorkspace) Subscribe(p *tea.Program) {
+	w.mu.Lock()
+	w.program = p
+	w.mu.Unlock()
+}
+
+func (w *nexusWorkspace) send(msg tea.Msg) {
+	w.mu.RLock()
+	p := w.program
+	w.mu.RUnlock()
+	if p != nil {
+		p.Send(msg)
+	}
+}
+
+func (w *nexusWorkspace) ListSessions(ctx context.Context) {
+	go func() {
+		infos, err := w.client.ListSessions()
+		if err != nil {
+			w.send(tui.SessionListMsg{Err: err})
+			return
+		}
+		sessions := make([]tui.SessionInfo, 0, len(infos))
+		for _, info := range infos {
+			if info == nil {
+				continue
+			}
+			id := string(info.ID)
+			sessions = append(sessions, tui.SessionInfo{
+				ID:      id,
+				ShortID: shortIDStr(id),
+				Turns:   info.TotalTurns,
+				Tokens:  info.TotalTokens,
+			})
+		}
+		w.send(tui.SessionListMsg{Sessions: sessions})
+	}()
+}
+
+func (w *nexusWorkspace) CreateSession(ctx context.Context) {
+	go func() {
+		sess, err := w.client.CreateSession(ctx)
+		if err != nil {
+			w.send(tui.SessionCreatedMsg{Err: err})
+			return
+		}
+		w.sessionMu.Lock()
+		w.session = sess
+		w.sessionMu.Unlock()
+		w.send(tui.SessionCreatedMsg{ID: string(sess.GetID())})
+	}()
+}
+
+func (w *nexusWorkspace) LoadSession(ctx context.Context, id string) {
+	go func() {
+		sess, err := w.client.LoadSession(ctx, sdk.SessionID(id))
+		if err != nil {
+			w.send(tui.SessionLoadedMsg{Err: err})
+			return
+		}
+		w.sessionMu.Lock()
+		w.session = sess
+		w.sessionMu.Unlock()
+		w.send(tui.SessionLoadedMsg{ID: string(sess.GetID())})
+	}()
+}
+
+func (w *nexusWorkspace) DeleteSession(_ context.Context, id string) error {
+	return w.client.DeleteSession(sdk.SessionID(id))
+}
+
+func (w *nexusWorkspace) Submit(ctx context.Context, prompt string) {
+	w.sessionMu.Lock()
+	sess := w.session
+	w.sessionMu.Unlock()
+
+	if sess == nil || w.busy.Load() {
+		return
+	}
+	w.busy.Store(true)
+
+	go func() {
+		w.send(tui.TurnStartMsg{
+			SessionID: string(sess.GetID()),
+		})
+		resp, err := sess.SubmitMessage(ctx, prompt)
+		w.busy.Store(false)
+
+		done := tui.TurnDoneMsg{
+			SessionID: string(sess.GetID()),
+			Err:       err,
+		}
+		if resp != nil && resp.Usage != nil {
+			done.InputTokens = resp.Usage.InputTokens
+			done.OutputTokens = resp.Usage.OutputTokens
+		}
+		if resp != nil {
+			done.StopReason = resp.StopReason
+		}
+		w.send(done)
+	}()
+}
+
+func (w *nexusWorkspace) Cancel() {
+	// The SDK doesn't expose a per-session cancel yet; cancel via context
+	// when the workspace is closed or a parent context is cancelled.
+	// For now, mark as not busy so the UI unblocks.
+	w.busy.Store(false)
+}
+
+func (w *nexusWorkspace) ActiveSessionID() string {
+	w.sessionMu.Lock()
+	defer w.sessionMu.Unlock()
+	if w.session == nil {
+		return ""
+	}
+	return string(w.session.GetID())
+}
+
+func (w *nexusWorkspace) IsBusy() bool {
+	return w.busy.Load()
+}
+
+func (w *nexusWorkspace) ModelString() string    { return w.model }
+func (w *nexusWorkspace) WorkingDir() string     { return w.workDir }
+func (w *nexusWorkspace) PermissionMode() string { return w.permMode }
+
+func (w *nexusWorkspace) Close() {
+	w.client.Close()
+}
+
+// ─── SDK callback bridges ──────────────────────────────────────────────────────
+
+func (w *nexusWorkspace) onChunk(chunk sdk.ResponseChunk) {
+	switch chunk.Type {
+	case sdk.ResponseChunkTypeContentBlockDelta:
+		switch chunk.DeltaType {
+		case "text_delta", "":
+			w.send(tui.ChunkMsg{Text: chunk.Delta})
+		case "thinking_delta":
+			w.send(tui.ChunkMsg{Text: chunk.Delta, IsThinking: true})
+		}
+	}
+}
+
+func (w *nexusWorkspace) onProgress(progress sdk.ToolProgress) {
+	label := progress.Message
+	if label == "" {
+		label = string(progress.Stage)
+	}
+	w.send(tui.ToolProgressMsg{
+		ToolName: progress.ToolName,
+		Status:   string(progress.Stage),
+		Label:    label,
+	})
+}
+
+// promptFn blocks the calling (agent) goroutine until the TUI resolves it.
+func (w *nexusWorkspace) promptFn(ctx context.Context, req sdk.PromptRequest) (sdk.PromptResponse, error) {
+	respCh := make(chan tui.PromptResponse, 1)
+
+	opts := make([]tui.PromptOption, len(req.Options))
+	for i, o := range req.Options {
+		opts[i] = tui.PromptOption{Label: o.Label, Value: o.Value}
+	}
+
+	w.send(tui.PromptRequestMsg{
+		Type:     string(req.Type),
+		Message:  req.Message,
+		Options:  opts,
+		Response: respCh,
+	})
+
+	select {
+	case resp := <-respCh:
+		if resp.Cancelled {
+			return sdk.PromptResponse{Cancelled: true}, nil
+		}
+		return sdk.PromptResponse{Value: resp.Value}, nil
+	case <-ctx.Done():
+		return sdk.PromptResponse{Cancelled: true}, ctx.Err()
+	}
+}
+
+// ─── TUI entry point ──────────────────────────────────────────────────────────
+
+// runInteractive starts the BubbleTea TUI. Called by runChat when a TTY is detected.
+func runInteractive(ctx context.Context, options runtimeOptions) error {
+	if err := validateProviderSetup(options); err != nil {
+		return err
+	}
+
+	ws, err := newNexusWorkspace(options)
+	if err != nil {
+		return err
+	}
+	defer ws.Close()
+
+	return tuimodel.Run(ws, ctx)
+}
+
+// ─── Helpers ─────────────────────────────────────────────────────────────────
+
+func shortIDStr(id string) string {
+	if len(id) > 8 {
+		return id[:8]
+	}
+	return id
+}
