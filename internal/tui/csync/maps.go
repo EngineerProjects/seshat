@@ -132,11 +132,8 @@ var (
 )
 
 // JSONSchemaAlias returns the underlying map type for JSON schema generation.
-// Value receiver is required because  checks
-// interface satisfaction on the non-pointer type after stripping pointers.
-func (Map[K, V]) JSONSchemaAlias() any { //nolint
-	m := map[K]V{}
-	return m
+func (m *Map[K, V]) JSONSchemaAlias() any {
+	return map[K]V{}
 }
 
 // UnmarshalJSON implements json.Unmarshaler.
