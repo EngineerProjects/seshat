@@ -1,14 +1,14 @@
 package model
 
-import "github.com/charmbracelet/lipgloss"
+import "charm.land/lipgloss/v2"
 
 // Palette — orange / grey accent matching the Nexus logo.
-const (
+// lipgloss/v2 Color returns an interface, so these must be var not const.
+var (
 	colorPrimary   = lipgloss.Color("#E8630A") // orange
 	colorSecondary = lipgloss.Color("#FF8C42") // lighter orange
 	colorMuted     = lipgloss.Color("#6B7280") // grey
 	colorBorder    = lipgloss.Color("#374151") // dark border
-	colorBg        = lipgloss.Color("#111827") // almost-black bg
 	colorText      = lipgloss.Color("#F9FAFB") // near-white text
 	colorGreen     = lipgloss.Color("#10B981")
 	colorRed       = lipgloss.Color("#EF4444")

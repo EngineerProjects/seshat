@@ -4,32 +4,81 @@ import (
 	"context"
 	"sync"
 	"sync/atomic"
+	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 	tuimodel "github.com/EngineerProjects/nexus-engine/internal/tui/model"
+	"github.com/EngineerProjects/nexus-engine/internal/providers"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
 )
 
+// chunkDebounce batches streaming text chunks at 33ms intervals (crush pattern).
+// High-frequency token callbacks don't cause a TUI re-render on every token;
+// instead they are accumulated and flushed as a single ChunkMsg tick.
+type chunkDebounce struct {
+	mu      sync.Mutex
+	buf     string
+	timer   *time.Timer
+	flush   func(string)
+	delay   time.Duration
+}
+
+func newChunkDebounce(delay time.Duration, flush func(string)) *chunkDebounce {
+	return &chunkDebounce{delay: delay, flush: flush}
+}
+
+func (d *chunkDebounce) add(text string, immediate bool) {
+	d.mu.Lock()
+	defer d.mu.Unlock()
+	d.buf += text
+	if immediate {
+		// Terminal events (tool calls, turn end) flush immediately.
+		if d.timer != nil {
+			d.timer.Stop()
+			d.timer = nil
+		}
+		if d.buf != "" {
+			d.flush(d.buf)
+			d.buf = ""
+		}
+		return
+	}
+	if d.timer == nil {
+		d.timer = time.AfterFunc(d.delay, func() {
+			d.mu.Lock()
+			text := d.buf
+			d.buf = ""
+			d.timer = nil
+			d.mu.Unlock()
+			if text != "" {
+				d.flush(text)
+			}
+		})
+	}
+}
+
+func (d *chunkDebounce) forceFlush() {
+	d.add("", true)
+}
+
 // nexusWorkspace implements tui.Workspace by wrapping an sdk.Client.
 // It bridges the engine's callback-based event model with the BubbleTea
-// tea.Program.Send() pattern.
+// tea.Program.Send() pattern, with 33ms streaming debounce (crush pattern).
 type nexusWorkspace struct {
 	client   *sdk.Client
 	model    string
 	workDir  string
 	permMode string
 
-	// program is set by Subscribe; accessed under mu.
 	mu      sync.RWMutex
 	program *tea.Program
 
-	// active session
 	sessionMu sync.Mutex
 	session   *sdk.Session
 
-	// busy tracks whether a turn is in flight.
-	busy atomic.Bool
+	busy    atomic.Bool
+	debounce *chunkDebounce
 }
 
 // newNexusWorkspace creates a nexusWorkspace. The workspace registers its own
@@ -40,6 +89,9 @@ func newNexusWorkspace(options runtimeOptions) (*nexusWorkspace, error) {
 		workDir:  options.WorkingDir,
 		permMode: string(options.PermissionMode),
 	}
+	w.debounce = newChunkDebounce(33*time.Millisecond, func(text string) {
+		w.send(tui.ChunkMsg{Text: text})
+	})
 
 	client, err := newClient(
 		options,
@@ -183,6 +235,32 @@ func (w *nexusWorkspace) ModelString() string    { return w.model }
 func (w *nexusWorkspace) WorkingDir() string     { return w.workDir }
 func (w *nexusWorkspace) PermissionMode() string { return w.permMode }
 
+func (w *nexusWorkspace) ListModels(ctx context.Context) {
+	go func() {
+		all := providers.AllProvidersInfo()
+		var models []tui.ProviderModel
+		for provider, info := range all {
+			for _, m := range info.Models {
+				models = append(models, tui.ProviderModel{
+					Provider:    string(provider),
+					Identifier:  m.Identifier,
+					DisplayName: info.DisplayName + " / " + m.Identifier,
+					Description: m.Description,
+					Context:     m.ContextWindow,
+				})
+			}
+		}
+		w.send(tui.ModelListMsg{Models: models})
+	}()
+}
+
+func (w *nexusWorkspace) SetModel(providerID, modelID string) {
+	w.mu.Lock()
+	w.model = providerID + ":" + modelID
+	w.mu.Unlock()
+	w.send(tui.ModelChangedMsg{Provider: providerID, Model: modelID})
+}
+
 func (w *nexusWorkspace) Close() {
 	w.client.Close()
 }
@@ -194,10 +272,15 @@ func (w *nexusWorkspace) onChunk(chunk sdk.ResponseChunk) {
 	case sdk.ResponseChunkTypeContentBlockDelta:
 		switch chunk.DeltaType {
 		case "text_delta", "":
-			w.send(tui.ChunkMsg{Text: chunk.Delta})
+			// Debounce text deltas at 33ms (crush pattern) — avoids
+			// re-rendering the TUI on every token during streaming.
+			w.debounce.add(chunk.Delta, false)
 		case "thinking_delta":
 			w.send(tui.ChunkMsg{Text: chunk.Delta, IsThinking: true})
 		}
+	case sdk.ResponseChunkTypeMessageStop:
+		// Flush any buffered text immediately when the stream ends.
+		w.debounce.forceFlush()
 	}
 }
 
