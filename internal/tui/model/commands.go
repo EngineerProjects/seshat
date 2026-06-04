@@ -5,6 +5,8 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	tuilist "github.com/EngineerProjects/nexus-engine/internal/tui/list"
 )
 
 // paletteItem is a single entry in the commands palette.
@@ -20,20 +22,23 @@ type paletteItem struct {
 
 // commandPalette is the ctrl+p overlay listing all actions and slash commands.
 type commandPalette struct {
-	items    []paletteItem
-	filtered []paletteItem
-	selected int
-	filter   string
-	styles   Styles
-	width    int
-	height   int
+	items  []paletteItem
+	list   tuilist.State[paletteItem]
+	styles Styles
+	width  int
+	height int
 }
 
 func newCommandPalette(styles Styles) *commandPalette {
-	p := &commandPalette{styles: styles}
+	p := &commandPalette{
+		styles: styles,
+		list: tuilist.NewState(func(item paletteItem, needle string) bool {
+			return strings.Contains(strings.ToLower(item.name), needle) ||
+				strings.Contains(strings.ToLower(item.desc), needle)
+		}),
+	}
 	p.items = defaultPaletteItems()
-	p.filtered = make([]paletteItem, len(p.items))
-	copy(p.filtered, p.items)
+	p.list.SetItems(p.items)
 	return p
 }
 
@@ -145,63 +150,19 @@ func (p *commandPalette) SetSize(width, height int) {
 }
 
 // Open resets and optionally pre-fills the filter.
-func (p *commandPalette) Open(filter string) {
-	p.filter = filter
-	p.selected = 0
-	p.applyFilter()
-}
-
-func (p *commandPalette) TypeFilter(ch string) {
-	p.filter += ch
-	p.selected = 0
-	p.applyFilter()
-}
-
-func (p *commandPalette) DeleteFilter() {
-	if len(p.filter) > 0 {
-		p.filter = p.filter[:len(p.filter)-1]
-		p.selected = 0
-		p.applyFilter()
-	}
-}
-
-func (p *commandPalette) Up() {
-	if p.selected > 0 {
-		p.selected--
-	}
-}
-
-func (p *commandPalette) Down() {
-	if p.selected < len(p.filtered)-1 {
-		p.selected++
-	}
-}
+func (p *commandPalette) Open(filter string)   { p.list.SetFilter(filter) }
+func (p *commandPalette) TypeFilter(ch string) { p.list.TypeFilter(ch) }
+func (p *commandPalette) DeleteFilter()        { p.list.DeleteFilter() }
+func (p *commandPalette) Up()                  { p.list.Up() }
+func (p *commandPalette) Down()                { p.list.Down() }
 
 // Execute runs the selected item's action against m and returns the Cmd.
 func (p *commandPalette) Execute(m *Model) tea.Cmd {
-	if p.selected < 0 || p.selected >= len(p.filtered) {
+	item, ok := p.list.Selected()
+	if !ok {
 		return nil
 	}
-	return p.filtered[p.selected].action(m)
-}
-
-func (p *commandPalette) applyFilter() {
-	if p.filter == "" {
-		p.filtered = make([]paletteItem, len(p.items))
-		copy(p.filtered, p.items)
-		return
-	}
-	needle := strings.ToLower(p.filter)
-	p.filtered = p.filtered[:0]
-	for _, item := range p.items {
-		if strings.Contains(strings.ToLower(item.name), needle) ||
-			strings.Contains(strings.ToLower(item.desc), needle) {
-			p.filtered = append(p.filtered, item)
-		}
-	}
-	if p.selected >= len(p.filtered) {
-		p.selected = max(0, len(p.filtered)-1)
-	}
+	return item.action(m)
 }
 
 // View renders the palette box.
@@ -217,7 +178,7 @@ func (p *commandPalette) View() string {
 	title := p.styles.BrowserTitle.Render("  Commands")
 
 	// Filter line — same width calc as model dialog.
-	filterContent := "  / " + p.filter + "█"
+	filterContent := "  / " + p.list.Filter() + "█"
 	filterLine := p.styles.BrowserFilter.Width(innerW).Render(filterContent)
 
 	// Separator — use innerW (not innerW+2) so it never exceeds the actual
@@ -225,12 +186,14 @@ func (p *commandPalette) View() string {
 	sep := p.styles.MsgTimestamp.Render(strings.Repeat("─", innerW))
 
 	// Build item rows (one per item, blank line between items for readability).
+	filtered := p.list.FilteredItems()
+	cursor := p.list.Cursor()
 	var rows []string
-	for i, item := range p.filtered {
-		row := p.renderItem(item, i == p.selected, innerW)
+	for i, item := range filtered {
+		row := p.renderItem(item, i == cursor, innerW)
 		rows = append(rows, row)
 		// Blank spacer between items (not after the last one).
-		if i < len(p.filtered)-1 {
+		if i < len(filtered)-1 {
 			rows = append(rows, "")
 		}
 	}
@@ -316,18 +279,5 @@ func (p *commandPalette) renderItem(item paletteItem, selected bool, innerW int)
 // centred returns the palette positioned horizontally centred.
 // Vertical centering is handled by overlayOn().
 func (p *commandPalette) centred() string {
-	box := p.View()
-	lines := strings.Split(box, "\n")
-	// Use the first line (top border) to measure the true rendered width.
-	boxW := lipgloss.Width(lines[0])
-	left := max(0, (p.width-boxW)/2)
-	pad := strings.Repeat(" ", left)
-	var sb strings.Builder
-	for i, l := range lines {
-		if i > 0 {
-			sb.WriteString("\n")
-		}
-		sb.WriteString(pad + l)
-	}
-	return sb.String()
+	return common.CenterHorizontally(p.View(), p.width)
 }

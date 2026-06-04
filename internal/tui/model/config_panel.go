@@ -5,6 +5,8 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	tuilist "github.com/EngineerProjects/nexus-engine/internal/tui/list"
 )
 
 // configPanel is the provider configuration overlay (ctrl+, or via commands palette).
@@ -16,9 +18,7 @@ type configPanel struct {
 
 	// ── list mode ──────────────────────────────────────────────────────────
 	providers []tui.ProviderStatus
-	filtered  []tui.ProviderStatus
-	cursor    int
-	filter    string
+	list      tuilist.State[tui.ProviderStatus]
 
 	// ── edit mode ──────────────────────────────────────────────────────────
 	editing      bool
@@ -38,7 +38,13 @@ type cfgFieldInput struct {
 }
 
 func newConfigPanel(styles Styles) *configPanel {
-	return &configPanel{styles: styles}
+	return &configPanel{
+		styles: styles,
+		list: tuilist.NewState(func(pv tui.ProviderStatus, needle string) bool {
+			return strings.Contains(strings.ToLower(pv.DisplayName), needle) ||
+				strings.Contains(strings.ToLower(pv.Description), needle)
+		}),
+	}
 }
 
 func (p *configPanel) SetSize(w, h int) { p.width = w; p.height = h }
@@ -46,47 +52,20 @@ func (p *configPanel) SetSize(w, h int) { p.width = w; p.height = h }
 // SetProviders refreshes the provider list.
 func (p *configPanel) SetProviders(providers []tui.ProviderStatus) {
 	p.providers = providers
-	p.cursor = 0
-	p.applyFilter()
+	p.list.SetItems(providers)
 }
 
-func (p *configPanel) applyFilter() {
-	if p.filter == "" {
-		p.filtered = make([]tui.ProviderStatus, len(p.providers))
-		copy(p.filtered, p.providers)
-		return
-	}
-	needle := strings.ToLower(p.filter)
-	p.filtered = p.filtered[:0]
-	for _, pv := range p.providers {
-		if strings.Contains(strings.ToLower(pv.DisplayName), needle) ||
-			strings.Contains(strings.ToLower(pv.Description), needle) {
-			p.filtered = append(p.filtered, pv)
-		}
-	}
-	if p.cursor >= len(p.filtered) {
-		p.cursor = max(0, len(p.filtered)-1)
-	}
-}
-
-func (p *configPanel) TypeFilter(ch string) { p.filter += ch; p.applyFilter() }
-func (p *configPanel) DeleteFilter() {
-	if len(p.filter) > 0 {
-		p.filter = p.filter[:len(p.filter)-1]
-		p.applyFilter()
-	}
-}
+func (p *configPanel) TypeFilter(ch string) { p.list.TypeFilter(ch) }
+func (p *configPanel) DeleteFilter()        { p.list.DeleteFilter() }
 
 func (p *configPanel) Up() {
 	if p.editing {
 		if p.fieldCursor > 0 {
 			p.fieldCursor--
 		}
-	} else {
-		if p.cursor > 0 {
-			p.cursor--
-		}
+		return
 	}
+	p.list.Up()
 }
 
 func (p *configPanel) Down() {
@@ -94,19 +73,18 @@ func (p *configPanel) Down() {
 		if p.fieldCursor < len(p.inputs)-1 {
 			p.fieldCursor++
 		}
-	} else {
-		if p.cursor < len(p.filtered)-1 {
-			p.cursor++
-		}
+		return
 	}
+	p.list.Down()
 }
 
 // EnterEdit switches to edit mode for the currently selected provider.
 func (p *configPanel) EnterEdit() {
-	if p.cursor < 0 || p.cursor >= len(p.filtered) {
+	selected, ok := p.list.Selected()
+	if !ok {
 		return
 	}
-	p.editProvider = p.filtered[p.cursor]
+	p.editProvider = selected
 	p.inputs = make([]cfgFieldInput, len(p.editProvider.Fields))
 	for i, f := range p.editProvider.Fields {
 		p.inputs[i] = cfgFieldInput{field: f, draft: ""}
@@ -172,7 +150,7 @@ func (p *configPanel) SetSaved() {
 		}
 	}
 	p.statusMsg = "✓ Saved"
-	p.applyFilter()
+	p.list.ResetItems(p.providers, true)
 }
 
 func (p *configPanel) SetError(msg string) { p.statusMsg = "✗ " + msg }
@@ -192,11 +170,13 @@ func (p *configPanel) View() string {
 
 func (p *configPanel) viewList(w, innerW int) string {
 	title := p.styles.BrowserTitle.Render("  Provider Configuration")
-	filterLine := p.styles.BrowserFilter.Width(innerW).Render("  / " + p.filter + "█")
+	filterLine := p.styles.BrowserFilter.Width(innerW).Render("  / " + p.list.Filter() + "█")
 	sep := p.styles.MsgTimestamp.Render(strings.Repeat("─", innerW))
 
+	filtered := p.list.FilteredItems()
+	cursor := p.list.Cursor()
 	var rows []string
-	for i, pv := range p.filtered {
+	for i, pv := range filtered {
 		statusStr := p.providerStatusTag(pv)
 		nameStr := lipgloss.NewStyle().Foreground(colorText).Render(pv.DisplayName)
 		descStr := ""
@@ -210,7 +190,7 @@ func (p *configPanel) viewList(w, innerW int) string {
 		}
 
 		var row string
-		if i == p.cursor {
+		if i == cursor {
 			indicator := lipgloss.NewStyle().Bold(true).Foreground(colorPrimary).Render("▶ ")
 			left := "  " + indicator + lipgloss.NewStyle().Bold(true).Foreground(colorPrimary).Render(pv.DisplayName)
 			if descStr != "" {
@@ -370,17 +350,5 @@ func (p *configPanel) providerStatusTag(pv tui.ProviderStatus) string {
 
 // centred returns the panel horizontally centred (vertical centring via overlayOn).
 func (p *configPanel) centred() string {
-	box := p.View()
-	lines := strings.Split(box, "\n")
-	boxW := lipgloss.Width(lines[0])
-	left := max(0, (p.width-boxW)/2)
-	pad := strings.Repeat(" ", left)
-	var sb strings.Builder
-	for i, l := range lines {
-		if i > 0 {
-			sb.WriteString("\n")
-		}
-		sb.WriteString(pad + l)
-	}
-	return sb.String()
+	return common.CenterHorizontally(p.View(), p.width)
 }

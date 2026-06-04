@@ -14,6 +14,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	clipboard "github.com/atotto/clipboard"
 )
 
@@ -727,7 +728,7 @@ func (m Model) viewChat() string {
 
 	if m.state == statePermission && m.permission.HasPending() {
 		overlay := m.permission.View()
-		return overlayOn(base, overlay, m.width, m.height)
+		return common.OverlayOn(base, overlay, m.width, m.height)
 	}
 	return base
 }
@@ -741,7 +742,7 @@ func (m Model) viewSessions() string {
 	} else {
 		backdrop = m.viewWelcome()
 	}
-	return overlayOn(backdrop, overlay, m.width, m.height)
+	return common.OverlayOn(backdrop, overlay, m.width, m.height)
 }
 
 func (m Model) viewModelSelect() string {
@@ -753,7 +754,7 @@ func (m Model) viewModelSelect() string {
 	} else {
 		backdrop = m.viewWelcome()
 	}
-	return overlayOn(backdrop, overlay, m.width, m.height)
+	return common.OverlayOn(backdrop, overlay, m.width, m.height)
 }
 
 func (m Model) viewCommands() string {
@@ -765,7 +766,7 @@ func (m Model) viewCommands() string {
 	} else {
 		backdrop = m.viewWelcome()
 	}
-	return overlayOn(backdrop, overlay, m.width, m.height)
+	return common.OverlayOn(backdrop, overlay, m.width, m.height)
 }
 
 func (m Model) viewProviderConfig() string {
@@ -777,7 +778,7 @@ func (m Model) viewProviderConfig() string {
 	} else {
 		backdrop = m.viewWelcome()
 	}
-	return overlayOn(backdrop, overlay, m.width, m.height)
+	return common.OverlayOn(backdrop, overlay, m.width, m.height)
 }
 
 func (m Model) header() string {
@@ -943,38 +944,6 @@ func (m Model) deleteSession(id string) tea.Cmd {
 		m.workspace.ListSessions(m.ctx)
 		return nil
 	}
-}
-
-// ─── Overlay compositor ───────────────────────────────────────────────────────
-
-func overlayOn(base, overlay string, width, height int) string {
-	if overlay == "" {
-		return base
-	}
-	baseLines := strings.Split(base, "\n")
-	overlayLines := strings.Split(overlay, "\n")
-	overlayH := len(overlayLines)
-	for len(baseLines) < height {
-		baseLines = append(baseLines, strings.Repeat(" ", width))
-	}
-	// Centre the overlay vertically over the base.
-	topOffset := max(0, (height-overlayH)/2)
-	dim := lipgloss.NewStyle().Faint(true)
-	for i, line := range baseLines {
-		overlayRow := i - topOffset
-		if overlayRow >= 0 && overlayRow < overlayH {
-			ol := overlayLines[overlayRow]
-			if ol == "" {
-				// Transparent row: show dimmed base behind it.
-				baseLines[i] = dim.Render(line)
-			} else {
-				baseLines[i] = ol
-			}
-		} else {
-			baseLines[i] = dim.Render(line)
-		}
-	}
-	return strings.Join(baseLines, "\n")
 }
 
 // ─── Utilities ────────────────────────────────────────────────────────────────

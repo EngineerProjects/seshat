@@ -6,28 +6,34 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	tuilist "github.com/EngineerProjects/nexus-engine/internal/tui/list"
 )
 
 // modelDialog is the Ctrl+M model selection overlay.
 // Models are grouped by provider, with providers shown as headers.
 type modelDialog struct {
-	styles   Styles
-	models   []tui.ProviderModel
-	filtered []tui.ProviderModel
-	filter   string
-	cursor   int // index into filtered[] (headers excluded)
-	width    int
-	height   int
+	styles Styles
+	models []tui.ProviderModel
+	list   tuilist.State[tui.ProviderModel]
+	width  int
+	height int
 }
 
 func newModelDialog(styles Styles) *modelDialog {
-	return &modelDialog{styles: styles}
+	return &modelDialog{
+		styles: styles,
+		list: tuilist.NewState(func(m tui.ProviderModel, needle string) bool {
+			return strings.Contains(strings.ToLower(m.DisplayName), needle) ||
+				strings.Contains(strings.ToLower(m.Description), needle) ||
+				strings.Contains(strings.ToLower(m.Provider), needle)
+		}),
+	}
 }
 
 func (d *modelDialog) SetModels(models []tui.ProviderModel) {
 	d.models = models
-	d.cursor = 0
-	d.applyFilter()
+	d.list.SetItems(models)
 }
 
 func (d *modelDialog) SetSize(width, height int) {
@@ -35,52 +41,19 @@ func (d *modelDialog) SetSize(width, height int) {
 	d.height = height
 }
 
-func (d *modelDialog) TypeFilter(ch string) { d.filter += ch; d.cursor = 0; d.applyFilter() }
-func (d *modelDialog) DeleteFilter() {
-	if len(d.filter) > 0 {
-		d.filter = d.filter[:len(d.filter)-1]
-		d.cursor = 0
-		d.applyFilter()
-	}
-}
-func (d *modelDialog) ClearFilter() { d.filter = ""; d.cursor = 0; d.applyFilter() }
-
-func (d *modelDialog) Up() {
-	if d.cursor > 0 {
-		d.cursor--
-	}
-}
-
-func (d *modelDialog) Down() {
-	if d.cursor < len(d.filtered)-1 {
-		d.cursor++
-	}
-}
+func (d *modelDialog) TypeFilter(ch string) { d.list.TypeFilter(ch) }
+func (d *modelDialog) DeleteFilter()        { d.list.DeleteFilter() }
+func (d *modelDialog) ClearFilter()         { d.list.ClearFilter() }
+func (d *modelDialog) Up()                  { d.list.Up() }
+func (d *modelDialog) Down()                { d.list.Down() }
 
 // Selected returns the currently highlighted model, or nil.
 func (d *modelDialog) Selected() *tui.ProviderModel {
-	if d.cursor >= 0 && d.cursor < len(d.filtered) {
-		m := d.filtered[d.cursor]
-		return &m
+	m, ok := d.list.Selected()
+	if !ok {
+		return nil
 	}
-	return nil
-}
-
-func (d *modelDialog) applyFilter() {
-	if d.filter == "" {
-		d.filtered = make([]tui.ProviderModel, len(d.models))
-		copy(d.filtered, d.models)
-		return
-	}
-	needle := strings.ToLower(d.filter)
-	d.filtered = d.filtered[:0]
-	for _, m := range d.models {
-		if strings.Contains(strings.ToLower(m.DisplayName), needle) ||
-			strings.Contains(strings.ToLower(m.Description), needle) ||
-			strings.Contains(strings.ToLower(m.Provider), needle) {
-			d.filtered = append(d.filtered, m)
-		}
-	}
+	return &m
 }
 
 // prettyProvider returns a display name for a provider identifier.
@@ -128,7 +101,7 @@ func (d *modelDialog) buildVisualRows(innerW int) []visualRow {
 
 	var groups []group
 	providerIdx := map[string]int{}
-	for _, m := range d.filtered {
+	for _, m := range d.list.FilteredItems() {
 		key := strings.ToLower(strings.TrimSpace(m.Provider))
 		if key == "" {
 			key = "other"
@@ -170,7 +143,7 @@ func (d *modelDialog) buildVisualRows(innerW int) []visualRow {
 				name = m.DisplayName
 			}
 
-			selected := globalIdx == d.cursor
+			selected := globalIdx == d.list.Cursor()
 
 			// Build the right-side info (description + context).
 			info := ""
@@ -229,7 +202,7 @@ func (d *modelDialog) View() string {
 	innerW := w - 4 // account for border + padding
 
 	title := d.styles.BrowserTitle.Render("  Switch Model")
-	filterLine := d.styles.BrowserFilter.Width(innerW).Render("  / " + d.filter + "█")
+	filterLine := d.styles.BrowserFilter.Width(innerW).Render("  / " + d.list.Filter() + "█")
 	sep := d.styles.MsgTimestamp.Render(strings.Repeat("─", innerW))
 
 	// Build all visual rows.
@@ -238,7 +211,7 @@ func (d *modelDialog) View() string {
 	// Find the visual position of the selected cursor row.
 	selectedVR := 0
 	for i, row := range allRows {
-		if row.cursorIdx == d.cursor {
+		if row.cursorIdx == d.list.Cursor() {
 			selectedVR = i
 			break
 		}
@@ -263,16 +236,17 @@ func (d *modelDialog) View() string {
 	}
 
 	scrollNote := ""
-	if len(d.filtered) > 0 {
+	filtered := d.list.FilteredItems()
+	if len(filtered) > 0 {
 		visible := 0
 		for _, row := range allRows[start:end] {
 			if row.cursorIdx >= 0 {
 				visible++
 			}
 		}
-		if len(d.filtered) > visible {
+		if len(filtered) > visible {
 			scrollNote = d.styles.MsgTimestamp.Render(
-				fmt.Sprintf("  %d of %d models", d.cursor+1, len(d.filtered)),
+				fmt.Sprintf("  %d of %d models", d.list.Cursor()+1, len(filtered)),
 			)
 		}
 	}
@@ -294,17 +268,5 @@ func (d *modelDialog) View() string {
 // centred returns the panel positioned horizontally centred.
 // Vertical centering is handled by overlayOn().
 func (d *modelDialog) centred() string {
-	box := d.View()
-	lines := strings.Split(box, "\n")
-	boxW := lipgloss.Width(lines[0]) // use first line (top border) for true width
-	left := max(0, (d.width-boxW)/2)
-	pad := strings.Repeat(" ", left)
-	var sb strings.Builder
-	for i, l := range lines {
-		if i > 0 {
-			sb.WriteString("\n")
-		}
-		sb.WriteString(pad + l)
-	}
-	return sb.String()
+	return common.CenterHorizontally(d.View(), d.width)
 }
