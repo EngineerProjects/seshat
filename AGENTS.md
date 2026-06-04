@@ -26,13 +26,39 @@ If `go test` fails, investigate and fix the root cause. Do not disable tests or 
 
 ---
 
+## Branching strategy
+
+```
+main        production-ready, tagged releases only
+  └── dev   stable integration — all work lands here first via PR
+        └── feat/<slug>   one branch per issue
+```
+
+- Always branch off `dev`. Never commit directly to `main`.
+- PRs target `dev`. The `dev → main` merge happens at milestone boundaries.
+- The **Gate CI check** (Build + Test + Lint) must be green before any PR can merge.
+- Name branches `feat/<short-slug>` (e.g. `feat/team-executor`, `fix/stream-timeout`).
+
+---
+
 ## Package boundary rules (critical)
 
 - `pkg/` is the **public API**. Do not add `internal/` types to `pkg/` signatures without explicit need.
 - `internal/` packages must **never** import `pkg/` — dependency flows one way: entry points → `pkg/sdk` → `internal/`.
-- `internal/backend` does **not** exist here. It lives in nexus-product. Do not recreate it. If you need a server-side feature, ask whether it belongs in nexus-product.
+- `internal/backend` does **not** exist here. It lives in nexus-product. Do not recreate it.
 - New tools go in `internal/tools/<category>/`. Register them in `internal/tools/builtin/builtin.go`.
 - New providers go in `internal/providers/`. Add a wire-format adapter in `internal/providers/adapter.go`.
+
+### Multi-agent package boundaries (strict — no cycles)
+
+```
+internal/agent    →  AgentProfile, ProfileRegistry  (who agents are)
+internal/mailbox  →  Message, Mailbox               (how they communicate)
+internal/team     →  Dispatcher, TeamBus            (coordination layer)
+```
+
+`internal/team` imports `agent` and `mailbox`. Neither `agent` nor `mailbox` imports `team`.
+See [`docs/team.md`](./docs/team.md) for the full multi-agent system documentation.
 
 ---
 
@@ -58,6 +84,7 @@ If `go test` fails, investigate and fix the root cause. Do not disable tests or 
 - No `interface{}` — use `any` (Go 1.18+).
 - Struct fields that are interfaces: use pointer receivers consistently within the same type.
 - New public types in `pkg/` need exported doc comments.
+- Value receivers on types that contain `sync.Mutex` or `sync.RWMutex` are forbidden — always use pointer receivers.
 
 ---
 
@@ -71,6 +98,7 @@ When you add or change behavior, also update:
 | New provider | `docs/providers.md` — add to the provider table + model list |
 | New `ClientConfig` field | `docs/sdk.md` — add to the ClientConfig reference |
 | New env var | `docs/transports.md` — add to the env var table |
+| New multi-agent feature | `docs/team.md` — update the relevant section |
 | Breaking change | `CHANGELOG.md` — add to `[Unreleased] → Changed` |
 | New public API | `docs/sdk.md` or the relevant doc file |
 
@@ -86,9 +114,9 @@ Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `perf`, `ci`.
 
 Examples:
 ```
-feat(tools): add generate_image tool with OpenAI and Gemini support
-fix(providers): handle retry-after header correctly in Anthropic adapter
-docs(sdk): document RuntimeEventFn callback and event type list
+feat(team): add TeamRegistry with SQLite-backed CRUD
+fix(providers): honour retry-after header on 429 responses
+docs(team): document Dispatcher.Assign routing strategy
 ```
 
 ---
@@ -96,6 +124,7 @@ docs(sdk): document RuntimeEventFn callback and event type list
 ## When in doubt
 
 - Read [`docs/architecture.md`](./docs/architecture.md) for the package map.
+- Read [`docs/team.md`](./docs/team.md) for the multi-agent system.
 - Read [`docs/vision/idea.md`](./docs/vision/idea.md) for design principles.
 - Read [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full contribution guide.
 - Do not make speculative changes. Only change what is needed to accomplish the stated task.
