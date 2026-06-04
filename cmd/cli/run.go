@@ -9,6 +9,8 @@ import (
 	"os"
 	"strings"
 
+	"github.com/mattn/go-isatty"
+
 	"github.com/EngineerProjects/nexus-engine/internal/memory"
 	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
@@ -80,6 +82,7 @@ func runOnce(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 func runChat(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	flags := flag.NewFlagSet("chat", flag.ContinueOnError)
 	flags.SetOutput(stderr)
+	noTUI := flags.Bool("no-tui", false, "")
 
 	model := flags.String("model", "", "")
 	permissionMode := flags.String("permission-mode", "", "")
@@ -102,6 +105,14 @@ func runChat(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	if err != nil {
 		return err
 	}
+
+	// Launch the TUI when running interactively. Fall back to the text-mode
+	// chat loop when stdout is not a terminal or --no-tui is passed.
+	if !*noTUI && isatty.IsTerminal(os.Stdout.Fd()) {
+		_ = resumeSessionID // future: pass to workspace for auto-resume
+		return runInteractive(ctx, options)
+	}
+
 	if err := validateProviderSetup(options); err != nil {
 		return err
 	}
