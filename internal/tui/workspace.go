@@ -7,7 +7,7 @@ import (
 	"context"
 	"time"
 
-	tea "github.com/charmbracelet/bubbletea"
+	tea "charm.land/bubbletea/v2"
 )
 
 // ─── Tea message types ────────────────────────────────────────────────────────
@@ -86,6 +86,29 @@ type SessionLoadedMsg struct {
 // ErrMsg wraps an error to display in the UI.
 type ErrMsg struct{ Err error }
 
+// ─── Model selection ──────────────────────────────────────────────────────────
+
+// ProviderModel is the TUI's view of a single model entry.
+type ProviderModel struct {
+	Provider    string
+	Identifier  string
+	DisplayName string // "Anthropic / claude-sonnet-4"
+	Description string
+	Context     int
+}
+
+// ModelListMsg carries the available models from the workspace.
+type ModelListMsg struct {
+	Models []ProviderModel
+	Err    error
+}
+
+// ModelChangedMsg signals the user selected a new model.
+type ModelChangedMsg struct {
+	Provider string
+	Model    string
+}
+
 // ─── Value types ──────────────────────────────────────────────────────────────
 
 // SessionInfo is the TUI's lightweight view of a persisted session.
@@ -124,6 +147,12 @@ type Workspace interface {
 	ModelString() string
 	WorkingDir() string
 	PermissionMode() string
+
+	// Model selection
+	// ListModels sends a ModelListMsg with all available models.
+	ListModels(ctx context.Context)
+	// SetModel switches the active model (provider:model string).
+	SetModel(providerID, modelID string)
 
 	// Subscribe registers the tea.Program so the workspace can push events.
 	// Must be called before the first Submit.

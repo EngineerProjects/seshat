@@ -1,6 +1,6 @@
 package model
 
-import "github.com/charmbracelet/bubbles/key"
+import "charm.land/bubbles/v2/key"
 
 // KeyMap groups all key bindings for the TUI.
 type KeyMap struct {

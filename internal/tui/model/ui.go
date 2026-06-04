@@ -8,21 +8,21 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/charmbracelet/bubbles/spinner"
-	"github.com/charmbracelet/bubbles/textarea"
-	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
+	"charm.land/bubbles/v2/spinner"
+	"charm.land/bubbles/v2/textarea"
+	tea "charm.land/bubbletea/v2"
+	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 )
 
-// uiState is the coarse state machine for the TUI.
 type uiState uint8
 
 const (
-	stateWelcome  uiState = iota // before any session is active
-	stateChat                    // active session, chat visible
-	stateSessions                // session browser overlay
-	statePermission              // permission dialog overlay (on top of chat)
+	stateWelcome    uiState = iota
+	stateChat
+	stateSessions
+	statePermission
+	stateModelSelect
 )
 
 const (
@@ -30,7 +30,7 @@ const (
 	footerHeight = 1
 	inputMinH    = 3
 	inputMaxH    = 7
-	inputPadding = 2 // border top + bottom
+	inputPadding = 2
 )
 
 // Model is the top-level BubbleTea model for nexus-engine's TUI.
@@ -39,37 +39,32 @@ type Model struct {
 	ctx       context.Context
 	cancel    context.CancelFunc
 
-	state   uiState
-	keys    KeyMap
-	styles  Styles
+	state  uiState
+	keys   KeyMap
+	styles Styles
 
 	width  int
 	height int
 
-	// Components
-	chat       *chat
-	sessions   *sessionList
-	permission *permissionDialog
-	input      textarea.Model
-	spinner    spinner.Model
+	chat        *chat
+	sessions    *sessionList
+	permission  *permissionDialog
+	modelSelect *modelDialog
+	input       textarea.Model
+	spinner     spinner.Model
 
-	// Agent state
 	busy          bool
 	activeSession string
 	lastErr       error
-
-	// Accumulated text input for permission dialogs (text/choice type)
-	permInput string
+	permInput     string
 }
 
-// New creates a new TUI model.
 func New(ws tui.Workspace, ctx context.Context) Model {
 	ctx, cancel := context.WithCancel(ctx)
 
 	styles := DefaultStyles()
 	keys := DefaultKeys()
 
-	// Textarea
 	ta := textarea.New()
 	ta.Placeholder = "Type a message… (enter to send, shift+enter for newline)"
 	ta.Focus()
@@ -78,27 +73,27 @@ func New(ws tui.Workspace, ctx context.Context) Model {
 	ta.SetWidth(80)
 	ta.SetHeight(inputMinH)
 
-	// Spinner
 	sp := spinner.New()
 	sp.Spinner = spinner.Dot
 	sp.Style = lipgloss.NewStyle().Foreground(colorYellow)
 
 	return Model{
-		workspace:  ws,
-		ctx:        ctx,
-		cancel:     cancel,
-		state:      stateWelcome,
-		keys:       keys,
-		styles:     styles,
-		chat:       newChat(styles, 80, 20),
-		sessions:   newSessionList(styles),
-		permission: newPermissionDialog(styles),
-		input:      ta,
-		spinner:    sp,
+		workspace:   ws,
+		ctx:         ctx,
+		cancel:      cancel,
+		state:       stateWelcome,
+		keys:        keys,
+		styles:      styles,
+		chat:        newChat(styles, 80, 20),
+		sessions:    newSessionList(styles),
+		permission:  newPermissionDialog(styles),
+		modelSelect: newModelDialog(styles),
+		input:       ta,
+		spinner:     sp,
 	}
 }
 
-// ─── BubbleTea interface ──────────────────────────────────────────────────────
+// ─── BubbleTea v2 interface ───────────────────────────────────────────────────
 
 func (m Model) Init() tea.Cmd {
 	return tea.Batch(
@@ -112,21 +107,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmds []tea.Cmd
 
 	switch msg := msg.(type) {
-	// ── Window resize ──────────────────────────────────────────────────────
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
 		m = m.relayout()
 
-	// ── Spinner tick ───────────────────────────────────────────────────────
 	case spinner.TickMsg:
 		if m.busy {
 			newSp, cmd := m.spinner.Update(msg)
 			m.spinner = newSp
 			cmds = append(cmds, cmd)
 		}
-
-	// ── Workspace events ───────────────────────────────────────────────────
 
 	case tui.ChunkMsg:
 		if m.state == stateChat || m.state == statePermission {
@@ -183,15 +174,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.chat.AddSystem("Resumed session · " + shortID(msg.ID))
 			m.input.Focus()
 		}
-		if m.state != statePermission {
-			// close session browser after loading
+
+	case tui.ModelListMsg:
+		if msg.Err == nil {
+			m.modelSelect.SetModels(msg.Models)
 		}
+
+	case tui.ModelChangedMsg:
+		// Header will pick up new model string from workspace.ModelString()
 
 	case tui.ErrMsg:
 		m.lastErr = msg.Err
 
-	// ── Keyboard ───────────────────────────────────────────────────────────
-	case tea.KeyMsg:
+	// v2 uses KeyPressMsg instead of KeyMsg
+	case tea.KeyPressMsg:
 		cmd := m.handleKey(msg)
 		if cmd != nil {
 			cmds = append(cmds, cmd)
@@ -199,41 +195,47 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, tea.Batch(cmds...)
 	}
 
-	// Propagate to textarea when in chat state.
 	if m.state == stateChat {
 		newInput, cmd := m.input.Update(msg)
 		m.input = newInput
 		cmds = append(cmds, cmd)
-		// Resize input based on content.
 		m = m.resizeInput()
 	}
 
 	return m, tea.Batch(cmds...)
 }
 
-func (m Model) View() string {
+// View returns a tea.View (v2 API — not a string).
+func (m Model) View() tea.View {
 	if m.width == 0 {
-		return ""
+		return tea.NewView("")
 	}
 
+	var content string
 	switch m.state {
 	case stateWelcome:
-		return m.viewWelcome()
+		content = m.viewWelcome()
 	case stateSessions:
-		return m.viewSessions()
+		content = m.viewSessions()
+	case stateModelSelect:
+		content = m.viewModelSelect()
 	case stateChat, statePermission:
-		return m.viewChat()
+		content = m.viewChat()
 	default:
-		return m.viewChat()
+		content = m.viewChat()
 	}
+
+	v := tea.NewView(content)
+	v.AltScreen = true
+	v.MouseMode = tea.MouseModeCellMotion
+	return v
 }
 
 // ─── Key handling ─────────────────────────────────────────────────────────────
 
-func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
+func (m *Model) handleKey(msg tea.KeyPressMsg) tea.Cmd {
 	k := msg.String()
 
-	// ── Permission dialog ────────────────────────────────────────────────
 	if m.state == statePermission && m.permission.HasPending() {
 		switch {
 		case k == "y" || k == "Y":
@@ -251,27 +253,50 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		return nil
 	}
 
-	// ── Session browser ──────────────────────────────────────────────────
-	if m.state == stateSessions {
-		switch {
-		case k == "esc" || k == "ctrl+s":
+	// ── Model selection dialog ───────────────────────────────────────────
+	if m.state == stateModelSelect {
+		switch k {
+		case "esc", "ctrl+m":
 			m.state = m.prevChatState()
-		case k == "up" || k == "k":
+		case "up", "k":
+			m.modelSelect.Up()
+		case "down", "j":
+			m.modelSelect.Down()
+		case "enter":
+			if sel := m.modelSelect.Selected(); sel != nil {
+				m.workspace.SetModel(sel.Provider, sel.Identifier)
+				m.state = m.prevChatState()
+			}
+		case "backspace":
+			m.modelSelect.DeleteFilter()
+		default:
+			if len(k) == 1 {
+				m.modelSelect.TypeFilter(k)
+			}
+		}
+		return nil
+	}
+
+	if m.state == stateSessions {
+		switch k {
+		case "esc", "ctrl+s":
+			m.state = m.prevChatState()
+		case "up", "k":
 			m.sessions.Up()
-		case k == "down" || k == "j":
+		case "down", "j":
 			m.sessions.Down()
-		case k == "enter":
+		case "enter":
 			id := m.sessions.Selected()
 			if id != "" {
 				m.state = stateChat
 				return m.loadSession(id)
 			}
-		case k == "d" || k == "delete":
+		case "d", "delete":
 			id := m.sessions.DeleteSelected()
 			if id != "" {
 				return m.deleteSession(id)
 			}
-		case k == "backspace":
+		case "backspace":
 			m.sessions.DeleteFilter()
 		default:
 			if len(k) == 1 {
@@ -281,7 +306,6 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		return nil
 	}
 
-	// ── Global shortcuts (all states) ────────────────────────────────────
 	switch k {
 	case "ctrl+c":
 		if m.busy {
@@ -300,9 +324,14 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 		}
 	case "ctrl+n":
 		return m.createSession()
+	case "ctrl+m":
+		if m.state != stateModelSelect {
+			m.state = stateModelSelect
+			m.modelSelect.ClearFilter()
+			return m.listModels()
+		}
 	}
 
-	// ── Chat / welcome state ─────────────────────────────────────────────
 	if m.state == stateChat || m.state == stateWelcome {
 		switch k {
 		case "enter":
@@ -310,19 +339,23 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 			if text == "" || m.busy {
 				return nil
 			}
+			if m.activeSession == "" {
+				// Auto-create session on first message
+				return tea.Batch(m.createSession(), func() tea.Msg {
+					return pendingSubmitMsg{prompt: text}
+				})
+			}
 			m.input.Reset()
 			m.chat.AddUserMessage(text)
 			m.workspace.Submit(m.ctx, text)
 			return nil
 
 		case "shift+enter", "alt+enter":
-			// Let the textarea handle newline insertion.
 			var cmd tea.Cmd
 			m.input, cmd = m.input.Update(msg)
 			return cmd
 
 		case "up":
-			// If input is empty and at top, scroll chat.
 			if m.input.Value() == "" {
 				m.chat.ScrollUp(3)
 				return nil
@@ -346,11 +379,13 @@ func (m *Model) handleKey(msg tea.KeyMsg) tea.Cmd {
 	return nil
 }
 
+// pendingSubmitMsg is used to queue a prompt while session creation is pending.
+type pendingSubmitMsg struct{ prompt string }
+
 // ─── Views ────────────────────────────────────────────────────────────────────
 
 func (m Model) viewWelcome() string {
 	logo := m.styles.Logo.Render("◉ NEXUS")
-
 	tagline := m.styles.HeaderModel.Render("One runtime. Any LLM. Any language.")
 
 	hint := strings.Join([]string{
@@ -361,7 +396,7 @@ func (m Model) viewWelcome() string {
 
 	body := lipgloss.NewStyle().
 		Width(m.width).
-		Height(m.height-2).
+		Height(m.height - 2).
 		Align(lipgloss.Center, lipgloss.Center).
 		Render(logo + "\n\n" + tagline + "\n\n" + hint)
 
@@ -369,42 +404,46 @@ func (m Model) viewWelcome() string {
 }
 
 func (m Model) viewChat() string {
-	header := m.header()
-	footer := m.footer()
 	inputView := m.inputView()
-
 	chatH := m.height - headerHeight - footerHeight - lipgloss.Height(inputView)
 	m.chat.SetSize(m.width, max(1, chatH))
 	chatView := m.chat.View()
 
 	base := strings.Join([]string{
-		header,
+		m.header(),
 		chatView,
 		inputView,
-		footer,
+		m.footer(),
 	}, "\n")
 
-	// Overlay the permission dialog if active.
 	if m.state == statePermission && m.permission.HasPending() {
 		overlay := m.permission.View()
 		return overlayOn(base, overlay, m.width, m.height)
 	}
-
 	return base
 }
 
 func (m Model) viewSessions() string {
 	m.sessions.SetSize(m.width, m.height)
 	overlay := m.sessions.centred()
-
-	// Render the underlying chat/welcome as the backdrop.
 	var backdrop string
 	if m.activeSession != "" {
 		backdrop = m.viewChat()
 	} else {
 		backdrop = m.viewWelcome()
 	}
+	return overlayOn(backdrop, overlay, m.width, m.height)
+}
 
+func (m Model) viewModelSelect() string {
+	m.modelSelect.SetSize(m.width, m.height)
+	overlay := m.modelSelect.centred()
+	var backdrop string
+	if m.activeSession != "" {
+		backdrop = m.viewChat()
+	} else {
+		backdrop = m.viewWelcome()
+	}
 	return overlayOn(backdrop, overlay, m.width, m.height)
 }
 
@@ -422,41 +461,39 @@ func (m Model) header() string {
 		status = m.styles.HeaderReady.Render("ready")
 	}
 
-	right := status
 	left := logo + sep + model
-
-	gap := m.width - lipgloss.Width(left) - lipgloss.Width(right) - 2
+	gap := m.width - lipgloss.Width(left) - lipgloss.Width(status) - 2
 	if gap < 1 {
 		gap = 1
 	}
-
-	return left + strings.Repeat(" ", gap) + right
+	return left + strings.Repeat(" ", gap) + status
 }
 
 func (m Model) footer() string {
 	items := []string{
 		m.styles.Key.Render("ctrl+n") + " " + m.styles.Desc.Render("new"),
 		m.styles.Key.Render("ctrl+s") + " " + m.styles.Desc.Render("sessions"),
+		m.styles.Key.Render("ctrl+m") + " " + m.styles.Desc.Render("model"),
 		m.styles.Key.Render("ctrl+c") + " " + m.styles.Desc.Render("cancel/quit"),
 	}
-	line := strings.Join(items, "  ")
-	return m.styles.Footer.Render(line)
+	return m.styles.Footer.Render(strings.Join(items, "  "))
 }
 
 func (m Model) inputView() string {
 	return m.styles.InputBorder.Width(m.width - 2).Render(m.input.View())
 }
 
-// ─── Layout helpers ───────────────────────────────────────────────────────────
+// ─── Layout ───────────────────────────────────────────────────────────────────
 
 func (m Model) relayout() Model {
-	inputW := m.width - 4 // 2 border + 2 padding
+	inputW := m.width - 4
 	if inputW < 10 {
 		inputW = 10
 	}
 	m.input.SetWidth(inputW)
 	m.sessions.SetSize(m.width, m.height)
 	m.permission.SetSize(m.width, m.height)
+	m.modelSelect.SetSize(m.width, m.height)
 	m.chat.SetSize(m.width, max(1, m.height-headerHeight-footerHeight-inputMinH-inputPadding))
 	return m
 }
@@ -478,24 +515,19 @@ func (m Model) prevChatState() uiState {
 // ─── Workspace commands ───────────────────────────────────────────────────────
 
 func (m Model) loadSessions() tea.Cmd {
-	return func() tea.Msg {
-		m.workspace.ListSessions(m.ctx)
-		return nil
-	}
+	return func() tea.Msg { m.workspace.ListSessions(m.ctx); return nil }
+}
+
+func (m Model) listModels() tea.Cmd {
+	return func() tea.Msg { m.workspace.ListModels(m.ctx); return nil }
 }
 
 func (m Model) createSession() tea.Cmd {
-	return func() tea.Msg {
-		m.workspace.CreateSession(m.ctx)
-		return nil
-	}
+	return func() tea.Msg { m.workspace.CreateSession(m.ctx); return nil }
 }
 
 func (m Model) loadSession(id string) tea.Cmd {
-	return func() tea.Msg {
-		m.workspace.LoadSession(m.ctx, id)
-		return nil
-	}
+	return func() tea.Msg { m.workspace.LoadSession(m.ctx, id); return nil }
 }
 
 func (m Model) deleteSession(id string) tea.Cmd {
@@ -508,34 +540,26 @@ func (m Model) deleteSession(id string) tea.Cmd {
 
 // ─── Overlay compositor ───────────────────────────────────────────────────────
 
-// overlayOn places overlay centred on a dimmed base using line-by-line merging.
 func overlayOn(base, overlay string, width, height int) string {
 	if overlay == "" {
 		return base
 	}
-
 	baseLines := strings.Split(base, "\n")
 	overlayLines := strings.Split(overlay, "\n")
 	overlayH := len(overlayLines)
-
 	for len(baseLines) < height {
 		baseLines = append(baseLines, strings.Repeat(" ", width))
 	}
-
 	topOffset := max(0, (height-overlayH)/2)
-
 	dim := lipgloss.NewStyle().Faint(true)
-
 	for i, line := range baseLines {
 		overlayRow := i - topOffset
 		if overlayRow >= 0 && overlayRow < overlayH {
-			// Replace this row with the overlay line (already includes its own padding).
 			baseLines[i] = overlayLines[overlayRow]
 		} else {
 			baseLines[i] = dim.Render(line)
 		}
 	}
-
 	return strings.Join(baseLines, "\n")
 }
 
@@ -561,14 +585,10 @@ func clamp(v, lo, hi int) int {
 // Run starts the BubbleTea program and blocks until it exits.
 func Run(ws tui.Workspace, ctx context.Context) error {
 	m := New(ws, ctx)
-	p := tea.NewProgram(m,
-		tea.WithAltScreen(),
-		tea.WithMouseCellMotion(),
-	)
+	p := tea.NewProgram(m, tea.WithContext(ctx))
 	ws.Subscribe(p)
 	_, err := p.Run()
 	return err
 }
 
-// Unused but satisfies the compiler — will be used by session browser footer.
 var _ = fmt.Sprintf

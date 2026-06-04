@@ -261,6 +261,11 @@ func LoadInto(config *Config) error {
 	}
 
 	config.RuntimeRoot = runtimepath.ResolveRoot(config.RuntimeRoot)
+
+	// Evaluate any $(...) shell substitutions in credential fields.
+	// This allows api_key: "$(vault kv get -field=token secret/api)" in .nexus.yaml.
+	ExpandShellValues(config)
+
 	ApplyRuntimeEnv(*config)
 	return nil
 }
