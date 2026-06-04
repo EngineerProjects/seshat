@@ -13,9 +13,17 @@ main          production-ready, tagged releases only
 ```
 
 - Branch off `dev`, not `main`.
+- Never commit or push directly to `main`.
+- Never commit or push directly to `dev`.
+- All work must flow through PRs: `feat/*` or `fix/*` → `dev`, then `dev` → `main`.
 - Name your branch `feat/<short-slug>` (e.g. `feat/oauth-codex`, `fix/stream-timeout`).
-- Open PRs **targeting `dev`**. The `dev` → `main` merge is done by maintainers at milestone boundaries.
+- Open PRs **targeting `dev`**. The only allowed PR into `main` is `dev` → `main`, opened by maintainers for final validation at milestone boundaries.
+- Direct PRs from feature or fix branches into `main` will be closed without merge.
 - The **Gate CI check** must be green before any PR can be merged (Build + Test + Lint all pass).
+
+If someone makes an exceptional direct push to `main`, recreate or realign
+`dev` from `main` before continuing normal feature work. Do not stack new
+feature branches on top of a diverged `dev`.
 
 ---
 

@@ -34,10 +34,17 @@ main        production-ready, tagged releases only
         └── feat/<slug>   one branch per issue
 ```
 
-- Always branch off `dev`. Never commit directly to `main`.
-- PRs target `dev`. The `dev → main` merge happens at milestone boundaries.
+- Always branch off `dev`.
+- Never commit or push directly to `main`.
+- Never commit or push directly to `dev`.
+- All work must land through a PR: `feat/*` or `fix/*` → `dev`, then `dev` → `main`.
+- PRs target `dev`. The only allowed PR into `main` is `dev` → `main` for final validation by maintainers.
+- Direct PRs from feature or fix branches into `main` must be closed without merge.
 - The **Gate CI check** (Build + Test + Lint) must be green before any PR can merge.
 - Name branches `feat/<short-slug>` (e.g. `feat/team-executor`, `fix/stream-timeout`).
+
+If an exceptional direct push ever lands on `main`, stop feature work and
+realign `dev` from `main` immediately before opening new feature branches.
 
 ---
 

@@ -83,24 +83,41 @@ jobs:
           install-mode: goinstall
           args: --timeout=5m
 
+  branch-policy:
+    name: Branch Policy
+    runs-on: ubuntu-latest
+    steps:
+      - name: Enforce dev -> main PR flow
+        run: |
+          if [[ "${{ github.event_name }}" == "pull_request" && \
+                "${{ github.base_ref }}" == "main" && \
+                "${{ github.head_ref }}" != "dev" ]]; then
+            echo "Pull requests targeting main must come from dev."
+            echo "Current head branch: ${{ github.head_ref }}"
+            exit 1
+          fi
+          echo "Branch policy check passed."
+
   # gate is the single required status check for branch protection.
   # Adding new jobs above automatically blocks the merge without
   # touching the branch protection rules again.
   gate:
     name: Gate
     runs-on: ubuntu-latest
-    needs: [build, test, lint]
+    needs: [build, test, lint, branch-policy]
     if: always()
     steps:
       - name: All checks passed
         run: |
           if [[ "${{ needs.build.result }}" != "success" || \
                 "${{ needs.test.result }}"  != "success" || \
-                "${{ needs.lint.result }}"  != "success" ]]; then
+                "${{ needs.lint.result }}"  != "success" || \
+                "${{ needs.branch-policy.result }}" != "success" ]]; then
             echo "One or more required checks failed."
             echo "  build: ${{ needs.build.result }}"
             echo "  test:  ${{ needs.test.result }}"
             echo "  lint:  ${{ needs.lint.result }}"
+            echo "  branch-policy: ${{ needs.branch-policy.result }}"
             exit 1
           fi
           echo "All checks passed."
