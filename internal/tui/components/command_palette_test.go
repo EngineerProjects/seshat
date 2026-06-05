@@ -65,3 +65,30 @@ func TestCommandPaletteSetSectionItemsReplacesLiveSection(t *testing.T) {
 		t.Fatalf("expected live tools section to contain replacement item, got %q", view)
 	}
 }
+
+func TestCommandPaletteViewportKeepsPanelScrollable(t *testing.T) {
+	p := NewCommandPalette(common.DefaultStyles())
+	items := make([]PaletteItem, 0, 18)
+	for i := 0; i < 18; i++ {
+		items = append(items, PaletteItem{Kind: PaletteInfoKind, ID: "skill", Name: "skill-" + string(rune('a'+i)), Desc: "desc"})
+	}
+	p.SetSectionItems("skills", items)
+	p.SetSize(120, 18)
+	if !p.OpenSection("skills") {
+		t.Fatalf("expected skills section to open")
+	}
+	view := p.View()
+	if strings.Contains(view, "skill-r") {
+		t.Fatalf("expected overflowing rows to be clipped from initial viewport, got %q", view)
+	}
+	for i := 0; i < 17; i++ {
+		p.Down()
+	}
+	view = p.View()
+	if !strings.Contains(view, "skill-r") {
+		t.Fatalf("expected viewport to scroll to lower rows, got %q", view)
+	}
+	if !strings.Contains(view, "↑ more") {
+		t.Fatalf("expected scrolled viewport to indicate more rows above, got %q", view)
+	}
+}

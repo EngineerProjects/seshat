@@ -146,14 +146,15 @@ func (p *CommandPalette) Selected() *PaletteItem {
 }
 
 func (p *CommandPalette) View() string {
-	w := common.Clamp(p.width*4/5, 54, 90)
+	w := p.panelWidth()
 	innerW := w - 4
+	h := p.panelHeight()
 	title := p.styles.BrowserTitle.Render("  " + p.title())
 	filterContent := "  search " + p.list.Filter() + "█"
 	filterLine := p.styles.BrowserFilter.Width(innerW).Render(filterContent)
 	sep := p.styles.MsgTimestamp.Render(strings.Repeat("─", innerW))
 
-	rows := p.renderRows(innerW)
+	rows := p.renderRows(innerW, h)
 	if len(rows) == 0 {
 		rows = append(rows, p.styles.BrowserItem.Render("  no matches"))
 	}
@@ -166,7 +167,7 @@ func (p *CommandPalette) View() string {
 	parts = append(parts, rows...)
 	parts = append(parts, "", sep, hint)
 	content := strings.Join(parts, "\n")
-	return p.styles.BrowserBorder.Width(w).Render(content)
+	return p.styles.BrowserBorder.Width(w).Height(h).Render(content)
 }
 
 func (p *CommandPalette) title() string {
@@ -197,17 +198,65 @@ func (p *CommandPalette) subtitle(innerW int) string {
 	return p.styles.MsgTimestamp.Width(innerW).Render("  " + text)
 }
 
-func (p *CommandPalette) renderRows(innerW int) []string {
+func (p *CommandPalette) renderRows(innerW, panelHeight int) []string {
 	filtered := p.list.FilteredItems()
 	cursor := p.list.Cursor()
-	rows := make([]string, 0, len(filtered))
+	rows := make([]string, 0, len(filtered)*2)
 	for i, item := range filtered {
 		rows = append(rows, p.renderItem(item, i == cursor, innerW))
 		if i < len(filtered)-1 {
 			rows = append(rows, "")
 		}
 	}
-	return rows
+	return p.visibleRows(rows, panelHeight, innerW)
+}
+
+func (p *CommandPalette) panelWidth() int {
+	return common.Clamp(p.width-8, 54, 96)
+}
+
+func (p *CommandPalette) panelHeight() int {
+	return common.Clamp(p.height-4, 12, 26)
+}
+
+func (p *CommandPalette) visibleRows(rows []string, panelHeight, innerW int) []string {
+	maxRows := panelHeight - 9
+	if maxRows < 1 {
+		maxRows = 1
+	}
+	if len(rows) <= maxRows {
+		return rows
+	}
+	cursorRow := p.list.Cursor() * 2
+	start := cursorRow - maxRows/2
+	if start < 0 {
+		start = 0
+	}
+	if maxStart := len(rows) - maxRows; start > maxStart {
+		start = maxStart
+	}
+	if start%2 != 0 {
+		start--
+		if start < 0 {
+			start = 0
+		}
+	}
+	end := start + maxRows
+	if end > len(rows) {
+		end = len(rows)
+		start = end - maxRows
+		if start < 0 {
+			start = 0
+		}
+	}
+	visible := append([]string(nil), rows[start:end]...)
+	if start > 0 && len(visible) > 0 {
+		visible[0] = p.styles.MsgTimestamp.Width(innerW).Render("  ↑ more")
+	}
+	if end < len(rows) && len(visible) > 0 {
+		visible[len(visible)-1] = p.styles.MsgTimestamp.Width(innerW).Render("  ↓ more")
+	}
+	return visible
 }
 
 func sectionLabel(sectionID string) string {
