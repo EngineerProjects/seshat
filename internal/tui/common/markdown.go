@@ -60,10 +60,43 @@ func InvalidateMarkdownRendererCache() {
 func markdownStyleConfig() glamouransi.StyleConfig {
 	style := glamourstyles.DarkStyleConfig
 	empty := ""
+	softOrange := "249"
+	softAmber := "215"
+	nilBg := (*string)(nil)
+	bold := true
+
+	style.Heading.Color = &softOrange
+	style.Heading.Bold = &bold
+	style.Heading.BackgroundColor = nilBg
+
+	style.H1.Color = &softOrange
+	style.H1.Bold = &bold
+	style.H1.BackgroundColor = nilBg
+	style.H1.Prefix = empty
+
+	style.H2.Color = &softOrange
+	style.H2.Bold = &bold
+	style.H2.BackgroundColor = nilBg
 	style.H2.Prefix = empty
+
+	style.H3.Color = &softAmber
+	style.H3.Bold = &bold
+	style.H3.BackgroundColor = nilBg
 	style.H3.Prefix = empty
+
+	style.H4.Color = &softAmber
+	style.H4.Bold = &bold
+	style.H4.BackgroundColor = nilBg
 	style.H4.Prefix = empty
+
+	style.H5.Color = &softAmber
+	style.H5.Bold = &bold
+	style.H5.BackgroundColor = nilBg
 	style.H5.Prefix = empty
+
+	style.H6.Color = &softAmber
+	style.H6.Bold = &bold
+	style.H6.BackgroundColor = nilBg
 	style.H6.Prefix = empty
 	return style
 }

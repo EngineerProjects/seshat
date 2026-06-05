@@ -1233,10 +1233,12 @@ func (m Model) footer() string {
 			m.styles.Key.Render("n/p") + " " + m.styles.Desc.Render("tools"),
 			m.styles.Key.Render("space") + " " + m.styles.Desc.Render("preview"),
 			m.styles.Key.Render("o") + " " + m.styles.Desc.Render("details"),
+			m.styles.Key.Render("tab") + " " + m.styles.Desc.Render("focus"),
 			m.styles.Key.Render("ctrl+p") + " " + m.styles.Desc.Render("settings"),
 		}
 	} else {
 		leftItems = []string{
+			m.styles.Key.Render("tab") + " " + m.styles.Desc.Render("tools"),
 			m.styles.Key.Render("ctrl+p") + " " + m.styles.Desc.Render("settings"),
 			m.styles.Key.Render("ctrl+n") + " " + m.styles.Desc.Render("new"),
 			m.styles.Key.Render("ctrl+s") + " " + m.styles.Desc.Render("sessions"),
