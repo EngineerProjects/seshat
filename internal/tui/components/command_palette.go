@@ -270,8 +270,27 @@ func sectionLabel(sectionID string) string {
 	case "skills":
 		return "Skills"
 	default:
-		return strings.Title(sectionID)
+		return titleLabel(sectionID)
 	}
+}
+
+func titleLabel(value string) string {
+	if value == "" {
+		return ""
+	}
+	parts := strings.FieldsFunc(value, func(r rune) bool {
+		return r == '-' || r == '_' || r == ' '
+	})
+	if len(parts) == 0 {
+		return strings.ToUpper(value[:1]) + value[1:]
+	}
+	for i, part := range parts {
+		if part == "" {
+			continue
+		}
+		parts[i] = strings.ToUpper(part[:1]) + part[1:]
+	}
+	return strings.Join(parts, " ")
 }
 
 func (p *CommandPalette) renderItem(item PaletteItem, selected bool, innerW int) string {
