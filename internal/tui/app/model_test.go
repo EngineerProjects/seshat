@@ -7,6 +7,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 )
 
 type mockWorkspace struct{}
@@ -95,5 +96,24 @@ func TestModelResizeInputUsesTextareaLineCount(t *testing.T) {
 	m = m.resizeInput()
 	if got := m.input.Height(); got != inputMaxH {
 		t.Fatalf("expected input height %d, got %d", inputMaxH, got)
+	}
+}
+
+func TestModelHeaderRendersModelAndStatusPills(t *testing.T) {
+	m := New(mockWorkspace{}, context.Background())
+	m.width = 100
+	m.activeSession = "session-1234567890abcdef"
+	header := m.header()
+	if !strings.Contains(header, "NEXUS") {
+		t.Fatalf("expected header to include wordmark, got %q", header)
+	}
+	if !strings.Contains(header, "test/model") {
+		t.Fatalf("expected header to include model pill, got %q", header)
+	}
+	if !strings.Contains(header, "live") {
+		t.Fatalf("expected header to include session status pill, got %q", header)
+	}
+	if !strings.Contains(header, common.ShortID(m.activeSession)) {
+		t.Fatalf("expected header to include short session id, got %q", header)
 	}
 }

@@ -866,27 +866,37 @@ func (m Model) viewProviderConfig() string {
 }
 
 func (m Model) header() string {
-	logo := m.styles.Logo.Render("◉ NEXUS")
-	sep := m.styles.HeaderSep.Render("  │  ")
-	model := m.styles.HeaderModel.Render(m.workspace.ModelString())
+	logo := m.styles.Logo.Render("NEXUS")
+	model := m.styles.HeaderPill.Render(m.workspace.ModelString())
+	left := lipgloss.JoinHorizontal(lipgloss.Center, logo, " ", model)
 
-	var status string
+	var right string
 	if m.busy {
-		status = m.spinner.View() + " " + m.styles.HeaderBusy.Render("working")
+		right = m.styles.HeaderPillBusy.Render(m.spinner.View() + " working")
 	} else if m.focus == uiFocusMain && m.state == stateChat {
-		status = m.styles.HeaderBusy.Render("↕ chat") + "  " + m.styles.HeaderID.Render("n/p: tools · o: details")
+		right = lipgloss.JoinHorizontal(
+			lipgloss.Center,
+			m.styles.HeaderPillActive.Render("tools"),
+			" ",
+			m.styles.HeaderID.Render("n/p navigate · space expand · o details"),
+		)
 	} else if m.activeSession != "" {
-		status = m.styles.HeaderReady.Render("●") + " " + m.styles.HeaderID.Render(common.ShortID(m.activeSession))
+		right = lipgloss.JoinHorizontal(
+			lipgloss.Center,
+			m.styles.HeaderPillReady.Render("● live"),
+			" ",
+			m.styles.HeaderPill.Render(common.ShortID(m.activeSession)),
+		)
 	} else {
-		status = m.styles.HeaderReady.Render("ready")
+		right = m.styles.HeaderPillReady.Render("ready")
 	}
 
-	left := logo + sep + model
-	gap := m.width - lipgloss.Width(left) - lipgloss.Width(status) - 2
+	gap := m.width - lipgloss.Width(left) - lipgloss.Width(right) - m.styles.HeaderBar.GetHorizontalFrameSize()
 	if gap < 1 {
 		gap = 1
 	}
-	return left + strings.Repeat(" ", gap) + status
+	content := left + strings.Repeat(" ", gap) + right
+	return m.styles.HeaderBar.Width(m.width).Render(content)
 }
 
 func (m Model) footer() string {

@@ -24,12 +24,17 @@ var (
 // Styles groups all lipgloss styles used by the TUI.
 type Styles struct {
 	// Header
-	Logo        lipgloss.Style
-	HeaderModel lipgloss.Style
-	HeaderSep   lipgloss.Style
-	HeaderID    lipgloss.Style
-	HeaderBusy  lipgloss.Style
-	HeaderReady lipgloss.Style
+	Logo             lipgloss.Style
+	HeaderBar        lipgloss.Style
+	HeaderModel      lipgloss.Style
+	HeaderSep        lipgloss.Style
+	HeaderID         lipgloss.Style
+	HeaderBusy       lipgloss.Style
+	HeaderReady      lipgloss.Style
+	HeaderPill       lipgloss.Style
+	HeaderPillActive lipgloss.Style
+	HeaderPillBusy   lipgloss.Style
+	HeaderPillReady  lipgloss.Style
 
 	// Chat
 	UserLabel      lipgloss.Style
@@ -78,6 +83,8 @@ func DefaultStyles() Styles {
 	s.Logo = lipgloss.NewStyle().
 		Bold(true).
 		Foreground(ColorPrimary)
+	s.HeaderBar = lipgloss.NewStyle().
+		Padding(0, 1)
 	s.HeaderModel = lipgloss.NewStyle().
 		Foreground(ColorMuted)
 	s.HeaderSep = lipgloss.NewStyle().
@@ -89,6 +96,25 @@ func DefaultStyles() Styles {
 		Foreground(ColorYellow)
 	s.HeaderReady = lipgloss.NewStyle().
 		Foreground(ColorGreen)
+	s.HeaderPill = lipgloss.NewStyle().
+		Foreground(ColorText).
+		Background(lipgloss.Color("#151A21")).
+		Padding(0, 1)
+	s.HeaderPillActive = lipgloss.NewStyle().
+		Foreground(ColorPrimary).
+		Background(lipgloss.Color("#151A21")).
+		Bold(true).
+		Padding(0, 1)
+	s.HeaderPillBusy = lipgloss.NewStyle().
+		Foreground(ColorYellow).
+		Background(lipgloss.Color("#151A21")).
+		Bold(true).
+		Padding(0, 1)
+	s.HeaderPillReady = lipgloss.NewStyle().
+		Foreground(ColorGreen).
+		Background(lipgloss.Color("#151A21")).
+		Bold(true).
+		Padding(0, 1)
 
 	// Chat
 	s.UserLabel = lipgloss.NewStyle().
