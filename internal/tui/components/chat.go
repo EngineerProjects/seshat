@@ -50,7 +50,7 @@ type msgItem interface {
 	invalidate()
 }
 
-const thinkTailLines = 10
+const thinkTailLines = 4
 
 type thinkingBlock struct {
 	content    string
@@ -291,8 +291,17 @@ func (u *userItem) render(c *Chat, width int) string {
 		return u.cacheR
 	}
 	_ = u.timestamp
-	body := c.styles.UserMsg.Render(wrap.String(u.content, max(12, width-2)))
-	r := c.styles.UserMarker.Render("● >") + "\n" + body
+	prefix := "● > "
+	bodyWidth := max(12, width-lipgloss.Width(prefix))
+	wrapped := strings.Split(wrap.String(u.content, bodyWidth), "\n")
+	if len(wrapped) == 0 {
+		wrapped = []string{""}
+	}
+	wrapped[0] = c.styles.UserMarker.Render(prefix) + c.styles.UserMsg.Render(wrapped[0])
+	for i := 1; i < len(wrapped); i++ {
+		wrapped[i] = strings.Repeat(" ", lipgloss.Width(prefix)) + c.styles.UserMsg.Render(wrapped[i])
+	}
+	r := strings.Join(wrapped, "\n")
 	u.cacheW = width
 	u.cacheR = r
 	return r

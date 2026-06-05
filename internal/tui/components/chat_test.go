@@ -75,7 +75,7 @@ func TestThinkingBlockToggleChangesCollapsedState(t *testing.T) {
 	}
 
 	collapsed := tb.render(common.DefaultStyles(), 50)
-	if want := "2 lines hidden"; !strings.Contains(collapsed, want) {
+	if want := "8 lines hidden"; !strings.Contains(collapsed, want) {
 		t.Fatalf("expected collapsed render to mention %q, got %q", want, collapsed)
 	}
 
@@ -279,5 +279,15 @@ func TestChatToolBodyClickSelectsWithoutToggling(t *testing.T) {
 	}
 	if tool.expanded {
 		t.Fatalf("expected tool body click not to expand preview")
+	}
+}
+
+func TestUserItemRenderKeepsMessageInlineWithMarker(t *testing.T) {
+	c := NewChat(common.DefaultStyles(), 80, 20)
+	u := &userItem{content: "hello world"}
+	rendered := u.render(c, 80)
+	lines := strings.Split(rendered, "\n")
+	if len(lines) == 0 || !strings.Contains(lines[0], "hello world") {
+		t.Fatalf("expected first rendered line to include user content, got %q", rendered)
 	}
 }
