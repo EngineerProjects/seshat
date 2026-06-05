@@ -1133,9 +1133,9 @@ func stringAny(v any) (string, bool) {
 	switch x := v.(type) {
 	case string:
 		return x, true
-	case fmt.Stringer:
-		return x.String(), true
 	case json.Number:
+		return x.String(), true
+	case fmt.Stringer:
 		return x.String(), true
 	case nil:
 		return "", false
