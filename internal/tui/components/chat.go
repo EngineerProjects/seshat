@@ -1335,7 +1335,7 @@ func (c *Chat) highlightedSelectionContent() string {
 			middle = ansi.Cut(renderedLine, lineStart, lineStart+1)
 			after = ansi.Cut(renderedLine, lineStart+1, lineWidth)
 		}
-		lines[line] = before + c.styles.Selection.Render(middle) + after
+		lines[line] = before + applySelectionStyle(middle, c.styles.Selection) + after
 	}
 	return strings.Join(lines, "\n")
 }

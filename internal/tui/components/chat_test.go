@@ -309,3 +309,12 @@ func TestChatMouseSelectionPersistsAfterRelease(t *testing.T) {
 		t.Fatalf("expected highlighted selection to remain after mouse release")
 	}
 }
+
+func TestApplySelectionStyleReappliesBackgroundAfterReset(t *testing.T) {
+	style := common.DefaultStyles().Selection
+	prefix, _ := selectionRenderParts(style)
+	got := applySelectionStyle("[31mred[0m plain", style)
+	if !strings.Contains(got, "[0m"+prefix+" plain") {
+		t.Fatalf("expected selection background to be reapplied after reset, got %q", got)
+	}
+}
