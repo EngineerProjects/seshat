@@ -331,3 +331,26 @@ func TestModelCtrlPLoadsLiveSettingsSections(t *testing.T) {
 		t.Fatalf("expected live skills section to include /summarise-pr, got %+v", sel)
 	}
 }
+
+func TestModelSettingsSkillSelectionPrimesComposer(t *testing.T) {
+	m := New(mockWorkspace{}, context.Background())
+	m.state = stateCommands
+	m.activeSession = "session-123"
+	m.refreshSettingsHubData()
+	if !m.commands.OpenSection("skills") {
+		t.Fatalf("expected skills section to open")
+	}
+	cmd := m.activateSettingsSelection()
+	if cmd == nil {
+		t.Fatalf("expected skill selection to focus the composer")
+	}
+	if got := m.state; got != stateChat {
+		t.Fatalf("expected state to return to chat, got %v", got)
+	}
+	if got := m.input.Value(); got != "/summarise-pr " {
+		t.Fatalf("expected skill to be inserted into composer, got %q", got)
+	}
+	if got := m.focus; got != uiFocusEditor {
+		t.Fatalf("expected editor focus after inserting skill, got %v", got)
+	}
+}

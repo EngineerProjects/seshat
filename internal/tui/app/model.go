@@ -866,9 +866,21 @@ func (m *Model) activateSettingsSelection() tea.Cmd {
 		}
 		return cmd
 	case components.PaletteInfoKind:
+		if strings.HasPrefix(sel.Name, "/") {
+			return m.insertSkillIntoComposer(sel.Name)
+		}
 		return nil
 	}
 	return nil
+}
+
+func (m *Model) insertSkillIntoComposer(skill string) tea.Cmd {
+	m.state = m.prevChatState()
+	m.focus = uiFocusEditor
+	m.input.SetValue(skill + " ")
+	m.input.CursorEnd()
+	*m = m.resizeInput()
+	return m.input.Focus()
 }
 
 func (m *Model) executeCommand(id string) tea.Cmd {
