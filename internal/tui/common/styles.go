@@ -1,6 +1,8 @@
 package common
 
 import (
+	"time"
+
 	"charm.land/bubbles/v2/textarea"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
@@ -186,9 +188,10 @@ func DefaultStyles() Styles {
 			Prompt:           lipgloss.NewStyle().Foreground(ColorMuted),
 		},
 		Cursor: textarea.CursorStyle{
-			Color: ColorSecondary,
-			Shape: tea.CursorBlock,
-			Blink: true,
+			Color:      ColorSecondary,
+			Shape:      tea.CursorBar,
+			Blink:      true,
+			BlinkSpeed: 420 * time.Millisecond,
 		},
 	}
 

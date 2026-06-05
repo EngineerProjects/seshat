@@ -13,6 +13,7 @@ import (
 	"charm.land/bubbles/v2/viewport"
 	"charm.land/glamour/v2"
 	"charm.land/lipgloss/v2"
+	"github.com/charmbracelet/x/ansi"
 )
 
 var toolIcons = map[string]string{
@@ -679,6 +680,12 @@ func (e *errorItem) render(c *Chat, _ int) string {
 	return c.styles.ToolError.Render("✗ " + e.content)
 }
 
+type toolRegion struct {
+	startLine int
+	endLine   int
+	msgIndex  int
+}
+
 type Chat struct {
 	styles   common.Styles
 	viewport *viewport.Model
@@ -690,6 +697,17 @@ type Chat struct {
 
 	selectedTool int
 	detailOpen   bool
+
+	plainContent string
+	plainLines   []string
+	toolRegions  []toolRegion
+
+	mouseDown    bool
+	mouseMoved   bool
+	mouseStartLn int
+	mouseStartCo int
+	mouseEndLn   int
+	mouseEndCo   int
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
@@ -978,6 +996,148 @@ func (c *Chat) SelectPrevTool() bool {
 	return false
 }
 
+func (c *Chat) HandleMouseDown(x, y int) bool {
+	line := c.viewport.YOffset() + clampInt(y, 0, max(0, c.height-1))
+	if line < 0 || line >= len(c.plainLines) {
+		return false
+	}
+	c.mouseDown = true
+	c.mouseMoved = false
+	c.mouseStartLn = line
+	c.mouseStartCo = max(0, x)
+	c.mouseEndLn = line
+	c.mouseEndCo = max(0, x)
+	return true
+}
+
+func (c *Chat) HandleMouseDrag(x, y int) bool {
+	if !c.mouseDown {
+		return false
+	}
+	if len(c.plainLines) == 0 {
+		return false
+	}
+	line := c.viewport.YOffset() + clampInt(y, 0, max(0, c.height-1))
+	line = clampInt(line, 0, len(c.plainLines)-1)
+	col := max(0, x)
+	c.mouseEndLn = line
+	c.mouseEndCo = col
+	if line != c.mouseStartLn || col != c.mouseStartCo {
+		c.mouseMoved = true
+	}
+	return true
+}
+
+func (c *Chat) HandleMouseUp(x, y int) string {
+	if !c.mouseDown {
+		return ""
+	}
+	_ = c.HandleMouseDrag(x, y)
+	wasMoved := c.mouseMoved
+	text := ""
+	if wasMoved {
+		text = c.selectedText()
+	} else {
+		line := c.mouseStartLn
+		if idx := c.toolIndexAtLine(line); idx >= 0 {
+			c.handleToolLineClick(idx)
+		}
+	}
+	c.clearMouse()
+	return text
+}
+
+func (c *Chat) HasMouseCapture() bool {
+	return c.mouseDown
+}
+
+func (c *Chat) clearMouse() {
+	c.mouseDown = false
+	c.mouseMoved = false
+}
+
+func (c *Chat) handleToolLineClick(msgIndex int) {
+	if msgIndex < 0 || msgIndex >= len(c.messages) {
+		return
+	}
+	tool, ok := c.messages[msgIndex].(*toolItem)
+	if !ok {
+		return
+	}
+	if c.selectedTool == msgIndex {
+		if tool.supportsPreview() {
+			tool.expanded = !tool.expanded
+			tool.invalidate()
+		}
+	} else {
+		c.selectedTool = msgIndex
+	}
+	c.refresh()
+}
+
+func (c *Chat) toolIndexAtLine(line int) int {
+	for _, region := range c.toolRegions {
+		if line >= region.startLine && line <= region.endLine {
+			return region.msgIndex
+		}
+	}
+	return -1
+}
+
+func (c *Chat) selectedText() string {
+	if len(c.plainLines) == 0 {
+		return ""
+	}
+	startLn, startCo, endLn, endCo := c.selectionRange()
+	if startLn < 0 || endLn < 0 {
+		return ""
+	}
+	var parts []string
+	for line := startLn; line <= endLn; line++ {
+		current := c.plainLines[line]
+		runes := []rune(current)
+		lineStart := 0
+		lineEnd := len(runes)
+		if line == startLn {
+			lineStart = clampInt(startCo, 0, len(runes))
+		}
+		if line == endLn {
+			lineEnd = clampInt(endCo, 0, len(runes))
+		}
+		if line == startLn && line == endLn && lineEnd < lineStart {
+			lineStart, lineEnd = lineEnd, lineStart
+		}
+		if lineEnd < lineStart {
+			lineEnd = lineStart
+		}
+		parts = append(parts, string(runes[lineStart:lineEnd]))
+	}
+	return strings.TrimRight(strings.Join(parts, "\n"), "\n")
+}
+
+func (c *Chat) selectionRange() (int, int, int, int) {
+	if !c.mouseMoved {
+		return -1, -1, -1, -1
+	}
+	startLn, startCo := c.mouseStartLn, c.mouseStartCo
+	endLn, endCo := c.mouseEndLn, c.mouseEndCo
+	if endLn < startLn || (endLn == startLn && endCo < startCo) {
+		startLn, endLn = endLn, startLn
+		startCo, endCo = endCo, startCo
+	}
+	return startLn, startCo, endLn, endCo
+}
+
+func clampInt(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
+	}
+	return v
+}
+
 func (c *Chat) DetailView(width, height int) string {
 	tool := c.selectedToolItem()
 	if tool == nil {
@@ -1025,8 +1185,11 @@ func (c *Chat) toolIndices() []int {
 
 func (c *Chat) refresh() {
 	var sb strings.Builder
+	var plainSB strings.Builder
 	lastWasTool := false
 	wroteAny := false
+	line := 0
+	regions := make([]toolRegion, 0)
 	for i, item := range c.messages {
 		var rendered string
 		if tool, ok := item.(*toolItem); ok {
@@ -1037,19 +1200,40 @@ func (c *Chat) refresh() {
 		if rendered == "" {
 			continue
 		}
+		plainRendered := ansi.Strip(rendered)
 		if wroteAny {
 			_, currIsTool := item.(*toolItem)
 			if lastWasTool && currIsTool {
 				sb.WriteString("\n")
+				plainSB.WriteString("\n")
+				line += 1
 			} else {
 				sb.WriteString("\n\n")
+				plainSB.WriteString("\n\n")
+				line += 2
 			}
 		}
+		startLine := line
 		sb.WriteString(rendered)
+		plainSB.WriteString(plainRendered)
+		height := max(1, lipgloss.Height(plainRendered))
+		if _, ok := item.(*toolItem); ok {
+			regions = append(regions, toolRegion{startLine: startLine, endLine: startLine + height - 1, msgIndex: i})
+		}
+		line += height
 		_, lastWasTool = item.(*toolItem)
 		wroteAny = true
 	}
-	c.viewport.SetContent(sb.String())
+	content := sb.String()
+	plain := plainSB.String()
+	c.plainContent = plain
+	if plain == "" {
+		c.plainLines = nil
+	} else {
+		c.plainLines = strings.Split(plain, "\n")
+	}
+	c.toolRegions = regions
+	c.viewport.SetContent(content)
 	if c.follow {
 		c.viewport.GotoBottom()
 	}

@@ -80,7 +80,6 @@ type Model struct {
 	lastErr             error
 	permInput           string
 	copyNotice          string  // transient "Copied!" message shown in footer
-	selectMode          bool    // when true: mouse capture disabled so terminal handles selection
 	returnState         uiState // state to restore when pressing ← from a sub-dialog
 	lastInputTokens     int
 	lastOutputTokens    int
@@ -272,6 +271,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		return m, tea.Batch(cmds...)
 
+	case tea.MouseClickMsg:
+		if cmd := m.handleMouseClick(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+		return m, tea.Batch(cmds...)
+
+	case tea.MouseMotionMsg:
+		if m.handleMouseMotion(msg) {
+			return m, tea.Batch(cmds...)
+		}
+
+	case tea.MouseReleaseMsg:
+		if cmd := m.handleMouseRelease(msg); cmd != nil {
+			cmds = append(cmds, cmd)
+			return m, tea.Batch(cmds...)
+		}
 	case tea.MouseWheelMsg:
 		// Mouse wheel scrolls chat regardless of focus state (no Tab required).
 		if m.state == stateChat || m.state == stateWelcome {
@@ -323,14 +338,101 @@ func (m Model) View() tea.View {
 
 	v := tea.NewView(content)
 	v.AltScreen = true
-	if m.selectMode {
-		// In select mode, release mouse capture so the terminal handles
-		// native text selection. Mouse scroll is temporarily unavailable.
-		v.MouseMode = tea.MouseModeNone
-	} else {
-		v.MouseMode = tea.MouseModeCellMotion
+	v.MouseMode = tea.MouseModeCellMotion
+	return v
+}
+
+type chatLayout struct {
+	contentW int
+	contentX int
+	chatX    int
+	chatY    int
+	chatW    int
+	chatH    int
+	inputY   int
+	inputH   int
+}
+
+func (m Model) currentChatLayout() chatLayout {
+	inputView := m.inputView()
+	statusView := m.statusLine()
+	contentW := m.contentWidth()
+	chatH := m.height - headerHeight - footerHeight - lipgloss.Height(statusView) - lipgloss.Height(inputView)
+	chatW := contentW
+	if m.chat.DetailsOpen() && contentW >= 110 {
+		paneW := max(36, contentW/3)
+		chatW = max(40, contentW-paneW-1)
+	}
+	contentX := max(0, (m.width-contentW)/2)
+	chatY := headerHeight
+	inputY := chatY + max(1, chatH) + lipgloss.Height(statusView)
+	return chatLayout{
+		contentW: contentW,
+		contentX: contentX,
+		chatX:    contentX,
+		chatY:    chatY,
+		chatW:    chatW,
+		chatH:    max(1, chatH),
+		inputY:   inputY,
+		inputH:   lipgloss.Height(inputView),
+	}
+}
+
+func pointInRect(x, y, rx, ry, rw, rh int) bool {
+	return x >= rx && x < rx+rw && y >= ry && y < ry+rh
+}
+
+func clampMouse(v, lo, hi int) int {
+	if v < lo {
+		return lo
+	}
+	if v > hi {
+		return hi
 	}
 	return v
+}
+
+func (m *Model) handleMouseClick(msg tea.MouseClickMsg) tea.Cmd {
+	if m.state != stateChat {
+		return nil
+	}
+	layout := m.currentChatLayout()
+	if pointInRect(msg.X, msg.Y, layout.contentX, layout.inputY, layout.contentW, layout.inputH) {
+		m.focus = uiFocusEditor
+		return m.input.Focus()
+	}
+	if msg.Button != tea.MouseLeft {
+		return nil
+	}
+	if pointInRect(msg.X, msg.Y, layout.chatX, layout.chatY, layout.chatW, layout.chatH) {
+		m.focus = uiFocusMain
+		m.input.Blur()
+		m.chat.HandleMouseDown(msg.X-layout.chatX, msg.Y-layout.chatY)
+	}
+	return nil
+}
+
+func (m *Model) handleMouseMotion(msg tea.MouseMotionMsg) bool {
+	if m.state != stateChat || !m.chat.HasMouseCapture() {
+		return false
+	}
+	layout := m.currentChatLayout()
+	relX := clampMouse(msg.X-layout.chatX, 0, max(0, layout.chatW-1))
+	relY := clampMouse(msg.Y-layout.chatY, 0, max(0, layout.chatH-1))
+	return m.chat.HandleMouseDrag(relX, relY)
+}
+
+func (m *Model) handleMouseRelease(msg tea.MouseReleaseMsg) tea.Cmd {
+	if m.state != stateChat || !m.chat.HasMouseCapture() {
+		return nil
+	}
+	layout := m.currentChatLayout()
+	relX := clampMouse(msg.X-layout.chatX, 0, max(0, layout.chatW-1))
+	relY := clampMouse(msg.Y-layout.chatY, 0, max(0, layout.chatH-1))
+	if text := m.chat.HandleMouseUp(relX, relY); text != "" {
+		return m.copyToClipboard(text, "Selection copied")
+	}
+	return nil
 }
 
 // ─── Key handling ─────────────────────────────────────────────────────────────

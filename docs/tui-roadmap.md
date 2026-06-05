@@ -60,18 +60,26 @@ This note tracks the current UX progress of the Nexus CLI TUI and the next inter
 ## Next Priorities
 
 ### 9. Mouse-first selection and copy
-- Replace the old explicit selection-mode mentality with proper always-available mouse selection behavior.
-- Crush is the reference here: cell-motion mouse mode, drag selection, release-to-copy, and clickable rows.
-- Expected work:
-  - enable full mouse event routing in the main model
-  - add drag/copy state in chat
-  - keep tool rows clickable without breaking selection
-- Status: planned
+- First pass implemented:
+  - mouse event routing in the main model
+  - drag-to-copy text selection in chat
+  - copy on mouse release
+  - old select-mode path removed
+- Remaining work:
+  - visible selection highlight during drag
+  - double-click word selection
+  - triple-click line selection
+- Status: in progress
 
 ### 10. Clickable tool rows and richer interactions
-- Add mouse interaction for expand/collapse and opening tool details.
-- Keep keyboard navigation first-class while making the interface feel more IDE-like.
-- Status: planned
+- First pass implemented:
+  - tool rows can now be clicked
+  - clicking a tool row selects it
+  - clicking the selected row toggles its inline preview
+- Remaining work:
+  - richer targetable click zones for think/expand/details
+  - smoother IDE-like interactions around the side pane
+- Status: in progress
 
 ### 11. Commands / settings panel expansion
 - Add practical navigation for:

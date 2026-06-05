@@ -130,3 +130,40 @@ func TestToolSummaryUsesCompactFileName(t *testing.T) {
 		t.Fatalf("unexpected compact summary: %q", got)
 	}
 }
+
+func TestChatToolLineClickTogglesExpansion(t *testing.T) {
+	c := NewChat(common.DefaultStyles(), 80, 20)
+	c.AddToolProgress("tool-1", "read_file", "completed", "done", map[string]any{
+		"tool_input": map[string]any{"file_path": "/tmp/a.txt"},
+		"content":    "alpha\nbeta",
+	})
+	if len(c.toolRegions) == 0 {
+		t.Fatalf("expected tool regions to be populated")
+	}
+	line := c.toolRegions[0].startLine
+	if !c.HandleMouseDown(0, line) {
+		t.Fatalf("expected mouse down on tool line to be handled")
+	}
+	if got := c.HandleMouseUp(0, line); got != "" {
+		t.Fatalf("expected click on tool line not to copy text, got %q", got)
+	}
+	tool := c.selectedToolItem()
+	if tool == nil || !tool.expanded {
+		t.Fatalf("expected selected tool to toggle expanded on click")
+	}
+}
+
+func TestChatMouseSelectionExtractsPlainText(t *testing.T) {
+	c := NewChat(common.DefaultStyles(), 80, 20)
+	c.AddUserMessage("hello world")
+	if !c.HandleMouseDown(0, 0) {
+		t.Fatalf("expected mouse down to start selection")
+	}
+	if !c.HandleMouseDrag(5, 0) {
+		t.Fatalf("expected mouse drag to update selection")
+	}
+	got := c.HandleMouseUp(5, 0)
+	if strings.TrimSpace(got) == "" {
+		t.Fatalf("expected selected text to be copied")
+	}
+}
