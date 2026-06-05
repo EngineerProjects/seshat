@@ -185,3 +185,45 @@ func TestChatMouseSelectionHighlightsDuringDrag(t *testing.T) {
 		t.Fatalf("expected highlighted selection to add styling")
 	}
 }
+
+func TestChatThinkingLineClickTogglesCollapse(t *testing.T) {
+	c := NewChat(common.DefaultStyles(), 80, 20)
+	c.StartAssistantMessage()
+	for i := 0; i < 12; i++ {
+		c.AppendChunk("thinking line\n", true)
+	}
+	c.FinishAssistantMessage(0, 0, "")
+
+	assistant, ok := c.messages[0].(*assistantItem)
+	if !ok || assistant.thinking == nil {
+		t.Fatalf("expected assistant thinking block")
+	}
+	if len(c.thinkingRegions) == 0 {
+		t.Fatalf("expected thinking regions to be populated")
+	}
+	line := c.thinkingRegions[0].startLine
+	if !c.HandleMouseDown(0, line) {
+		t.Fatalf("expected mouse down on thinking line to be handled")
+	}
+	if got := c.HandleMouseUp(0, line); got != "" {
+		t.Fatalf("expected click on thinking line not to copy text, got %q", got)
+	}
+	if assistant.thinking.collapsed {
+		t.Fatalf("expected thinking block to expand on click")
+	}
+}
+
+func TestThinkingBlockRenderShowsMouseHint(t *testing.T) {
+	tb := newThinkingBlock()
+	for i := 0; i < 12; i++ {
+		tb.append("line\n")
+	}
+	tb.finish()
+	rendered := tb.render(common.DefaultStyles(), 50)
+	if !strings.Contains(rendered, "click to expand") {
+		t.Fatalf("expected mouse hint in thinking footer, got %q", rendered)
+	}
+	if strings.Contains(rendered, "ctrl+t") {
+		t.Fatalf("expected ctrl+t hint to be removed from visible footer, got %q", rendered)
+	}
+}

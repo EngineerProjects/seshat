@@ -136,11 +136,9 @@ func (tb *thinkingBlock) render(styles common.Styles, width int) string {
 		footParts = append(footParts,
 			styles.MsgTimestamp.Render(fmt.Sprintf("Thought for %.1fs", dur.Seconds())))
 		if tb.collapsed {
-			footParts = append(footParts,
-				styles.Key.Render("ctrl+t")+" "+styles.Desc.Render("expand"))
+			footParts = append(footParts, styles.Desc.Render("click to expand"))
 		} else {
-			footParts = append(footParts,
-				styles.Key.Render("ctrl+t")+" "+styles.Desc.Render("collapse"))
+			footParts = append(footParts, styles.Desc.Render("click to collapse"))
 		}
 	}
 	foot := "  " + strings.Join(footParts, "  ")
@@ -686,6 +684,12 @@ type toolRegion struct {
 	msgIndex  int
 }
 
+type thinkingRegion struct {
+	startLine int
+	endLine   int
+	msgIndex  int
+}
+
 type Chat struct {
 	styles   common.Styles
 	viewport *viewport.Model
@@ -698,9 +702,10 @@ type Chat struct {
 	selectedTool int
 	detailOpen   bool
 
-	plainContent string
-	plainLines   []string
-	toolRegions  []toolRegion
+	plainContent    string
+	plainLines      []string
+	toolRegions     []toolRegion
+	thinkingRegions []thinkingRegion
 
 	mouseDown    bool
 	mouseMoved   bool
@@ -1041,7 +1046,9 @@ func (c *Chat) HandleMouseUp(x, y int) string {
 		text = c.selectedText()
 	} else {
 		line := c.mouseStartLn
-		if idx := c.toolIndexAtLine(line); idx >= 0 {
+		if idx := c.thinkingIndexAtLine(line); idx >= 0 {
+			c.handleThinkingLineClick(idx)
+		} else if idx := c.toolIndexAtLine(line); idx >= 0 {
 			c.handleToolLineClick(idx)
 		}
 	}
@@ -1079,6 +1086,28 @@ func (c *Chat) handleToolLineClick(msgIndex int) {
 		c.selectedTool = msgIndex
 	}
 	c.refresh()
+}
+
+func (c *Chat) handleThinkingLineClick(msgIndex int) {
+	if msgIndex < 0 || msgIndex >= len(c.messages) {
+		return
+	}
+	assistant, ok := c.messages[msgIndex].(*assistantItem)
+	if !ok || assistant.thinking == nil {
+		return
+	}
+	assistant.thinking.toggle()
+	assistant.invalidate()
+	c.refresh()
+}
+
+func (c *Chat) thinkingIndexAtLine(line int) int {
+	for _, region := range c.thinkingRegions {
+		if line >= region.startLine && line <= region.endLine {
+			return region.msgIndex
+		}
+	}
+	return -1
 }
 
 func (c *Chat) toolIndexAtLine(line int) int {
@@ -1195,7 +1224,8 @@ func (c *Chat) refresh() {
 	lastWasTool := false
 	wroteAny := false
 	line := 0
-	regions := make([]toolRegion, 0)
+	toolRegions := make([]toolRegion, 0)
+	thinkingRegions := make([]thinkingRegion, 0)
 	for i, item := range c.messages {
 		var rendered string
 		if tool, ok := item.(*toolItem); ok {
@@ -1224,7 +1254,16 @@ func (c *Chat) refresh() {
 		plainSB.WriteString(plainRendered)
 		height := max(1, lipgloss.Height(plainRendered))
 		if _, ok := item.(*toolItem); ok {
-			regions = append(regions, toolRegion{startLine: startLine, endLine: startLine + height - 1, msgIndex: i})
+			toolRegions = append(toolRegions, toolRegion{startLine: startLine, endLine: startLine + height - 1, msgIndex: i})
+		}
+		if assistant, ok := item.(*assistantItem); ok && assistant.thinking != nil && strings.TrimSpace(assistant.thinking.content) != "" {
+			thinkingStart := startLine
+			if assistant.showLabel {
+				thinkingStart++
+			}
+			thinkingRendered := assistant.thinking.render(c.styles, c.width)
+			thinkingHeight := max(1, lipgloss.Height(ansi.Strip(thinkingRendered)))
+			thinkingRegions = append(thinkingRegions, thinkingRegion{startLine: thinkingStart, endLine: thinkingStart + thinkingHeight - 1, msgIndex: i})
 		}
 		line += height
 		_, lastWasTool = item.(*toolItem)
@@ -1238,7 +1277,8 @@ func (c *Chat) refresh() {
 	} else {
 		c.plainLines = strings.Split(plain, "\n")
 	}
-	c.toolRegions = regions
+	c.toolRegions = toolRegions
+	c.thinkingRegions = thinkingRegions
 	if c.mouseDown && c.mouseMoved {
 		c.viewport.SetContent(c.highlightedSelectionContent())
 	} else {
@@ -1248,7 +1288,6 @@ func (c *Chat) refresh() {
 		c.viewport.GotoBottom()
 	}
 }
-
 func (c *Chat) highlightedSelectionContent() string {
 	if len(c.plainLines) == 0 {
 		return c.plainContent
