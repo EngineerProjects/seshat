@@ -39,18 +39,19 @@ type Styles struct {
 	HeaderPillReady  lipgloss.Style
 
 	// Chat
-	UserLabel       lipgloss.Style
-	AssistantLabel  lipgloss.Style
-	UserMarker      lipgloss.Style
-	AssistantMarker lipgloss.Style
-	TurnMeta        lipgloss.Style
-	UserMsg         lipgloss.Style
-	MsgTimestamp    lipgloss.Style
-	ToolProgress    lipgloss.Style
-	ToolDone        lipgloss.Style
-	ToolError       lipgloss.Style
-	ErrorMsg        lipgloss.Style
-	Selection       lipgloss.Style
+	UserLabel        lipgloss.Style
+	AssistantLabel   lipgloss.Style
+	UserMarker       lipgloss.Style
+	AssistantMarker  lipgloss.Style
+	TurnMeta         lipgloss.Style
+	UserMsg          lipgloss.Style
+	InterimAssistant lipgloss.Style
+	MsgTimestamp     lipgloss.Style
+	ToolProgress     lipgloss.Style
+	ToolDone         lipgloss.Style
+	ToolError        lipgloss.Style
+	ErrorMsg         lipgloss.Style
+	Selection        lipgloss.Style
 
 	// Input
 	InputBorder      lipgloss.Style
@@ -140,6 +141,9 @@ func DefaultStyles() Styles {
 		Faint(true)
 	s.UserMsg = lipgloss.NewStyle().
 		Foreground(ColorText)
+	s.InterimAssistant = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#B2BCCB")).
+		Faint(true)
 	s.MsgTimestamp = lipgloss.NewStyle().
 		Foreground(ColorMuted).
 		Faint(true)

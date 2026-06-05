@@ -4,6 +4,9 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"strings"
 	"testing"
+	"time"
+
+	"github.com/charmbracelet/x/ansi"
 )
 
 func TestChatAddToolProgressSealsAssistantAndCreatesContinuation(t *testing.T) {
@@ -366,6 +369,24 @@ func TestChatMouseDragAutoScrollsAtBottom(t *testing.T) {
 	}
 	if c.viewport.YOffset() <= startOffset {
 		t.Fatalf("expected drag at bottom edge to autoscroll down")
+	}
+}
+
+func TestAssistantItemRenderCompactsInterimNarration(t *testing.T) {
+	c := NewChat(common.DefaultStyles(), 50, 20)
+	a := &assistantItem{
+		content:    "I will now inspect the workspace and check several files before running the next tool in order to verify the repository layout and current state.",
+		showLabel:  true,
+		streaming:  false,
+		finishedAt: time.Now(),
+		showMeta:   false,
+	}
+	rendered := ansi.Strip(a.render(c, 50))
+	if strings.Contains(rendered, "\n\nI will now inspect") {
+		t.Fatalf("expected interim narration to render compactly, got %q", rendered)
+	}
+	if !strings.Contains(rendered, "…") {
+		t.Fatalf("expected interim narration to be truncated with ellipsis, got %q", rendered)
 	}
 }
 

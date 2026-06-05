@@ -52,6 +52,7 @@ type msgItem interface {
 }
 
 const thinkTailLines = 4
+const interimNarrationLines = 2
 
 type thinkingBlock struct {
 	content    string
@@ -222,22 +223,30 @@ func (a *assistantItem) render(c *Chat, width int) string {
 	}
 	if a.thinking != nil && strings.TrimSpace(a.thinking.content) != "" {
 		sb.WriteString(a.thinking.render(c.styles, width))
-		sb.WriteString("\n")
+		if a.content != "" {
+			sb.WriteString("\n\n")
+		} else {
+			sb.WriteString("\n")
+		}
 	}
 	if a.content != "" {
 		var rendered string
 		if !a.streaming && a.contentCacheWidth == width && a.contentCacheRender != "" {
 			rendered = a.contentCacheRender
 		} else {
-			var err error
-			mu := common.LockMarkdownRenderer(c.renderer)
-			mu.Lock()
-			rendered, err = c.renderer.Render(a.content)
-			mu.Unlock()
-			if err != nil {
-				rendered = a.content
+			if !a.streaming && !a.showMeta && !c.verboseInterim {
+				rendered = renderCompactAssistantNarration(c.styles, a.content, width)
+			} else {
+				var err error
+				mu := common.LockMarkdownRenderer(c.renderer)
+				mu.Lock()
+				rendered, err = c.renderer.Render(a.content)
+				mu.Unlock()
+				if err != nil {
+					rendered = a.content
+				}
+				rendered = strings.TrimRight(rendered, "\n")
 			}
-			rendered = strings.TrimRight(rendered, "\n")
 			if !a.streaming {
 				a.contentCacheWidth = width
 				a.contentCacheRender = rendered
@@ -254,6 +263,28 @@ func (a *assistantItem) render(c *Chat, width int) string {
 		sb.WriteString(meta)
 	}
 	return sb.String()
+}
+
+func renderCompactAssistantNarration(styles common.Styles, content string, width int) string {
+	innerW := max(20, width-2)
+	normalized := strings.Join(strings.Fields(strings.TrimSpace(content)), " ")
+	if normalized == "" {
+		return ""
+	}
+	wrapped := strings.TrimSpace(wrap.String(normalized, innerW))
+	lines := strings.Split(wrapped, "\n")
+	if len(lines) > interimNarrationLines {
+		lines = lines[:interimNarrationLines]
+		last := []rune(strings.TrimRight(lines[len(lines)-1], " "))
+		if len(last) >= innerW {
+			last = last[:innerW-1]
+		}
+		lines[len(lines)-1] = strings.TrimRight(string(last), " ") + "…"
+	}
+	for i, line := range lines {
+		lines[i] = styles.InterimAssistant.Render(line)
+	}
+	return strings.Join(lines, "\n")
 }
 
 func (a *assistantItem) metaLine(styles common.Styles, width int) string {
@@ -734,6 +765,7 @@ type Chat struct {
 	toolRegions     []toolRegion
 	thinkingRegions []thinkingRegion
 	selection       mouseSelection
+	verboseInterim  bool
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
@@ -763,6 +795,21 @@ func (c *Chat) SetSize(width, height int) {
 		m.invalidate()
 	}
 	c.refresh()
+}
+
+func (c *Chat) SetVerboseInterim(v bool) {
+	if c.verboseInterim == v {
+		return
+	}
+	c.verboseInterim = v
+	for _, m := range c.messages {
+		m.invalidate()
+	}
+	c.refresh()
+}
+
+func (c *Chat) VerboseInterim() bool {
+	return c.verboseInterim
 }
 
 func (c *Chat) AddUserMessage(text string) {

@@ -985,6 +985,10 @@ func (m *Model) executeCommand(id string) tea.Cmd {
 			return m.copyToClipboard(text, "Message copied")
 		}
 		return nil
+	case "toggle-verbose-steps":
+		m.chat.SetVerboseInterim(!m.chat.VerboseInterim())
+		m.refreshSettingsHubData()
+		return nil
 	case "provider-config":
 		m.state = stateProviderConfig
 		return m.loadProviderConfig()
@@ -1419,11 +1423,26 @@ func (m Model) loadProviderConfig() tea.Cmd {
 }
 
 func (m *Model) refreshSettingsHubData() {
+	m.commands.SetSectionItems("commands", buildCommandSettingsItems(m.chat.VerboseInterim()))
 	m.commands.SetSectionItems("tools", buildToolSettingsItems(m.workspace.LoadToolCatalog(m.ctx)))
 	m.commands.SetSectionItems("mcp", buildMCPSettingsItems(m.workspace.LoadMCPServers(m.ctx)))
 	m.skillCatalog = m.workspace.LoadSkills(m.ctx)
 	m.skillCatalogLoaded = true
 	m.commands.SetSectionItems("skills", buildSkillSettingsItems(m.skillCatalog))
+}
+
+func buildCommandSettingsItems(verboseInterim bool) []components.PaletteItem {
+	verboseDesc := "Currently off · Keep assistant step narration compact between tools"
+	if verboseInterim {
+		verboseDesc = "Currently on · Show full assistant step narration between tools"
+	}
+	return []components.PaletteItem{
+		{Kind: components.PaletteActionKind, ID: "new-session", Name: "New Session", Shortcut: "ctrl+n", Desc: "Start a fresh conversation"},
+		{Kind: components.PaletteActionKind, ID: "sessions", Name: "Sessions", Shortcut: "ctrl+s", Desc: "Browse and resume past sessions"},
+		{Kind: components.PaletteActionKind, ID: "copy-msg", Name: "Copy Last Message", Shortcut: "ctrl+u", Desc: "Copy your last message to clipboard"},
+		{Kind: components.PaletteActionKind, ID: "toggle-verbose-steps", Name: "Verbose Agent Steps", Desc: verboseDesc},
+		{Kind: components.PaletteActionKind, ID: "quit", Name: "Quit", Shortcut: "ctrl+c", Desc: "Exit Nexus"},
+	}
 }
 
 func buildToolSettingsItems(items []tui.ToolInfo) []components.PaletteItem {
