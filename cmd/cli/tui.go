@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 	"sync/atomic"
@@ -15,9 +16,10 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
 	"github.com/EngineerProjects/nexus-engine/internal/providers"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
-	tuimodel "github.com/EngineerProjects/nexus-engine/internal/tui/model"
+	tuiapp "github.com/EngineerProjects/nexus-engine/internal/tui/app"
 	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	skillspkg "github.com/EngineerProjects/nexus-engine/pkg/skills"
 )
 
 // chunkDebounce batches streaming text chunks at 33ms intervals (crush pattern).
@@ -351,6 +353,78 @@ func (w *nexusWorkspace) DeleteProviderField(ctx context.Context, providerID, fi
 	return database.DeleteCredential(ctx, providerCredKey(fieldKey, providerID))
 }
 
+func (w *nexusWorkspace) LoadToolCatalog(ctx context.Context) []tui.ToolInfo {
+	surface, err := w.client.BuildToolSurface(ctx)
+	if err != nil || surface == nil {
+		return nil
+	}
+	items := make([]tui.ToolInfo, 0, len(surface.Tools))
+	for _, tool := range surface.Tools {
+		items = append(items, tui.ToolInfo{
+			Name:        tool.Name,
+			Description: tool.Description,
+			Category:    tool.Category,
+		})
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Name < items[j].Name
+	})
+	return items
+}
+
+func (w *nexusWorkspace) LoadMCPServers(_ context.Context) []tui.MCPServerInfo {
+	result := w.client.MCPResult()
+	if result == nil {
+		return nil
+	}
+	items := make([]tui.MCPServerInfo, 0, len(result.ServerResults))
+	for _, server := range result.ServerResults {
+		status := "ready"
+		errMsg := ""
+		if server.Error != nil {
+			status = "error"
+			errMsg = server.Error.Error()
+		}
+		items = append(items, tui.MCPServerInfo{
+			Name:            server.Name,
+			ToolsRegistered: server.ToolsRegistered,
+			Status:          status,
+			Error:           errMsg,
+		})
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Name < items[j].Name
+	})
+	return items
+}
+
+func (w *nexusWorkspace) LoadSkills(_ context.Context) []tui.SkillInfo {
+	skills, err := skillspkg.All(w.workDir)
+	if err != nil {
+		return nil
+	}
+	items := make([]tui.SkillInfo, 0, len(skills))
+	for _, skill := range skills {
+		if !skill.UserInvocable {
+			continue
+		}
+		description := strings.TrimSpace(skill.Description)
+		if description == "" {
+			description = strings.TrimSpace(skill.WhenToUse)
+		}
+		items = append(items, tui.SkillInfo{
+			Name:        skill.Name,
+			Description: description,
+			WhenToUse:   strings.TrimSpace(skill.WhenToUse),
+			Source:      string(skill.Source),
+		})
+	}
+	sort.Slice(items, func(i, j int) bool {
+		return items[i].Name < items[j].Name
+	})
+	return items
+}
+
 func (w *nexusWorkspace) Close() {
 	w.client.Close()
 }
@@ -384,6 +458,7 @@ func (w *nexusWorkspace) onProgress(progress sdk.ToolProgress) {
 		ToolName:  progress.ToolName,
 		Status:    string(progress.Stage),
 		Label:     label,
+		Metadata:  progress.Metadata,
 	})
 }
 
@@ -433,7 +508,7 @@ func runInteractive(ctx context.Context, options runtimeOptions) error {
 	}
 	defer ws.Close()
 
-	return tuimodel.Run(ws, ctx)
+	return tuiapp.Run(ws, ctx)
 }
 
 // buildTUIMonitoring creates a monitoring system that writes to a log file
