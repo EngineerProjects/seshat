@@ -584,7 +584,8 @@ func (t *toolItem) inlinePreview(c *Chat, width int) string {
 		return renderDirListing(c.styles, t.resultContent(), bodyWidth, inlinePreviewLines)
 	case "read_file":
 		path := prettyPath(stringFromMap(t.toolInput(), "file_path"))
-		return renderFilePanel(c.styles, path, t.resultContent(), bodyWidth, inlinePreviewLines)
+		_, cleanBody := parseReadContent(t.resultContent())
+		return renderFilePanel(c.styles, path, cleanBody, bodyWidth, inlinePreviewLines)
 	case "write_file":
 		path := prettyPath(stringFromMap(t.toolInput(), "file_path"))
 		return renderFilePanel(c.styles, path, t.writeContent(), bodyWidth, inlinePreviewLines)
@@ -655,10 +656,11 @@ func (t *toolItem) detailBody(c *Chat, width int) string {
 		return renderDirListing(c.styles, t.resultContent(), width, 0)
 	case "read_file":
 		path := stringFromMap(t.toolInput(), "file_path")
+		startLine, cleanBody := parseReadContent(t.resultContent())
 		if flavorForPath(path) == contentFlavorCode {
-			return renderCodeBody(c.styles, path, t.resultContent(), width, 0, 0)
+			return renderCodeBody(c.styles, path, cleanBody, width, 0, startLine)
 		}
-		return renderContentBody(c.styles, t.resultContent(), width, flavorForPath(path))
+		return renderContentBody(c.styles, cleanBody, width, flavorForPath(path))
 	case "write_file":
 		path := stringFromMap(t.toolInput(), "file_path")
 		content := t.writeContent()
@@ -2386,6 +2388,47 @@ func renderContentPanel(styles common.Styles, title, body string, width, maxLine
 		panelBody = styles.Key.Render(title) + "\n" + panelBody
 	}
 	return panelBody
+}
+
+// parseReadContent strips the "File:/Lines:" header and N→ line-number prefixes
+// produced by the read_file tool's FormatTextWithLineNumbers, returning the
+// 0-based start line and the clean file content ready for rendering.
+func parseReadContent(body string) (startLine int, clean string) {
+	body = strings.ReplaceAll(body, "\r\n", "\n")
+
+	// Locate the blank line that separates the header block from the content.
+	sep := strings.Index(body, "\n\n")
+	if sep < 0 {
+		return 0, body
+	}
+
+	// Parse "Lines: N-M of T" from the header to recover the start offset.
+	for _, line := range strings.SplitN(body[:sep], "\n", -1) {
+		if strings.HasPrefix(line, "Lines: ") {
+			var start, end int
+			if _, err := fmt.Sscanf(line, "Lines: %d-%d", &start, &end); err == nil {
+				startLine = start
+			}
+			break
+		}
+	}
+
+	// Strip the N→ prefix (possibly padded with spaces) from every content line.
+	// The separator is the Unicode right arrow U+2192 used by AddLineNumbers.
+	rawLines := strings.Split(body[sep+2:], "\n")
+	out := make([]string, 0, len(rawLines))
+	const arrow = "→"
+	for _, line := range rawLines {
+		if idx := strings.Index(line, arrow); idx >= 0 {
+			prefix := line[:idx]
+			if strings.TrimLeft(prefix, " \t0123456789") == "" {
+				line = line[idx+len(arrow):]
+			}
+		}
+		out = append(out, line)
+	}
+	clean = strings.TrimRight(strings.Join(out, "\n"), "\n")
+	return
 }
 
 func renderContentBody(styles common.Styles, body string, width int, flavor contentFlavor) string {
