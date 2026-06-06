@@ -76,6 +76,7 @@ func defaultPaletteSections() map[string][]PaletteItem {
 			{Kind: PaletteActionKind, ID: "new-session", Name: "New Session", Shortcut: "ctrl+n", Desc: "Start a fresh conversation"},
 			{Kind: PaletteActionKind, ID: "sessions", Name: "Sessions", Shortcut: "ctrl+s", Desc: "Browse and resume past sessions"},
 			{Kind: PaletteActionKind, ID: "copy-msg", Name: "Copy Last Message", Shortcut: "ctrl+u", Desc: "Copy your last message to clipboard"},
+			{Kind: PaletteActionKind, ID: "toggle-verbose-steps", Name: "Verbose Agent Steps", Desc: "Show full assistant step narration between tools"},
 			{Kind: PaletteActionKind, ID: "quit", Name: "Quit", Shortcut: "ctrl+c", Desc: "Exit Nexus"},
 		},
 		"tools": {
@@ -119,8 +120,15 @@ func (p *CommandPalette) SetSectionItems(sectionID string, items []PaletteItem) 
 	copied := append([]PaletteItem(nil), items...)
 	p.sectionItems[sectionID] = copied
 	if p.view == paletteViewSection && p.activeSection == sectionID {
+		selectedID := ""
+		if sel := p.Selected(); sel != nil {
+			selectedID = sel.ID
+		}
 		p.list.ResetItems(copied, false)
 		p.list.ClearFilter()
+		if selectedID != "" {
+			p.list.SelectFirst(func(item PaletteItem) bool { return item.ID == selectedID })
+		}
 	}
 }
 

@@ -39,18 +39,19 @@ type Styles struct {
 	HeaderPillReady  lipgloss.Style
 
 	// Chat
-	UserLabel       lipgloss.Style
-	AssistantLabel  lipgloss.Style
-	UserMarker      lipgloss.Style
-	AssistantMarker lipgloss.Style
-	TurnMeta        lipgloss.Style
-	UserMsg         lipgloss.Style
-	MsgTimestamp    lipgloss.Style
-	ToolProgress    lipgloss.Style
-	ToolDone        lipgloss.Style
-	ToolError       lipgloss.Style
-	ErrorMsg        lipgloss.Style
-	Selection       lipgloss.Style
+	UserLabel        lipgloss.Style
+	AssistantLabel   lipgloss.Style
+	UserMarker       lipgloss.Style
+	AssistantMarker  lipgloss.Style
+	TurnMeta         lipgloss.Style
+	UserMsg          lipgloss.Style
+	InterimAssistant lipgloss.Style
+	MsgTimestamp     lipgloss.Style
+	ToolProgress     lipgloss.Style
+	ToolDone         lipgloss.Style
+	ToolError        lipgloss.Style
+	ErrorMsg         lipgloss.Style
+	Selection        lipgloss.Style
 
 	// Input
 	InputBorder      lipgloss.Style
@@ -79,6 +80,13 @@ type Styles struct {
 	Footer lipgloss.Style
 	Key    lipgloss.Style
 	Desc   lipgloss.Style
+
+	// Tool inline rendering
+	ToolLineNumber lipgloss.Style
+	ToolTruncation lipgloss.Style
+	ToolDiffAdd    lipgloss.Style
+	ToolDiffDel    lipgloss.Style
+	ToolDiffHunk   lipgloss.Style
 }
 
 // DefaultStyles returns the theme used by the TUI.
@@ -140,6 +148,9 @@ func DefaultStyles() Styles {
 		Faint(true)
 	s.UserMsg = lipgloss.NewStyle().
 		Foreground(ColorText)
+	s.InterimAssistant = lipgloss.NewStyle().
+		Foreground(lipgloss.Color("#B2BCCB")).
+		Faint(true)
 	s.MsgTimestamp = lipgloss.NewStyle().
 		Foreground(ColorMuted).
 		Faint(true)
@@ -248,6 +259,13 @@ func DefaultStyles() Styles {
 		Bold(true)
 	s.Desc = lipgloss.NewStyle().
 		Foreground(ColorMuted)
+
+	// Tool inline rendering
+	s.ToolLineNumber = lipgloss.NewStyle().Foreground(ColorMuted).Faint(true)
+	s.ToolTruncation = lipgloss.NewStyle().Foreground(ColorMuted).Faint(true)
+	s.ToolDiffAdd = lipgloss.NewStyle().Foreground(ColorGreen)
+	s.ToolDiffDel = lipgloss.NewStyle().Foreground(ColorRed)
+	s.ToolDiffHunk = lipgloss.NewStyle().Foreground(ColorBlue).Faint(true)
 
 	return s
 }

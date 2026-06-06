@@ -98,6 +98,17 @@ func (s *ListState[T]) Cursor() int {
 	return s.cursor
 }
 
+// SelectFirst moves the cursor to the first filtered item matching the predicate.
+func (s *ListState[T]) SelectFirst(match func(item T) bool) bool {
+	for i, item := range s.filtered {
+		if match(item) {
+			s.cursor = i
+			return true
+		}
+	}
+	return false
+}
+
 func (s *ListState[T]) apply() {
 	if s.filter == "" {
 		s.filtered = clone(s.items)

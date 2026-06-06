@@ -332,6 +332,36 @@ func TestModelCtrlPLoadsLiveSettingsSections(t *testing.T) {
 	}
 }
 
+func TestModelSettingsToggleVerboseStepsRefreshesCommands(t *testing.T) {
+	m := New(mockWorkspace{}, context.Background())
+	m.state = stateCommands
+	m.refreshSettingsHubData()
+	if !m.commands.OpenSection("commands") {
+		t.Fatalf("expected commands section to open")
+	}
+	for i := 0; i < 3; i++ {
+		m.commands.Down()
+	}
+	sel := m.commands.Selected()
+	if sel == nil || sel.ID != "toggle-verbose-steps" {
+		t.Fatalf("expected verbose toggle command, got %+v", sel)
+	}
+	if !strings.Contains(sel.Desc, "Currently off") {
+		t.Fatalf("expected verbose toggle to start off, got %q", sel.Desc)
+	}
+	cmd := m.activateSettingsSelection()
+	if cmd != nil {
+		t.Fatalf("expected verbose toggle not to emit async command")
+	}
+	if !m.chat.VerboseInterim() {
+		t.Fatalf("expected chat verbose interim mode to be enabled")
+	}
+	sel = m.commands.Selected()
+	if sel == nil || !strings.Contains(sel.Desc, "Currently on") {
+		t.Fatalf("expected commands section to refresh with on state, got %+v", sel)
+	}
+}
+
 func TestModelSettingsSkillSelectionPrimesComposer(t *testing.T) {
 	m := New(mockWorkspace{}, context.Background())
 	m.state = stateCommands
