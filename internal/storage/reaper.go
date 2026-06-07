@@ -22,11 +22,10 @@ type Reaper struct {
 func DefaultReaperConfig() ReaperConfig {
 	return ReaperConfig{
 		Interval: 1 * time.Hour,
-		Namespaces: []ArtifactNamespace{
-			NamespaceWebArtifacts,
-			NamespaceBrowserScreenshots,
-			NamespaceBrowserDownloads,
-		},
+		// Only namespaces with globally-shared, time-expiring content need GC.
+		// Session-scoped content (screenshots, downloads, web artifacts) is cleaned
+		// up by DeleteSessionDir when a session is deleted — no reaper needed.
+		Namespaces: []ArtifactNamespace{},
 		Limit: 512,
 	}
 }
