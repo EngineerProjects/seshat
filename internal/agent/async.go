@@ -375,6 +375,11 @@ func (m *AsyncAgentManager) runAgent(agent *AsyncAgent) {
 
 	// Create a config with progress callback and message injection.
 	config := *agent.Config
+	// Replace the caller-supplied context (typically the parent session's turn
+	// context, which gets canceled when that turn ends) with the async agent's
+	// own independent context. Without this, the sub-agent's API calls and
+	// permission prompts fail as soon as the parent turn finishes.
+	config.Context = agent.Ctx
 
 	// Wire ContinuationMessage to drain pending inter-agent messages.
 	// If no message is queued, fall back to the existing callback or the default.
@@ -444,6 +449,11 @@ func (m *AsyncAgentManager) runAgent(agent *AsyncAgent) {
 	if finalStatus == AgentStatusCompleted {
 		m.emitEvent(agent, AgentEventCompleted, finalResult, nil, nil)
 	} else {
+		slog.Error("async agent failed",
+			"agent_id", agent.ID,
+			"agent_type", agent.Config.AgentType,
+			"error", finalErr,
+		)
 		m.emitEvent(agent, AgentEventFailed, nil, nil, finalErr)
 	}
 }

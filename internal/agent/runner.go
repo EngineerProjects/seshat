@@ -110,6 +110,11 @@ type RunConfig struct {
 	// GoalSessionID is the key used to look up the goal in GoalStore.
 	// Usually set to types.ToolContext.SessionID by the caller.
 	GoalSessionID string
+
+	// PermissionMode, when non-empty, overrides the session's permission mode.
+	// Set to types.PermissionModeBypass for headless background agents so they
+	// can execute tools without waiting for interactive prompts.
+	PermissionMode types.PermissionMode
 }
 
 // RunAgent runs an agent and returns the result
@@ -181,6 +186,11 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 			Success:   false,
 			Error:     fmt.Sprintf("failed to create session: %v", err),
 		}, nil
+	}
+
+	// Apply permission mode override (e.g. bypass for headless background agents).
+	if config.PermissionMode != "" {
+		session.SetPermissionMode(config.PermissionMode)
 	}
 
 	// Give the agent its own system prompt identity so it does not inherit the
