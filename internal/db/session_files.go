@@ -24,7 +24,7 @@ type SessionFile struct {
 
 // UpsertSessionFile records a file operation for a session.
 // When tool_use_id is non-empty, INSERT OR IGNORE silently skips duplicates
-// (the unique index on tool_use_id WHERE tool_use_id != '' enforces this).
+// (the unique index on tool_use_id WHERE tool_use_id != ” enforces this).
 func (db *DB) UpsertSessionFile(ctx context.Context, sf SessionFile) error {
 	if sf.TimestampUnix == 0 {
 		sf.TimestampUnix = time.Now().Unix()

@@ -623,6 +623,24 @@ func (m *AsyncAgentManager) CloseAgent(agentID string) error {
 	return nil
 }
 
+// CloseAllAgents terminates every tracked async agent and removes them from the registry.
+func (m *AsyncAgentManager) CloseAllAgents() int {
+	m.agentsMu.RLock()
+	ids := make([]string, 0, len(m.agents))
+	for id := range m.agents {
+		ids = append(ids, id)
+	}
+	m.agentsMu.RUnlock()
+
+	closed := 0
+	for _, id := range ids {
+		if err := m.CloseAgent(id); err == nil {
+			closed++
+		}
+	}
+	return closed
+}
+
 // emitEvent emits an event for an agent
 func (m *AsyncAgentManager) emitEvent(agent *AsyncAgent, eventType AgentEventType, result *RunResult, progress *AgentProgress, err error) {
 	// Snapshot volatile state under stateMu to avoid data races.

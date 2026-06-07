@@ -23,9 +23,10 @@ const (
 	credKeyRegion    = "provider_region"
 	credKeyProjectID = "provider_project_id"
 	credKeyResource  = "provider_resource"
-	credKeyTavily    = "TAVILY_API_KEY"
-	credKeyExa       = "EXA_API_KEY"
-	credKeyJina      = "JINA_API_KEY"
+	credKeyTavily     = "TAVILY_API_KEY"
+	credKeyExa        = "EXA_API_KEY"
+	credKeyJina       = "JINA_API_KEY"
+	credKeyLangSearch = "LANGSEARCH_API_KEY"
 )
 
 func runConfig(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -173,11 +174,14 @@ func runConfig(args []string, stdin io.Reader, stdout, stderr io.Writer) error {
 	return nil
 }
 
-// configureSearchKeys prompts for Tavily / Exa / Jina API keys.
+// configureSearchKeys prompts for Tavily / Exa / Jina / LangSearch API keys.
 func configureSearchKeys(reader *bufio.Reader, stdout io.Writer, database *db.DB, config *engineconfig.Config) error {
 	fmt.Fprintln(stdout, "\n─── Search tool API keys ────────────────────────────────────────")
 	fmt.Fprintln(stdout, "Leave blank to keep the current value. Enter \"-\" to clear.")
 	fmt.Fprintln(stdout)
+
+	// LangSearch has no Config struct field — use a local var and apply as env var.
+	langSearchCurrent := os.Getenv("LANGSEARCH_API_KEY")
 
 	fields := []struct {
 		credKey string
@@ -188,6 +192,7 @@ func configureSearchKeys(reader *bufio.Reader, stdout io.Writer, database *db.DB
 		{credKeyTavily, "Tavily API key", "TAVILY_API_KEY", &config.TavilyAPIKey},
 		{credKeyExa, "Exa API key", "EXA_API_KEY", &config.ExaAPIKey},
 		{credKeyJina, "Jina AI API key", "JINA_API_KEY", &config.JinaAPIKey},
+		{credKeyLangSearch, "LangSearch API key", "LANGSEARCH_API_KEY", &langSearchCurrent},
 	}
 
 	for _, f := range fields {
@@ -251,6 +256,7 @@ func printConfigSummary(out io.Writer, config engineconfig.Config, model sdk.Mod
 		{"tavily", config.TavilyAPIKey},
 		{"exa", config.ExaAPIKey},
 		{"jina", config.JinaAPIKey},
+		{"langsearch", os.Getenv("LANGSEARCH_API_KEY")},
 	}
 	anySearch := false
 	for _, f := range searchFields {
@@ -457,8 +463,10 @@ func loadCredsIntoConfig(database *db.DB, config *engineconfig.Config) {
 	config.ExaAPIKey = loadCred(credKeyExa)
 	config.JinaAPIKey = loadCred(credKeyJina)
 
-	// SearXNG is not in the Config struct (no YAML field) — apply directly as an
-	// env var so NewSearXNGProvider() picks it up via os.Getenv("SEARXNG_BASE_URL").
+	// LangSearch and SearXNG have no Config struct field — apply directly as env vars.
+	if v := loadCred(credKeyLangSearch); v != "" && os.Getenv("LANGSEARCH_API_KEY") == "" {
+		os.Setenv("LANGSEARCH_API_KEY", v)
+	}
 	if v := loadCred(credKeySearXNG); v != "" && os.Getenv("SEARXNG_BASE_URL") == "" {
 		os.Setenv("SEARXNG_BASE_URL", v)
 	}

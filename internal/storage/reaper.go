@@ -26,7 +26,7 @@ func DefaultReaperConfig() ReaperConfig {
 		// Session-scoped content (screenshots, downloads, web artifacts) is cleaned
 		// up by DeleteSessionDir when a session is deleted — no reaper needed.
 		Namespaces: []ArtifactNamespace{},
-		Limit: 512,
+		Limit:      512,
 	}
 }
 

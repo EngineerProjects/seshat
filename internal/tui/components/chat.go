@@ -1049,8 +1049,8 @@ type Chat struct {
 	thinkingRegions []thinkingRegion
 	selection       mouseSelection
 	verboseInterim  bool
-	detailKey    string
-	detailToolID string // ID of tool currently rendered in the detail sidebar
+	detailKey       string
+	detailToolID    string // ID of tool currently rendered in the detail sidebar
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
@@ -1895,9 +1895,9 @@ func (c *Chat) refresh() {
 			// expanderStart/End at col 0-1 (the ▸/▾ symbol). Detail click disabled
 			// (right panel is opened with keyboard or by selecting the tool).
 			toolRegions = append(toolRegions, toolRegion{
-				startLine:    startLine,
-				endLine:      startLine + height - 1,
-				msgIndex:     regionMsgIndex,
+				startLine:     startLine,
+				endLine:       startLine + height - 1,
+				msgIndex:      regionMsgIndex,
 				expanderStart: 0,
 				expanderEnd:   1,
 				detailStart:   0,

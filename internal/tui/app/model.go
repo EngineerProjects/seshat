@@ -46,12 +46,13 @@ const (
 )
 
 const (
-	headerHeight = 1
-	footerHeight = 1
-	statusHeight = 1
-	inputMinH    = 1
-	inputMaxH    = 10
-	inputPadding = 1
+	headerHeight  = 1
+	contentTopGap = 1
+	footerHeight  = 1
+	statusHeight  = 1
+	inputMinH     = 1
+	inputMaxH     = 10
+	inputPadding  = 1
 )
 
 // Model is the top-level BubbleTea model for nexus-engine's TUI.
@@ -84,6 +85,7 @@ type Model struct {
 	busy                bool
 	cancelling          bool // true between ESC press and TurnDoneMsg arrival
 	activeSession       string
+	pendingPrompt       string // queued when Enter is pressed before session creation completes
 	lastErr             error
 	permInput           string
 	copyNotice          string  // transient "Copied!" message shown in footer
@@ -226,6 +228,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sessions.SetSessions(msg.Sessions)
 		}
 
+	case pendingSubmitMsg:
+		if m.activeSession != "" {
+			m.chat.AddUserMessage(msg.prompt)
+			m.workspace.Submit(m.ctx, msg.prompt)
+		} else {
+			m.pendingPrompt = msg.prompt
+		}
+
 	case tui.SessionCreatedMsg:
 		if msg.Err != nil {
 			m.lastErr = msg.Err
@@ -236,9 +246,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.sessionInputTokens = 0
 			m.sessionOutputTokens = 0
 			m.chat.Clear()
-			m.sessionInputTokens = 0
-			m.sessionOutputTokens = 0
 			m.chat.AddSystem("New session · " + common.ShortID(msg.ID))
+			if prompt := m.pendingPrompt; prompt != "" {
+				m.pendingPrompt = ""
+				m.chat.AddUserMessage(prompt)
+				m.workspace.Submit(m.ctx, prompt)
+			}
 			cmds = append(cmds, m.input.Focus()) // v2: Focus() returns a Cmd
 		}
 
@@ -281,6 +294,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 			m.chat.AddSystem("↑ session resumed · " + common.ShortID(msg.ID))
 			cmds = append(cmds, m.input.Focus()) // v2: Focus() returns a Cmd
+		}
+
+	case sessionDeleteResultMsg:
+		if msg.err != nil {
+			m.lastErr = msg.err
+			m.lastTurnErr = "session delete failed: " + msg.err.Error()
+		} else {
+			m.lastTurnErr = ""
 		}
 
 	case tui.ModelListMsg:
@@ -463,7 +484,7 @@ type chatLayout struct {
 func (m Model) currentChatLayout() chatLayout {
 	contentW := m.contentWidth()
 	contentX := max(0, (m.width-contentW)/2)
-	chatY := headerHeight
+	chatY := headerHeight + contentTopGap
 	chatW := contentW
 
 	inputW := max(12, contentW-2)
@@ -484,7 +505,7 @@ func (m Model) currentChatLayout() chatLayout {
 		leftInput := m.inputViewFor(chatW)
 		statusH = lipgloss.Height(leftStatus)
 		inputH = lipgloss.Height(leftInput)
-		chatH = m.height - headerHeight - footerHeight - statusH - inputH
+		chatH = m.height - headerHeight - contentTopGap - footerHeight - statusH - inputH
 		detailH = max(1, chatH) + statusH + inputH
 
 		detailX = contentX + chatW + 1
@@ -496,7 +517,7 @@ func (m Model) currentChatLayout() chatLayout {
 		inputView := m.inputView()
 		statusH = lipgloss.Height(statusView)
 		inputH = lipgloss.Height(inputView)
-		chatH = m.height - headerHeight - footerHeight - statusH - inputH
+		chatH = m.height - headerHeight - contentTopGap - footerHeight - statusH - inputH
 	}
 
 	inputY := chatY + max(1, chatH) + statusH
@@ -1290,6 +1311,11 @@ type cfgSaveResultMsg struct{ err error }
 // providerConfigLoadedMsg carries a refreshed provider list.
 type providerConfigLoadedMsg struct{ providers []tui.ProviderStatus }
 
+type sessionDeleteResultMsg struct {
+	id  string
+	err error
+}
+
 // searchConfigLoadedMsg carries the refreshed search configuration.
 type searchConfigLoadedMsg struct{ config tui.SearchConfig }
 
@@ -1340,7 +1366,7 @@ func (m Model) viewWelcome() string {
 		Align(lipgloss.Center, lipgloss.Center).
 		Render(logoArt + "\n" + wordmark + "\n\n" + tagline + "\n\n" + hint + extra)
 
-	return m.header() + "\n" + common.CenterHorizontally(body, m.width)
+	return m.header() + "\n\n" + common.CenterHorizontally(body, m.width)
 }
 
 func (m Model) viewChat() string {
@@ -1356,7 +1382,7 @@ func (m Model) viewChat() string {
 		leftInput := m.inputViewFor(chatW)
 		statusH := lipgloss.Height(leftStatus)
 		inputH := lipgloss.Height(leftInput)
-		chatH := m.height - headerHeight - footerHeight - statusH - inputH
+		chatH := m.height - headerHeight - contentTopGap - footerHeight - statusH - inputH
 
 		m.chat.SetSize(chatW, max(1, chatH))
 		leftContent := strings.Join([]string{m.chat.View(), leftStatus, leftInput}, "\n")
@@ -1366,7 +1392,7 @@ func (m Model) viewChat() string {
 		body := lipgloss.JoinHorizontal(lipgloss.Top, leftContent, " ", detailView)
 		body = common.CenterHorizontally(lipgloss.NewStyle().Width(contentW).Render(body), m.width)
 
-		base := strings.Join([]string{m.header(), body, m.footer()}, "\n")
+		base := strings.Join([]string{m.header(), "", body, m.footer()}, "\n")
 		if m.state == statePermission && m.permission.HasPending() {
 			return common.OverlayOn(base, m.permission.View(), m.width, m.height)
 		}
@@ -1376,11 +1402,11 @@ func (m Model) viewChat() string {
 	// ── Normal layout ─────────────────────────────────────────────────────
 	inputView := m.inputView()
 	statusView := m.statusLine()
-	chatH := m.height - headerHeight - footerHeight - lipgloss.Height(statusView) - lipgloss.Height(inputView)
+	chatH := m.height - headerHeight - contentTopGap - footerHeight - lipgloss.Height(statusView) - lipgloss.Height(inputView)
 	m.chat.SetSize(contentW, max(1, chatH))
 	body := common.CenterHorizontally(lipgloss.NewStyle().Width(contentW).Render(m.chat.View()), m.width)
 
-	base := strings.Join([]string{m.header(), body, statusView, inputView, m.footer()}, "\n")
+	base := strings.Join([]string{m.header(), "", body, statusView, inputView, m.footer()}, "\n")
 	if m.state == statePermission && m.permission.HasPending() {
 		return common.OverlayOn(base, m.permission.View(), m.width, m.height)
 	}
@@ -1631,7 +1657,7 @@ func (m Model) relayout() Model {
 	m.modelSelect.SetSize(m.width, m.height)
 	m.commands.SetSize(m.width, m.height)
 	m.configPanel.SetSize(m.width, m.height)
-	m.chat.SetSize(chatW, max(1, m.height-headerHeight-footerHeight-statusHeight-inputMinH-inputPadding))
+	m.chat.SetSize(chatW, max(1, m.height-headerHeight-contentTopGap-footerHeight-statusHeight-inputMinH-inputPadding))
 	return m
 }
 
@@ -1904,9 +1930,9 @@ func buildSkillSettingsItems(items []tui.SkillInfo) []components.PaletteItem {
 
 func (m Model) deleteSession(id string) tea.Cmd {
 	return func() tea.Msg {
-		_ = m.workspace.DeleteSession(m.ctx, id)
+		err := m.workspace.DeleteSession(m.ctx, id)
 		m.workspace.ListSessions(m.ctx)
-		return nil
+		return sessionDeleteResultMsg{id: id, err: err}
 	}
 }
 

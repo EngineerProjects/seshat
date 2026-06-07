@@ -16,6 +16,7 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"github.com/EngineerProjects/nexus-engine/cmd/cli/appdir"
+	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
 	db "github.com/EngineerProjects/nexus-engine/internal/db"
 	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
 	"github.com/EngineerProjects/nexus-engine/internal/providers"
@@ -79,7 +80,9 @@ func (d *chunkDebounce) forceFlush() {
 // It bridges the engine's callback-based event model with the BubbleTea
 // tea.Program.Send() pattern, with 33ms streaming debounce (crush pattern).
 type nexusWorkspace struct {
+	clientMu   sync.RWMutex
 	client     *sdk.Client
+	clientOpts runtimeOptions
 	model      string
 	workDir    string
 	permMode   string
@@ -90,6 +93,10 @@ type nexusWorkspace struct {
 
 	sessionMu sync.Mutex
 	session   *sdk.Session
+
+	// reloadMu serialises reloadClient calls and lets CreateSession/LoadSession
+	// wait for any in-flight provider reload before they bind to a client.
+	reloadMu sync.Mutex
 
 	busy     atomic.Bool
 	debounce *chunkDebounce
@@ -171,6 +178,7 @@ func newNexusWorkspace(options runtimeOptions) (*nexusWorkspace, error) {
 		workDir:    options.WorkingDir,
 		permMode:   string(options.PermissionMode),
 		sqlitePath: options.SQLitePath,
+		clientOpts: options,
 	}
 	w.debounce = newChunkDebounce(33*time.Millisecond, func(text string) {
 		w.send(tui.ChunkMsg{Text: text})
@@ -215,9 +223,83 @@ func (w *nexusWorkspace) send(msg tea.Msg) {
 	}
 }
 
+func (w *nexusWorkspace) reloadClient(ctx context.Context, modelOverride string) error {
+	w.reloadMu.Lock()
+	defer w.reloadMu.Unlock()
+
+	if w.busy.Load() {
+		return fmt.Errorf("cannot reload provider configuration while a turn is running")
+	}
+
+	overrides := runtimeOverrides{
+		Model:          strings.TrimSpace(modelOverride),
+		PermissionMode: w.permMode,
+		WorkingDir:     w.workDir,
+		SQLitePath:     w.sqlitePath,
+	}
+	if overrides.Model == "" {
+		overrides.Model = strings.TrimSpace(w.model)
+	}
+
+	opts, err := loadRuntimeOptions(overrides)
+	if err != nil {
+		return err
+	}
+	opts.Monitoring = w.clientOpts.Monitoring
+
+	displayModel := ""
+	if opts.Model.Provider != "" {
+		displayModel = opts.Model.String()
+	}
+	clientOpts := opts
+	if clientOpts.Model.Provider == "" {
+		clientOpts.Model = sdk.DefaultClientConfig().Model
+	}
+
+	client, err := newClient(clientOpts, w.promptFn, w.onProgress, w.onChunk)
+	if err != nil {
+		return err
+	}
+
+	activeID := w.ActiveSessionID()
+	var session *sdk.Session
+	if activeID != "" {
+		session, err = client.LoadSession(ctx, sdk.SessionID(activeID))
+		if err != nil {
+			_ = client.Close()
+			return fmt.Errorf("reload active session: %w", err)
+		}
+	}
+
+	w.clientMu.Lock()
+	oldClient := w.client
+	w.client = client
+	w.clientOpts = opts
+	w.clientMu.Unlock()
+
+	w.sessionMu.Lock()
+	w.session = session
+	w.sessionMu.Unlock()
+
+	w.model = displayModel
+	w.workDir = opts.WorkingDir
+	w.permMode = string(opts.PermissionMode)
+	w.sqlitePath = opts.SQLitePath
+
+	if oldClient != nil {
+		go func(c *sdk.Client) {
+			_ = c.Close()
+		}(oldClient)
+	}
+	return nil
+}
+
 func (w *nexusWorkspace) ListSessions(ctx context.Context) {
 	go func() {
-		infos, err := w.client.ListSessions()
+		w.clientMu.RLock()
+		client := w.client
+		infos, err := client.ListSessions()
+		w.clientMu.RUnlock()
 		if err != nil {
 			w.send(tui.SessionListMsg{Err: err})
 			return
@@ -244,7 +326,15 @@ func (w *nexusWorkspace) ListSessions(ctx context.Context) {
 
 func (w *nexusWorkspace) CreateSession(ctx context.Context) {
 	go func() {
-		sess, err := w.client.CreateSession(ctx)
+		// Wait for any in-flight provider reload to finish so the session is
+		// always bound to the most recent (correctly keyed) client.
+		w.reloadMu.Lock()
+		w.reloadMu.Unlock() //nolint:staticcheck
+
+		w.clientMu.RLock()
+		client := w.client
+		sess, err := client.CreateSession(ctx)
+		w.clientMu.RUnlock()
 		if err != nil {
 			w.send(tui.SessionCreatedMsg{Err: err})
 			return
@@ -259,7 +349,13 @@ func (w *nexusWorkspace) CreateSession(ctx context.Context) {
 
 func (w *nexusWorkspace) LoadSession(ctx context.Context, id string) {
 	go func() {
-		sess, err := w.client.LoadSession(ctx, sdk.SessionID(id))
+		w.reloadMu.Lock()
+		w.reloadMu.Unlock() //nolint:staticcheck
+
+		w.clientMu.RLock()
+		client := w.client
+		sess, err := client.LoadSession(ctx, sdk.SessionID(id))
+		w.clientMu.RUnlock()
 		if err != nil {
 			w.send(tui.SessionLoadedMsg{Err: err})
 			return
@@ -384,7 +480,23 @@ func buildSessionHistory(messages []sdk.Message) []tui.HistoryEntry {
 }
 
 func (w *nexusWorkspace) DeleteSession(_ context.Context, id string) error {
-	if err := w.client.DeleteSession(sdk.SessionID(id)); err != nil {
+	w.sessionMu.Lock()
+	active := w.session != nil && string(w.session.GetID()) == id
+	var sess *sdk.Session
+	if active {
+		sess = w.session
+		w.session = nil
+	}
+	w.sessionMu.Unlock()
+	if sess != nil {
+		_ = sess.Interrupt()
+		_ = sess.Close()
+	}
+
+	w.clientMu.RLock()
+	err := w.client.DeleteSession(sdk.SessionID(id))
+	w.clientMu.RUnlock()
+	if err != nil {
 		return err
 	}
 	// Remove the entire session directory: images, plans, tools, logs — one call.
@@ -436,6 +548,10 @@ func (w *nexusWorkspace) Submit(ctx context.Context, prompt string) {
 	}()
 }
 
+func (w *nexusWorkspace) cancelAsyncAgents() int {
+	return coreagent.GetDefaultAsyncManager().CloseAllAgents()
+}
+
 func (w *nexusWorkspace) Cancel() {
 	w.submitMu.Lock()
 	cancel := w.submitCancel
@@ -443,6 +559,18 @@ func (w *nexusWorkspace) Cancel() {
 	if cancel != nil {
 		cancel()
 	}
+
+	w.sessionMu.Lock()
+	sess := w.session
+	w.sessionMu.Unlock()
+	if sess != nil {
+		_ = sess.Interrupt()
+	}
+
+	if closed := w.cancelAsyncAgents(); closed > 0 {
+		log.Printf("[tui] cancelled %d async sub-agent(s)", closed)
+	}
+
 	// Safety net: unblock the UI immediately even if TurnDoneMsg is delayed.
 	w.busy.Store(false)
 }
@@ -617,6 +745,11 @@ func (w *nexusWorkspace) SetModel(providerID, modelID string) {
 			}
 		}
 	}()
+	go func() {
+		if err := w.reloadClient(context.Background(), modelStr); err != nil {
+			w.send(tui.ErrMsg{Err: err})
+		}
+	}()
 }
 
 // ─── Provider configuration ────────────────────────────────────────────────────
@@ -694,6 +827,19 @@ func (w *nexusWorkspace) SaveProviderField(ctx context.Context, providerID, fiel
 	if strings.ToLower(providerID) == "ollama" && fieldKey == "provider_base_url" {
 		w.probeOllamaInBackground()
 	}
+	// Only reload when saving a credential for the currently active provider.
+	// If no model is selected yet, or the saved credential belongs to a different
+	// provider, skip the reload — SetModel will trigger the correct one when the
+	// user picks a model. Reloading with the wrong active provider would build a
+	// client with an empty API key (the key is stored scoped to providerID but
+	// looked up via the current model's provider), which then races with SetModel's
+	// goroutine and can permanently attach a keyless client to the new session.
+	currentModel := strings.TrimSpace(w.model)
+	if currentModel != "" {
+		if parts := strings.SplitN(currentModel, ":", 2); strings.EqualFold(parts[0], providerID) {
+			return w.reloadClient(ctx, "")
+		}
+	}
 	return nil
 }
 
@@ -711,7 +857,7 @@ func (w *nexusWorkspace) DeleteProviderField(ctx context.Context, providerID, fi
 	if strings.ToLower(providerID) == "ollama" && fieldKey == "provider_base_url" {
 		w.probeOllamaInBackground()
 	}
-	return nil
+	return w.reloadClient(ctx, "")
 }
 
 // searchProviderCatalog is the static metadata for each search provider.
@@ -796,7 +942,10 @@ func (w *nexusWorkspace) SaveSearchMode(ctx context.Context, mode string) error 
 }
 
 func (w *nexusWorkspace) LoadToolCatalog(ctx context.Context) []tui.ToolInfo {
-	surface, err := w.client.BuildToolSurface(ctx)
+	w.clientMu.RLock()
+	client := w.client
+	surface, err := client.BuildToolSurface(ctx)
+	w.clientMu.RUnlock()
 	if err != nil || surface == nil {
 		return nil
 	}
@@ -815,7 +964,9 @@ func (w *nexusWorkspace) LoadToolCatalog(ctx context.Context) []tui.ToolInfo {
 }
 
 func (w *nexusWorkspace) LoadMCPServers(_ context.Context) []tui.MCPServerInfo {
+	w.clientMu.RLock()
 	result := w.client.MCPResult()
+	w.clientMu.RUnlock()
 	if result == nil {
 		return nil
 	}
@@ -868,7 +1019,15 @@ func (w *nexusWorkspace) LoadSkills(_ context.Context) []tui.SkillInfo {
 }
 
 func (w *nexusWorkspace) Close() {
-	w.client.Close()
+	if closed := w.cancelAsyncAgents(); closed > 0 {
+		log.Printf("[tui] closed %d async sub-agent(s) during shutdown", closed)
+	}
+	w.clientMu.RLock()
+	client := w.client
+	w.clientMu.RUnlock()
+	if client != nil {
+		_ = client.Close()
+	}
 }
 
 // ─── SDK callback bridges ──────────────────────────────────────────────────────

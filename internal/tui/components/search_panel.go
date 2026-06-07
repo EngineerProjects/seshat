@@ -201,7 +201,7 @@ func (p *SearchPanel) SetKeySaved() {
 	p.statusMsg = "✓ Saved"
 }
 
-func (p *SearchPanel) SetModeSaved() { p.statusMsg = "✓ Mode saved" }
+func (p *SearchPanel) SetModeSaved()       { p.statusMsg = "✓ Mode saved" }
 func (p *SearchPanel) SetError(msg string) { p.statusMsg = "✗ " + msg }
 func (p *SearchPanel) ClearStatus()        { p.statusMsg = "" }
 

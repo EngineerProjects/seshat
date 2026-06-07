@@ -39,17 +39,27 @@ func SessionsDir() string { return runtimepath.SessionsDir("") }
 
 // ─── Per-session directories ──────────────────────────────────────────────────
 
-func SessionDir(sessionID string) string          { return runtimepath.SessionDir("", sessionID) }
-func SessionScreenshotsDir(sessionID string) string { return runtimepath.SessionScreenshotsDir("", sessionID) }
-func SessionPlansDir(sessionID string) string     { return runtimepath.SessionPlansDir("", sessionID) }
-func SessionToolsDir(sessionID string) string     { return runtimepath.SessionToolsDir("", sessionID) }
-func SessionLogPath(sessionID string) string      { return runtimepath.SessionLogPath("", sessionID) }
+func SessionDir(sessionID string) string { return runtimepath.SessionDir("", sessionID) }
+func SessionScreenshotsDir(sessionID string) string {
+	return runtimepath.SessionScreenshotsDir("", sessionID)
+}
+func SessionPlansDir(sessionID string) string { return runtimepath.SessionPlansDir("", sessionID) }
+func SessionToolsDir(sessionID string) string { return runtimepath.SessionToolsDir("", sessionID) }
+func SessionLogPath(sessionID string) string  { return runtimepath.SessionLogPath("", sessionID) }
 
 // Artifact subdirectories — agent-produced content, session-scoped.
-func SessionArtifactsDir(sessionID string) string       { return runtimepath.SessionArtifactsDir("", sessionID) }
-func SessionArtifactsWebDir(sessionID string) string    { return runtimepath.SessionArtifactsWebDir("", sessionID) }
-func SessionArtifactsImagesDir(sessionID string) string { return runtimepath.SessionArtifactsImagesDir("", sessionID) }
-func SessionArtifactsAudioDir(sessionID string) string  { return runtimepath.SessionArtifactsAudioDir("", sessionID) }
+func SessionArtifactsDir(sessionID string) string {
+	return runtimepath.SessionArtifactsDir("", sessionID)
+}
+func SessionArtifactsWebDir(sessionID string) string {
+	return runtimepath.SessionArtifactsWebDir("", sessionID)
+}
+func SessionArtifactsImagesDir(sessionID string) string {
+	return runtimepath.SessionArtifactsImagesDir("", sessionID)
+}
+func SessionArtifactsAudioDir(sessionID string) string {
+	return runtimepath.SessionArtifactsAudioDir("", sessionID)
+}
 
 // ─── Lifecycle helpers ────────────────────────────────────────────────────────
 

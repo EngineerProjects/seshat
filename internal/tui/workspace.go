@@ -151,7 +151,7 @@ type SearchKeyStatus struct {
 
 // SearchConfig is the TUI's view of the web search configuration.
 type SearchConfig struct {
-	Mode      string            // "auto", "tavily", "exa", etc.
+	Mode      string // "auto", "tavily", "exa", etc.
 	Providers []SearchKeyStatus
 }
 

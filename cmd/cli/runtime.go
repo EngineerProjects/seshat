@@ -8,10 +8,10 @@ import (
 	"strings"
 	"time"
 
+	internalrag "github.com/EngineerProjects/nexus-engine/internal/rag"
 	"github.com/EngineerProjects/nexus-engine/internal/rag/embedder"
 	"github.com/EngineerProjects/nexus-engine/internal/vector"
 	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	internalrag "github.com/EngineerProjects/nexus-engine/internal/rag"
 	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
 )
@@ -55,6 +55,14 @@ func loadRuntimeOptions(overrides runtimeOverrides) (runtimeOptions, error) {
 		return runtimeOptions{}, err
 	}
 
+	// Apply the model override before loading credentials so that
+	// loadCredsIntoConfig resolves the API key for the correct provider.
+	// Without this, loadCredsIntoConfig sees config.Model="" and falls back
+	// to the default provider (anthropic), missing the scoped key for z-ai etc.
+	if value := strings.TrimSpace(overrides.Model); value != "" {
+		config.Model = value
+	}
+
 	// Overlay secrets from the credentials DB so that search keys and provider
 	// API keys stored there take effect without being in the YAML file.
 	if database, dbErr := openCredentialsDB(config); dbErr == nil {
@@ -65,9 +73,6 @@ func loadRuntimeOptions(overrides runtimeOverrides) (runtimeOptions, error) {
 
 	if overrides.Debug != nil {
 		config.Debug = *overrides.Debug
-	}
-	if value := strings.TrimSpace(overrides.Model); value != "" {
-		config.Model = value
 	}
 	if value := strings.TrimSpace(overrides.WorkingDir); value != "" {
 		config.Cwd = value

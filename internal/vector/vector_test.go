@@ -2,9 +2,9 @@ package vector
 
 import (
 	"context"
-	"testing"
 	"os"
 	"path/filepath"
+	"testing"
 
 	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
 )
@@ -641,7 +641,7 @@ func TestHNSWStore_UpsertSearchPersistence(t *testing.T) {
 	}
 
 	records := []Record{
-		{Namespace: "ns", Key: "a", Text: "apple",  Vector: []float32{1, 0, 0}},
+		{Namespace: "ns", Key: "a", Text: "apple", Vector: []float32{1, 0, 0}},
 		{Namespace: "ns", Key: "b", Text: "banana", Vector: []float32{0, 1, 0}},
 		{Namespace: "ns", Key: "c", Text: "cherry", Vector: []float32{0, 0, 1}},
 	}
@@ -717,7 +717,7 @@ func TestHNSWStore_HybridKeywordBlend(t *testing.T) {
 	}
 	_ = store.Upsert(ctx, []Record{
 		{Namespace: "k", Key: "x", Text: "the quick brown fox", Vector: []float32{1, 0}},
-		{Namespace: "k", Key: "y", Text: "lazy dog sleeps",     Vector: []float32{1, 0}}, // same vector direction
+		{Namespace: "k", Key: "y", Text: "lazy dog sleeps", Vector: []float32{1, 0}}, // same vector direction
 	})
 
 	// Without hybrid both should have the same vector score.
