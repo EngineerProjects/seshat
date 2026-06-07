@@ -73,8 +73,8 @@ type RunConfig struct {
 	// Context is the parent context
 	Context context.Context
 
-	// Callback is called on each turn completion
-	Callback func(turn int, output string)
+	// Callback is called on each turn completion with cumulative tool use count.
+	Callback func(turn int, output string, toolUses int)
 
 	// ForkFromMessages is message context inherited from parent
 	ForkFromMessages []types.Message
@@ -289,7 +289,7 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 		}
 
 		if config.Callback != nil {
-			config.Callback(turn, lastOutput.String())
+			config.Callback(turn, lastOutput.String(), totalToolUses)
 		}
 
 		// Check stop condition; if true the agent considers itself done.

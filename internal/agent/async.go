@@ -389,25 +389,23 @@ func (m *AsyncAgentManager) runAgent(agent *AsyncAgent) {
 		return "" // runner uses its own default
 	}
 
-	config.Callback = func(turn int, output string) {
+	config.Callback = func(turn int, output string, toolUses int) {
 		agent.progressMu.Lock()
 		agent.CurrentTurn = turn
 		agent.CurrentOutput = output
+		agent.ToolUses = toolUses
 
-		// Calculate progress percentage
 		maxTurns := config.MaxTurns
 		if maxTurns == 0 {
 			maxTurns = DefaultMaxTurns
 		}
 		percentComplete := float64(turn) / float64(maxTurns) * 100
-
 		agent.progressMu.Unlock()
 
-		// Send progress event
 		progress := &AgentProgress{
 			CurrentTurn:     turn,
 			MaxTurns:        maxTurns,
-			ToolUses:        agent.ToolUses,
+			ToolUses:        toolUses,
 			Output:          output,
 			PercentComplete: percentComplete,
 		}
@@ -416,6 +414,14 @@ func (m *AsyncAgentManager) runAgent(agent *AsyncAgent) {
 
 	// Run the agent
 	result, err := RunAgent(&config)
+
+	// Sync final tool-use count from result into agent.ToolUses so GetProgress()
+	// returns accurate data even if the per-turn callback missed the last turn.
+	if result != nil {
+		agent.progressMu.Lock()
+		agent.ToolUses = result.ToolUses
+		agent.progressMu.Unlock()
+	}
 
 	endTime := time.Now()
 	agent.stateMu.Lock()
@@ -534,6 +540,10 @@ func (m *AsyncAgentManager) Shutdown() {
 	// starting up when we cancelled). Without this, Shutdown returns before
 	// goroutines transition out of AgentStatusRunning.
 	m.agentsWg.Wait()
+
+	// Release memory held by completed/failed/cancelled agents now that all
+	// goroutines are done and no new ones can start (shutdown=true).
+	m.Cleanup()
 
 	// Stop event dispatcher and wait for event workers.
 	m.dispatcherCancel()
