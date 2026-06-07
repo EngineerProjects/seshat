@@ -7,6 +7,7 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"fmt"
+	"log"
 	"sort"
 	"strings"
 
@@ -290,7 +291,11 @@ func (s *SQLiteStore) Get(ctx context.Context, namespace string, keys []string) 
 			return nil, fmt.Errorf("scan vector record: %w", err)
 		}
 		var meta map[string]string
-		_ = json.Unmarshal([]byte(metaJSON), &meta)
+		if metaJSON != "" && metaJSON != "{}" {
+			if err := json.Unmarshal([]byte(metaJSON), &meta); err != nil {
+				log.Printf("[vector/sqlite] metadata unmarshal warning for key %q in namespace %q: %v", key, namespace, err)
+			}
+		}
 		results = append(results, Record{
 			Namespace: namespace,
 			Key:       key,

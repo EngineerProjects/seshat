@@ -3,9 +3,12 @@ package vector
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
+	"sort"
 	"strings"
 	"sync"
 
@@ -89,7 +92,9 @@ func (s *HNSWStore) namespace(name string) (*hnswNamespace, error) {
 
 	meta := make(map[string]hnswMeta)
 	if data, err := os.ReadFile(metaPath); err == nil {
-		_ = json.Unmarshal(data, &meta)
+		if unmarshalErr := json.Unmarshal(data, &meta); unmarshalErr != nil {
+			log.Printf("[vector/hnsw] metadata unmarshal warning for namespace %q: %v", name, unmarshalErr)
+		}
 	}
 
 	n = &hnswNamespace{graph: g, meta: meta, metaPath: metaPath}
@@ -138,11 +143,8 @@ func (s *HNSWStore) Upsert(ctx context.Context, records []Record) error {
 		saveErr := n.graph.Save()
 		metaErr := n.saveMeta()
 		n.mu.Unlock()
-		if saveErr != nil {
-			return fmt.Errorf("save hnsw index for %q: %w", nsName, saveErr)
-		}
-		if metaErr != nil {
-			return fmt.Errorf("save hnsw meta for %q: %w", nsName, metaErr)
+		if err := errors.Join(saveErr, metaErr); err != nil {
+			return fmt.Errorf("persist hnsw namespace %q: %w", nsName, err)
 		}
 	}
 	return nil
@@ -197,6 +199,10 @@ func (s *HNSWStore) Search(ctx context.Context, query Query) ([]SearchResult, er
 
 	if query.HybridWeight > 0 && strings.TrimSpace(query.QueryText) != "" && len(results) > 0 {
 		results = hnswBlendKeyword(results, query.QueryText, query.HybridWeight)
+		// Re-sort after blending: keyword scores change the ranking.
+		sort.Slice(results, func(i, j int) bool {
+			return results[i].Score > results[j].Score
+		})
 	}
 
 	return results, nil
@@ -282,11 +288,8 @@ func (s *HNSWStore) DeleteKeys(ctx context.Context, namespace string, keys []str
 	metaErr := n.saveMeta()
 	n.mu.Unlock()
 
-	if saveErr != nil {
-		return fmt.Errorf("save hnsw index after delete: %w", saveErr)
-	}
-	if metaErr != nil {
-		return fmt.Errorf("save hnsw meta after delete: %w", metaErr)
+	if err := errors.Join(saveErr, metaErr); err != nil {
+		return fmt.Errorf("persist hnsw namespace %q after delete: %w", namespace, err)
 	}
 	return nil
 }

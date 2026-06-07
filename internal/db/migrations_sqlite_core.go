@@ -1,6 +1,9 @@
 package db
 
-import "context"
+import (
+	"context"
+	"log"
+)
 
 func sqliteCoreMigrations() []schemaMigration {
 	return []schemaMigration{
@@ -118,9 +121,9 @@ func migrateSQLiteVectorFTS5(ctx context.Context, db *DB) error {
 	}
 	for _, stmt := range statements {
 		if err := db.gormDB.WithContext(ctx).Exec(stmt).Error; err != nil {
-			// FTS5 is an enhancement; a failure here must not block startup.
-			// Log and continue rather than returning an error.
-			_ = err
+			// FTS5 is an enhancement; a failure must not block startup.
+			// Hybrid search degrades to LIKE scan when FTS5 is unavailable.
+			log.Printf("[db] fts5 vector migration warning (hybrid search may be degraded): %v", err)
 		}
 	}
 	return nil
@@ -216,7 +219,8 @@ func migrateSQLiteTranscriptFTS5(ctx context.Context, db *DB) error {
 	for _, stmt := range statements {
 		if err := db.gormDB.WithContext(ctx).Exec(stmt).Error; err != nil {
 			// FTS5 is an enhancement; a failure must not block startup.
-			_ = err
+			// Transcript full-text search degrades to LIKE scan when FTS5 is unavailable.
+			log.Printf("[db] fts5 transcript migration warning (search may be degraded): %v", err)
 		}
 	}
 	return nil
