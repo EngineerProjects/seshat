@@ -955,6 +955,15 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) (bool, tea.Cmd) {
 		if m.state == stateChat || m.state == stateWelcome {
 			opened := m.chat.ToggleDetails()
 			*m = m.relayout()
+			// Auto-switch focus so arrow keys scroll the sidebar immediately
+			// without requiring an extra Tab press.
+			if opened {
+				m.focus = uiFocusMain
+				m.input.Blur()
+			} else if m.focus == uiFocusMain {
+				m.focus = uiFocusEditor
+				return true, m.input.Focus()
+			}
 			return true, boolCmd(opened)
 		}
 		return false, nil
@@ -1028,7 +1037,9 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) (bool, tea.Cmd) {
 				if m.chat.DetailsOpen() {
 					m.chat.CloseDetails()
 					*m = m.relayout()
-					return true, nil
+					// Return focus to editor when sidebar closes.
+					m.focus = uiFocusEditor
+					return true, m.input.Focus()
 				}
 				if !m.busy {
 					m.state = stateWelcome

@@ -1049,7 +1049,8 @@ type Chat struct {
 	thinkingRegions []thinkingRegion
 	selection       mouseSelection
 	verboseInterim  bool
-	detailKey       string
+	detailKey    string
+	detailToolID string // ID of tool currently rendered in the detail sidebar
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
@@ -1075,7 +1076,9 @@ func (c *Chat) SetSize(width, height int) {
 	c.height = height
 	c.viewport.SetWidth(width)
 	c.viewport.SetHeight(height)
-	c.detailKey = ""
+	// Do NOT reset detailKey here — that would force a GotoTop() on every
+	// streaming update (as the chat height grows), preventing sidebar scrolling.
+	// Size changes to the detail viewport are handled inside renderToolDetail.
 	if r := common.MarkdownRenderer(width); r != nil {
 		c.renderer = r
 	}
@@ -1683,6 +1686,8 @@ func (c *Chat) renderToolDetail(t *toolItem, width, height int) string {
 	}
 	bodyH := max(3, height-lipgloss.Height(header)-4)
 	key := t.detailCacheKey(innerW, bodyH, body)
+
+	// Apply dimension changes first so SetContent lays out correctly.
 	sizeChanged := c.detail.Width() != innerW || c.detail.Height() != bodyH
 	if c.detail.Width() != innerW {
 		c.detail.SetWidth(innerW)
@@ -1690,16 +1695,29 @@ func (c *Chat) renderToolDetail(t *toolItem, width, height int) string {
 	if c.detail.Height() != bodyH {
 		c.detail.SetHeight(bodyH)
 	}
-	if c.detailKey != key || sizeChanged {
+
+	switch {
+	case c.detailToolID != t.id:
+		// Different tool selected: reset to top.
+		c.detail.SetContent(body)
+		c.detail.GotoTop()
+		c.detailKey = key
+		c.detailToolID = t.id
+
+	case c.detailKey != key:
+		// Same tool, content grew (streaming) or size changed: preserve scroll position.
 		yOffset := c.detail.YOffset()
 		c.detail.SetContent(body)
-		if c.detailKey != key {
-			c.detail.GotoTop()
-		} else {
-			c.detail.SetYOffset(yOffset)
-		}
+		c.detail.SetYOffset(yOffset)
 		c.detailKey = key
+
+	case sizeChanged:
+		// Dimensions changed but content is identical: re-layout without losing position.
+		yOffset := c.detail.YOffset()
+		c.detail.SetContent(body)
+		c.detail.SetYOffset(yOffset)
 	}
+
 	content := header + "\n\n" + c.detail.View()
 	return lipgloss.NewStyle().
 		Border(lipgloss.RoundedBorder()).
