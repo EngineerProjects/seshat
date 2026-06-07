@@ -8,6 +8,7 @@ import (
 	"os"
 	"strings"
 	"sync"
+	"time"
 
 	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
 	"github.com/EngineerProjects/nexus-engine/internal/engine"
@@ -312,12 +313,39 @@ func (c *Client) ListSessions() ([]*SessionInfo, error) {
 	return c.store.GetAllSessionsInfo()
 }
 
-// DeleteSession deletes a session.
+// DeleteSession deletes a session and all associated artifacts from storage.
 func (c *Client) DeleteSession(sessionID SessionID) error {
 	if c.store == nil {
 		return fmt.Errorf("session persistence not enabled")
 	}
-	return c.store.DeleteSession(sessionID)
+	if err := c.store.DeleteSession(sessionID); err != nil {
+		return err
+	}
+	if c.artifacts != nil {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+		deleteSessionArtifacts(ctx, c.artifacts, string(sessionID))
+	}
+	return nil
+}
+
+// deleteSessionArtifacts removes all browser screenshots and downloads stored
+// under the session prefix. Errors are intentionally ignored — artifact cleanup
+// is best-effort and must not block session deletion.
+func deleteSessionArtifacts(ctx context.Context, store ArtifactStore, sessionID string) {
+	prefixes := []string{
+		"artifacts/browser/screenshots/" + sessionID,
+		"artifacts/browser/downloads/" + sessionID,
+	}
+	for _, prefix := range prefixes {
+		refs, err := store.List(ctx, ArtifactListOptions{Prefix: prefix})
+		if err != nil {
+			continue
+		}
+		for _, ref := range refs {
+			_ = store.Delete(ctx, ref.Key)
+		}
+	}
 }
 
 // Close releases SDK-owned resources. Safe to call multiple times.

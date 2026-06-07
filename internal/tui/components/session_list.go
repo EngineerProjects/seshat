@@ -107,28 +107,26 @@ func (s *SessionList) View() string {
 		if len(meta) > w-4 {
 			meta = meta[:w-4]
 		}
-		preview := sess.Preview
-		if preview != "" {
-			maxPreview := w - 6
-			if maxPreview < 0 {
-				maxPreview = 0
+		// Use preview (first user message line) as the primary title.
+		// Fall back to ShortID when no preview is stored yet.
+		title := sess.Preview
+		if title == "" {
+			title = sess.ShortID
+		} else {
+			maxTitle := w - 6
+			if maxTitle < 0 {
+				maxTitle = 0
 			}
-			r := []rune(preview)
-			if len(r) > maxPreview {
-				preview = string(r[:maxPreview]) + "…"
+			r := []rune(title)
+			if len(r) > maxTitle {
+				title = string(r[:maxTitle]) + "…"
 			}
 		}
 		if i == cursor {
-			line := "▶ " + meta
-			if preview != "" {
-				line += "\n  " + preview
-			}
+			line := "▶ " + title + "\n  " + meta
 			rows = append(rows, s.styles.BrowserSelected.Width(w-2).Render(line))
 		} else {
-			line := "  " + meta
-			if preview != "" {
-				line += "\n  " + s.styles.Desc.Render(preview)
-			}
+			line := "  " + title + "\n  " + s.styles.Desc.Render(meta)
 			rows = append(rows, s.styles.BrowserItem.Width(w-2).Render(line))
 		}
 	}

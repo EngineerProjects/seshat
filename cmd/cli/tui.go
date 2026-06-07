@@ -16,10 +16,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	db "github.com/EngineerProjects/nexus-engine/internal/db"
+	modeexec "github.com/EngineerProjects/nexus-engine/internal/modes/execution"
 	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
 	"github.com/EngineerProjects/nexus-engine/internal/providers"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 	tuiapp "github.com/EngineerProjects/nexus-engine/internal/tui/app"
+	"github.com/EngineerProjects/nexus-engine/internal/types"
 	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
 	skillspkg "github.com/EngineerProjects/nexus-engine/pkg/skills"
@@ -380,7 +382,17 @@ func buildSessionHistory(messages []sdk.Message) []tui.HistoryEntry {
 }
 
 func (w *nexusWorkspace) DeleteSession(_ context.Context, id string) error {
-	return w.client.DeleteSession(sdk.SessionID(id))
+	if err := w.client.DeleteSession(sdk.SessionID(id)); err != nil {
+		return err
+	}
+	sid := types.SessionID(id)
+	// Best-effort plan file cleanup. GetPlanFilePath generates a slug when none
+	// exists — os.Remove is a no-op on paths that don't exist.
+	planPath := modeexec.GetPlanFilePath(sid, nil)
+	_ = os.Remove(planPath)
+	modeexec.ClearState(sid)
+	modeexec.ClearPlanSlug(sid)
+	return nil
 }
 
 func (w *nexusWorkspace) Submit(ctx context.Context, prompt string) {
