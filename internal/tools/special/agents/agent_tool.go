@@ -293,16 +293,20 @@ func (t *AgentTool) Call(
 				Content: fmt.Sprintf("Agent failed (worktree): %s\n\nError: %s", result.Output, result.Error),
 			}, nil
 		}
+		wtData := map[string]any{
+			"agentType":    agentType,
+			"task":         task,
+			"turns":        result.Turns,
+			"toolUses":     result.ToolUses,
+			"success":      result.Success,
+			"isolation":    "worktree",
+			"worktreePath": result.WorktreePath,
+		}
+		if len(result.Sources) > 0 {
+			wtData["sources"] = result.Sources
+		}
 		return tool.CallResult{
-			Data: map[string]any{
-				"agentType":    agentType,
-				"task":         task,
-				"turns":        result.Turns,
-				"toolUses":     result.ToolUses,
-				"success":      result.Success,
-				"isolation":    "worktree",
-				"worktreePath": result.WorktreePath,
-			},
+			Data:    wtData,
 			Content: result.Output + "\n\nWorktree created at: " + result.WorktreePath + "\nUse ExitWorktree to merge or discard changes.",
 		}, nil
 	}
@@ -324,17 +328,18 @@ func (t *AgentTool) Call(
 				Content: fmt.Sprintf("Fork agent failed: %s\n\nError: %s", result.Output, result.Error),
 			}, nil
 		}
-		return tool.CallResult{
-			Data: map[string]any{
-				"agentType": agentType,
-				"task":      task,
-				"turns":     result.Turns,
-				"toolUses":  result.ToolUses,
-				"success":   result.Success,
-				"fork":      true,
-			},
-			Content: result.Output,
-		}, nil
+		forkData := map[string]any{
+			"agentType": agentType,
+			"task":      task,
+			"turns":     result.Turns,
+			"toolUses":  result.ToolUses,
+			"success":   result.Success,
+			"fork":      true,
+		}
+		if len(result.Sources) > 0 {
+			forkData["sources"] = result.Sources
+		}
+		return tool.CallResult{Data: forkData, Content: result.Output}, nil
 	}
 
 	result := t.runAgent(ctx, agentType, task, maxTurns, allowedTools, agentEventFn)
@@ -344,16 +349,17 @@ func (t *AgentTool) Call(
 			Content: fmt.Sprintf("Agent failed: %s\n\nError: %s", result.Output, result.Error),
 		}, nil
 	}
-	return tool.CallResult{
-		Data: map[string]any{
-			"agentType": agentType,
-			"task":      task,
-			"turns":     result.Turns,
-			"toolUses":  result.ToolUses,
-			"success":   result.Success,
-		},
-		Content: result.Output,
-	}, nil
+	data := map[string]any{
+		"agentType": agentType,
+		"task":      task,
+		"turns":     result.Turns,
+		"toolUses":  result.ToolUses,
+		"success":   result.Success,
+	}
+	if len(result.Sources) > 0 {
+		data["sources"] = result.Sources
+	}
+	return tool.CallResult{Data: data, Content: result.Output}, nil
 }
 
 // runAgent executes the agent synchronously.

@@ -181,6 +181,9 @@ func buildWaitResult(ag *coreagent.AsyncAgent) map[string]any {
 		resp["output"] = ag.Result.Output
 		resp["turns"] = ag.Result.Turns
 		resp["tool_uses"] = ag.Result.ToolUses
+		if len(ag.Result.Sources) > 0 {
+			resp["sources"] = ag.Result.Sources
+		}
 	}
 	if ag.Error != nil {
 		resp["error"] = ag.Error.Error()
@@ -196,7 +199,14 @@ func formatWaitSummary(ag *coreagent.AsyncAgent) string {
 		if ag.Result != nil {
 			output = ag.Result.Output
 		}
-		return fmt.Sprintf("Agent %s completed in %.1fs:\n%s", ag.ID, ag.GetDuration().Seconds(), output)
+		summary := fmt.Sprintf("Agent %s completed in %.1fs:\n%s", ag.ID, ag.GetDuration().Seconds(), output)
+		if ag.Result != nil && len(ag.Result.Sources) > 0 {
+			summary += fmt.Sprintf("\n\nSources consulted (%d):", len(ag.Result.Sources))
+			for _, s := range ag.Result.Sources {
+				summary += fmt.Sprintf("\n  [%s] %s", s.Type, s.Value)
+			}
+		}
+		return summary
 	case "errored":
 		errMsg := ""
 		if ag.Error != nil {

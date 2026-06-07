@@ -14,6 +14,12 @@ import (
 )
 
 // RunResult is the result of running an agent
+// SourceRef records a resource consulted by the sub-agent during execution.
+type SourceRef struct {
+	Type  string `json:"type"`  // "file", "url", "search", "glob", "grep"
+	Value string `json:"value"` // path, URL, or query string
+}
+
 type RunResult struct {
 	// AgentType is the type of agent
 	AgentType string `json:"agentType"`
@@ -29,6 +35,11 @@ type RunResult struct {
 
 	// ToolUses is the number of tool uses
 	ToolUses int `json:"toolUses"`
+
+	// Sources lists every file, URL, and search query the agent consulted.
+	// Collected automatically from tool calls — the parent receives this
+	// without relying on the sub-agent to format it in its output.
+	Sources []SourceRef `json:"sources,omitempty"`
 
 	// WorktreePath is the worktree directory (for isolation mode)
 	WorktreePath string `json:"worktreePath,omitempty"`
@@ -264,6 +275,8 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 	var lastOutput strings.Builder
 	turns := 0
 	totalToolUses := 0
+	var sources []SourceRef
+	seenSources := make(map[string]bool)
 
 	for turn := 1; turn <= maxTurns; turn++ {
 		var msg string
@@ -282,11 +295,23 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 				Output:    lastOutput.String(),
 				Turns:     turns,
 				ToolUses:  totalToolUses,
+				Sources:   sources,
 				Error:     err.Error(),
 			}, nil
 		}
 		turns++
 		totalToolUses += len(resp.GetLastToolResults())
+
+		// Collect sources from every tool call in this turn.
+		for _, tu := range resp.ToolUses {
+			for _, ref := range extractSources(tu) {
+				key := ref.Type + ":" + ref.Value
+				if !seenSources[key] {
+					seenSources[key] = true
+					sources = append(sources, ref)
+				}
+			}
+		}
 
 		// Collect this turn's output.
 		lastOutput.Reset()
@@ -321,6 +346,7 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 				Output:    lastOutput.String(),
 				Turns:     turns,
 				ToolUses:  totalToolUses,
+				Sources:   sources,
 				Error:     ctx.Err().Error(),
 			}, nil
 		default:
@@ -333,7 +359,52 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 		Output:    lastOutput.String(),
 		Turns:     turns,
 		ToolUses:  totalToolUses,
+		Sources:   sources,
 	}, nil
+}
+
+// extractSources inspects a single tool call and returns any source references
+// (files read, URLs fetched, search queries). Deduplication happens in the caller.
+func extractSources(tu types.ToolUseContent) []SourceRef {
+	str := func(key string) string {
+		if v, ok := tu.Input[key].(string); ok {
+			return strings.TrimSpace(v)
+		}
+		return ""
+	}
+
+	switch tu.Name {
+	case "read_file", "write_file", "edit_file":
+		if p := str("path"); p != "" {
+			return []SourceRef{{Type: "file", Value: p}}
+		}
+	case "glob":
+		if p := str("pattern"); p != "" {
+			return []SourceRef{{Type: "glob", Value: p}}
+		}
+	case "grep":
+		refs := []SourceRef{}
+		if p := str("pattern"); p != "" {
+			refs = append(refs, SourceRef{Type: "grep", Value: p})
+		}
+		if p := str("path"); p != "" {
+			refs = append(refs, SourceRef{Type: "file", Value: p})
+		}
+		return refs
+	case "web_search", "wikipedia", "scholarly_search", "langsearch":
+		if q := str("query"); q != "" {
+			return []SourceRef{{Type: "search", Value: q}}
+		}
+	case "web_fetch", "web_crawl", "web_map":
+		if u := str("url"); u != "" {
+			return []SourceRef{{Type: "url", Value: u}}
+		}
+	case "browser_navigate", "browser_open":
+		if u := str("url"); u != "" {
+			return []SourceRef{{Type: "url", Value: u}}
+		}
+	}
+	return nil
 }
 
 // RunForkedAgent runs an agent in fork mode (like OpenClaude's forkSubagent)
