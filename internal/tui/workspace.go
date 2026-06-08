@@ -80,6 +80,14 @@ type SessionCreatedMsg struct {
 	Err error
 }
 
+// SessionRenamedMsg is sent when the engine auto-generates a title for a
+// session after its first completed turn. The TUI should update the session
+// list entry in place without re-fetching all sessions.
+type SessionRenamedMsg struct {
+	ID    string
+	Title string
+}
+
 // HistoryTool is one completed tool call embedded in a HistoryEntry.
 // Metadata is the full TUI metadata map (content, execution_duration_ms, etc.)
 // stored alongside the tool result in the transcript.

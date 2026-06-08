@@ -63,6 +63,7 @@ type Chat struct {
 	verboseInterim  bool
 	detailKey       string
 	detailToolID    string // ID of tool currently rendered in the detail sidebar
+	SpinnerFrame    string
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
@@ -200,6 +201,12 @@ func (c *Chat) FinishAssistantMessage(inputTokens, outputTokens int, stopReason 
 }
 
 func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metadata map[string]any) {
+	if toolName == "spawn_agent" && (status == "completed" || status == "done") {
+		if isFinished, _ := metadata["subagent_finished"].(bool); !isFinished {
+			status = "running"
+		}
+	}
+
 	// Plan mode / Pair programming mode intercepts.
 	if status == "completed" {
 		switch toolName {
@@ -691,4 +698,13 @@ func clampInt(v, lo, hi int) int {
 		return hi
 	}
 	return v
+}
+
+func (c *Chat) HasRunningTools() bool {
+	for _, msg := range c.messages {
+		if tool, ok := msg.(*toolItem); ok && !tool.isDone() {
+			return true
+		}
+	}
+	return false
 }

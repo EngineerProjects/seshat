@@ -37,6 +37,18 @@ func (s *SessionList) SetSessions(sessions []tui.SessionInfo) {
 	s.list.SetItems(sessions)
 }
 
+// UpdateTitle patches the title of a single session entry identified by id.
+// It is safe to call on the UI goroutine directly (no locking needed).
+func (s *SessionList) UpdateTitle(id, title string) {
+	for i := range s.sessions {
+		if s.sessions[i].ID == id {
+			s.sessions[i].Title = title
+			s.list.SetItems(s.sessions)
+			return
+		}
+	}
+}
+
 func (s *SessionList) SetSize(width, height int) {
 	s.width = width
 	s.height = height

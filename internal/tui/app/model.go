@@ -167,9 +167,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m = m.relayout()
 
 	case spinner.TickMsg:
-		if m.busy {
+		anyRunning := m.busy || m.chat.HasRunningTools()
+		if anyRunning {
 			newSp, cmd := m.spinner.Update(msg)
 			m.spinner = newSp
+			m.chat.SpinnerFrame = newSp.View()
 			cmds = append(cmds, cmd)
 		}
 
@@ -187,6 +189,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.chat.AddToolProgress(msg.ToolUseID, msg.ToolName, msg.Status, label, msg.Metadata)
 		if !wasOpen && m.chat.DetailsOpen() {
 			m = m.relayout()
+		}
+		if msg.Status == "running" {
+			cmds = append(cmds, m.spinner.Tick)
 		}
 
 	case tui.TurnStartMsg:
@@ -221,6 +226,9 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if msg.Err == nil {
 			m.sessions.SetSessions(msg.Sessions)
 		}
+
+	case tui.SessionRenamedMsg:
+		m.sessions.UpdateTitle(msg.ID, msg.Title)
 
 	case pendingSubmitMsg:
 		if m.activeSession != "" {

@@ -186,6 +186,26 @@ func NewClient(config *ClientConfig) (*Client, error) {
 		client.registerShellPreToolHooks(config.PreToolHooks, config.WorkingDir)
 	}
 
+	// Wire the session title callback into the engine.
+	// The callback runs in a goroutine spawned by the engine after the first
+	// completed turn. It updates the persisted title and then notifies the
+	// host via config.OnSessionTitled (e.g. so the TUI can refresh the list).
+	if !config.DisableTitleGeneration {
+		queryEngine.SetOnSessionTitled(func(id types.SessionID, title string) {
+			if store != nil {
+				type titleUpdater interface {
+					UpdateSessionTitle(types.SessionID, string) error
+				}
+				if tu, ok := store.(titleUpdater); ok {
+					_ = tu.UpdateSessionTitle(id, title)
+				}
+			}
+			if config.OnSessionTitled != nil {
+				config.OnSessionTitled(SessionID(id), title)
+			}
+		})
+	}
+
 	return client, nil
 }
 

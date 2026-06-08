@@ -201,6 +201,7 @@ func newNexusWorkspace(options runtimeOptions) (*nexusWorkspace, error) {
 		w.onProgress,
 		w.onChunk,
 		w.onRuntimeEvent,
+		w.onSessionTitled,
 	)
 	if err != nil {
 		return nil, err
@@ -261,7 +262,7 @@ func (w *nexusWorkspace) reloadClient(ctx context.Context, modelOverride string)
 		clientOpts.Model = sdk.DefaultClientConfig().Model
 	}
 
-	client, err := newClient(clientOpts, w.promptFn, w.onProgress, w.onChunk, w.onRuntimeEvent)
+	client, err := newClient(clientOpts, w.promptFn, w.onProgress, w.onChunk, w.onRuntimeEvent, w.onSessionTitled)
 	if err != nil {
 		return err
 	}
@@ -1080,6 +1081,13 @@ func (w *nexusWorkspace) onProgress(progress sdk.ToolProgress) {
 			w.recordSessionFile(progress)
 		}
 	}
+}
+
+func (w *nexusWorkspace) onSessionTitled(id sdk.SessionID, title string) {
+	w.send(tui.SessionRenamedMsg{
+		ID:    string(id),
+		Title: title,
+	})
 }
 
 func (w *nexusWorkspace) onRuntimeEvent(event sdk.RuntimeEvent) {

@@ -90,7 +90,16 @@ func (t *toolItem) metaSummary() string {
 		if nickname := stringFromMap(input, "nickname"); nickname != "" {
 			parts = append(parts, "Nickname: "+nickname)
 		}
-		if id := stringFromMap(t.metadata, "agent_id"); id != "" {
+		id := stringFromMap(t.metadata, "agent_id")
+		if id == "" {
+			if res := t.resultContent(); res != "" {
+				var data map[string]any
+				if err := json.Unmarshal([]byte(res), &data); err == nil {
+					id, _ = data["agent_id"].(string)
+				}
+			}
+		}
+		if id != "" {
 			parts = append(parts, "Agent ID: "+id)
 		}
 	case "wait_agent", "close_agent", "send_agent_message":
@@ -144,7 +153,7 @@ func (t *toolItem) detailBody(c *Chat, width int) string {
 	case "agent", "spawn_agent":
 		res = t.renderSubagentDetails(c, width)
 	case "wait_agent", "close_agent", "send_agent_message":
-		res = renderContentBody(c.styles, t.agentDetails(), width, contentFlavorMarkdown)
+		res = renderContentBody(c.styles, t.agentDetails(c), width, contentFlavorMarkdown)
 	default:
 		res = renderContentBody(c.styles, t.resultContent(), width, contentFlavorPlain)
 	}
@@ -376,22 +385,44 @@ func (t *toolItem) commandOutput() string {
 	return sb.String()
 }
 
-func (t *toolItem) agentDetails() string {
+func (t *toolItem) agentDetails(c *Chat) string {
 	input := t.toolInput()
 	var sb strings.Builder
 	prompt := stringFromMap(input, "prompt")
 	if prompt == "" {
 		prompt = stringFromMap(input, "task")
 	}
+
+	agentID := strings.TrimSpace(stringFromMap(input, "agent_id"))
+	var spawningTool *toolItem
+	if agentID != "" && c != nil {
+		spawningTool = c.findSpawningTool(agentID)
+	}
+
+	if prompt == "" && spawningTool != nil {
+		spawningPrompt := stringFromMap(spawningTool.toolInput(), "prompt")
+		if spawningPrompt == "" {
+			spawningPrompt = stringFromMap(spawningTool.toolInput(), "task")
+		}
+		prompt = spawningPrompt
+	}
+
 	if prompt != "" {
 		sb.WriteString("### Prompt\n" + prompt)
 	}
-	if log := stringFromMap(t.metadata, "subagent_log"); log != "" {
+
+	log := stringFromMap(t.metadata, "subagent_log")
+	if log == "" && spawningTool != nil {
+		log = stringFromMap(spawningTool.metadata, "subagent_log")
+	}
+
+	if log != "" {
 		if sb.Len() > 0 {
 			sb.WriteString("\n\n")
 		}
 		sb.WriteString("### Activity\n" + log)
 	}
+
 	res := t.resultContent()
 	if res != "" {
 		if sb.Len() > 0 {
@@ -582,7 +613,9 @@ func (c *Chat) renderToolDetail(t *toolItem, width, height int) string {
 		ansi.Truncate(c.styles.MsgTimestamp.Render(strings.ToUpper(t.status)), innerW, "…"),
 	}
 	if summary := strings.TrimSpace(t.summaryText()); summary != "" {
-		sections = append(sections, clampLines(wrap.String(summary, innerW)))
+		if t.name != "spawn_agent" && t.name != "agent" {
+			sections = append(sections, clampLines(wrap.String(summary, innerW)))
+		}
 	}
 	if meta := strings.TrimSpace(t.metaSummary()); meta != "" {
 		sections = append(sections, clampLines(wrap.String(meta, innerW)))
@@ -1184,4 +1217,34 @@ func firstLine(s string) string {
 		return s[:idx]
 	}
 	return s
+}
+
+func (c *Chat) findSpawningTool(agentID string) *toolItem {
+	if agentID == "" {
+		return nil
+	}
+	for _, m := range c.messages {
+		if t, ok := m.(*toolItem); ok && (t.name == "spawn_agent" || t.name == "agent") {
+			id := stringFromMap(t.metadata, "agent_id")
+			if id == "" {
+				if res := t.resultContent(); res != "" {
+					var data map[string]any
+					if err := json.Unmarshal([]byte(res), &data); err == nil {
+						id, _ = data["agent_id"].(string)
+					}
+				}
+			}
+			if id == "" {
+				if res := t.resultContent(); res != "" {
+					if strings.Contains(res, agentID) {
+						return t
+					}
+				}
+			}
+			if id == agentID {
+				return t
+			}
+		}
+	}
+	return nil
 }

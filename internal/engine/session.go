@@ -265,6 +265,16 @@ func (s *Session) submitWithMessage(ctx context.Context, userMsg types.Message, 
 	}
 	s.rememberToolUsage(loopResult.ToolUses, loopResult.ToolResults)
 
+	// After the very first completed turn, kick off async title generation.
+	// We capture the first user message from persistedMessages (which includes
+	// it) so we don't have to scan the growing messages slice later.
+	if s.state.Metadata != nil && s.state.Metadata.TotalTurns == 1 {
+		if firstText := firstUserMessageText(persistedMessages); firstText != "" {
+			sid := s.state.SessionID
+			go s.engine.generateTitleAsync(sid, firstText)
+		}
+	}
+
 	response := &SessionResponse{
 		Messages:    s.state.CloneMessages(),
 		StopReason:  loopResult.StopReason,
@@ -351,4 +361,24 @@ func (s *Session) enforceMaxTurns() error {
 		return fmt.Errorf("session turn limit reached: completed %d turns (max %d)", s.state.TurnNumber, maxTurns)
 	}
 	return nil
+}
+
+// firstUserMessageText returns the text of the first user message in msgs,
+// truncated to 500 runes. Returns "" if no user message is found.
+func firstUserMessageText(msgs []types.Message) string {
+	for _, msg := range msgs {
+		if msg.Role != types.RoleUser {
+			continue
+		}
+		for _, block := range msg.Content {
+			if t, ok := block.(types.TextContent); ok && t.Text != "" {
+				runes := []rune(t.Text)
+				if len(runes) > 500 {
+					return string(runes[:500])
+				}
+				return t.Text
+			}
+		}
+	}
+	return ""
 }

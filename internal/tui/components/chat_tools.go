@@ -70,7 +70,7 @@ func (t *toolItem) renderSelected(c *Chat, width int, selected bool) string {
 		return t.cacheR
 	}
 
-	icon := t.renderIcon(c.styles)
+	icon := t.renderIcon(c)
 	nameStyle := t.renderNameStyle(c.styles)
 	summary := truncate(t.summaryText(), max(12, width-34))
 	expander := c.styles.MsgTimestamp.Render(t.expanderSymbol())
@@ -110,14 +110,20 @@ func (t *toolItem) renderSelected(c *Chat, width int, selected bool) string {
 	return result
 }
 
-func (t *toolItem) renderIcon(styles common.Styles) string {
+func (t *toolItem) renderIcon(c *Chat) string {
 	switch {
 	case t.status == "completed" || t.status == "done":
-		return styles.MsgTimestamp.Render("✓")
+		return c.styles.MsgTimestamp.Render("✓")
 	case t.status == "failed" || t.status == "error":
-		return styles.ToolError.Render("✗")
+		return c.styles.ToolError.Render("✗")
+	case t.status == "running" || t.status == "started":
+		frame := strings.TrimSpace(c.SpinnerFrame)
+		if frame == "" {
+			frame = "⠋"
+		}
+		return c.styles.ToolProgress.Render(frame)
 	default:
-		return styles.ToolProgress.Render(toolIconFor(t.name))
+		return c.styles.ToolProgress.Render(toolIconFor(t.name))
 	}
 }
 
@@ -148,10 +154,10 @@ func (t *toolItem) toolInput() map[string]any {
 
 func (t *toolItem) supportsPreview() bool {
 	switch t.name {
-	case "read_file", "write_file", "edit_file", "apply_patch", "bash", "web_search", "web_fetch", "spawn_agent", "wait_agent", "close_agent", "send_agent_message":
+	case "read_file", "write_file", "edit_file", "apply_patch", "bash", "web_search", "web_fetch":
 		return true
 	default:
-		return strings.TrimSpace(t.resultContent()) != ""
+		return false
 	}
 }
 
