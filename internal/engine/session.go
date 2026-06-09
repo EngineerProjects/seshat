@@ -223,6 +223,10 @@ func (s *Session) submitWithMessage(ctx context.Context, userMsg types.Message, 
 	}
 
 	turnCtx, cancel := context.WithCancel(ctx)
+	emitter := func(event types.RuntimeEvent) {
+		s.emitRuntimeEvent(event)
+	}
+	turnCtx = context.WithValue(turnCtx, types.RuntimeEventEmitterKey, emitter)
 	s.mu.Lock()
 	s.cancelFn = cancel
 	s.mu.Unlock()
