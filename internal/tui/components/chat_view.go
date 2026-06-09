@@ -4,15 +4,16 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 	"github.com/charmbracelet/x/ansi"
 )
 
-func (c *Chat) ScrollUp(n int)   { c.follow = false; c.viewport.ScrollUp(n) }
-func (c *Chat) ScrollDown(n int) { c.viewport.ScrollDown(n); c.follow = c.viewport.AtBottom() }
-func (c *Chat) PageUp()          { c.follow = false; c.viewport.HalfPageUp() }
-func (c *Chat) PageDown()        { c.viewport.HalfPageDown(); c.follow = c.viewport.AtBottom() }
-func (c *Chat) GotoTop()         { c.follow = false; c.viewport.GotoTop() }
-func (c *Chat) GotoBottom()      { c.follow = true; c.viewport.GotoBottom() }
+func (c *Chat) ScrollUp(n int)   { c.follow = false; c.list.ScrollBy(-n) }
+func (c *Chat) ScrollDown(n int) { c.list.ScrollBy(n); c.follow = c.list.AtBottom() }
+func (c *Chat) PageUp()          { c.follow = false; c.list.ScrollBy(-c.height / 2) }
+func (c *Chat) PageDown()        { c.list.ScrollBy(c.height / 2); c.follow = c.list.AtBottom() }
+func (c *Chat) GotoTop()         { c.follow = false; c.list.ScrollToTop() }
+func (c *Chat) GotoBottom()      { c.follow = true; c.list.ScrollToBottom() }
 
 func (c *Chat) DetailScrollUp(n int) {
 	if c.detail != nil {
@@ -50,7 +51,12 @@ func (c *Chat) DetailGotoBottom() {
 	}
 }
 
-func (c *Chat) View() string { return c.viewport.View() }
+func (c *Chat) View() string {
+	if c.selection.hasSelection() {
+		return c.highlightedSelectionContent()
+	}
+	return c.list.Render()
+}
 
 func (c *Chat) selectedToolIndex() int {
 	if c.selectedTool < 0 || c.selectedTool >= len(c.messages) {
@@ -102,79 +108,52 @@ func (c *Chat) toolIndices() []int {
 }
 
 func (c *Chat) refresh() {
+	items := make([]list.Item, len(c.messages))
+	for i, m := range c.messages {
+		items[i] = m
+	}
+	c.list.SetItems(items...)
+	if c.follow {
+		c.list.ScrollToBottom()
+	}
+	c.recomputePlainAndRegions()
+}
+
+func (c *Chat) refreshSelection() {
+	// Handled automatically because m.viewChat() calls c.View()
+}
+
+func (c *Chat) recomputePlainAndRegions() {
 	var sb strings.Builder
 	var plainSB strings.Builder
-	lastWasTool := false
-	lastWasUser := false
-	wroteAny := false
-	line := 0
-	toolRegions := make([]toolRegion, 0)
-	thinkingRegions := make([]thinkingRegion, 0)
-	mi := 0
-	for mi < len(c.messages) {
-		item := c.messages[mi]
+	var toolRegions []toolRegion
+	var thinkingRegions []thinkingRegion
+	var itemRegions []itemRegion
 
-		// ── Group detection: consecutive completed same-name groupable tools ──
+	line := 0
+	wroteAny := false
+	var lastWasTool bool
+
+	for mi, item := range c.messages {
 		var rendered string
 		var isTool bool
-		var regionMsgIndex int
 
-		if tool, ok := item.(*toolItem); ok && isGroupableTool(tool.name) && tool.isDone() {
-			j := mi + 1
-			for j < len(c.messages) {
-				next, ok2 := c.messages[j].(*toolItem)
-				if !ok2 || next.name != tool.name || !next.isDone() {
-					break
-				}
-				j++
-			}
-			if j-mi >= 2 {
-				// Render the group as one summary row.
-				groupItems := make([]*toolItem, j-mi)
-				for k := mi; k < j; k++ {
-					groupItems[k-mi] = c.messages[k].(*toolItem)
-				}
-				lastIdx := j - 1
-				selectedInGroup := c.selectedTool >= mi && c.selectedTool <= lastIdx
-				rendered = renderToolGroup(c, groupItems, c.width, selectedInGroup)
-				isTool = true
-				regionMsgIndex = lastIdx // selection lands on last item in the group
-				mi = j
-			} else {
-				// Only one item — render normally.
-				rendered = tool.renderSelected(c, c.width, mi == c.selectedToolIndex())
-				isTool = true
-				regionMsgIndex = mi
-				mi++
-			}
-		} else if tool, ok := item.(*toolItem); ok {
-			rendered = tool.renderSelected(c, c.width, mi == c.selectedToolIndex())
+		if tool, ok := item.(*toolItem); ok {
+			rendered = tool.Render(c.width)
 			isTool = true
-			regionMsgIndex = mi
-			mi++
 		} else {
-			rendered = item.render(c, c.width)
+			rendered = item.Render(c.width)
 			isTool = false
-			regionMsgIndex = mi
-			mi++
 		}
 
 		if rendered == "" {
+			itemRegions = append(itemRegions, itemRegion{startLine: line, endLine: line})
 			continue
 		}
 		plainRendered := ansi.Strip(rendered)
-		isAssistantHeader := false
-		if a, ok := item.(*assistantItem); ok && a.showLabel {
-			isAssistantHeader = true
-		}
 
 		if wroteAny {
-			if lastWasUser && isAssistantHeader {
-				divider := c.styles.HeaderSep.Render(strings.Repeat("─", c.width))
-				sb.WriteString("\n\n" + divider + "\n\n")
-				plainSB.WriteString("\n\n" + strings.Repeat("─", c.width) + "\n\n")
-				line += 4
-			} else if lastWasTool && isTool {
+			if lastWasTool && isTool {
 				sb.WriteString("\n")
 				plainSB.WriteString("\n")
 				line++
@@ -194,7 +173,7 @@ func (c *Chat) refresh() {
 			toolRegions = append(toolRegions, toolRegion{
 				startLine:     startLine,
 				endLine:       startLine + height - 1,
-				msgIndex:      regionMsgIndex,
+				msgIndex:      mi,
 				expanderStart: 0,
 				expanderEnd:   1,
 				detailStart:   0,
@@ -208,11 +187,14 @@ func (c *Chat) refresh() {
 			}
 			thinkingRendered := assistant.thinking.render(c.styles, c.width-2)
 			thinkingHeight := max(1, lipgloss.Height(ansi.Strip(thinkingRendered)))
-			thinkingRegions = append(thinkingRegions, thinkingRegion{startLine: thinkingStart, endLine: thinkingStart + thinkingHeight - 1, msgIndex: regionMsgIndex})
+			thinkingRegions = append(thinkingRegions, thinkingRegion{startLine: thinkingStart, endLine: thinkingStart + thinkingHeight - 1, msgIndex: mi})
 		}
+		itemRegions = append(itemRegions, itemRegion{
+			startLine: startLine,
+			endLine:   startLine + height - 1,
+		})
 		line += height
 		lastWasTool = isTool
-		_, lastWasUser = item.(*userItem)
 		wroteAny = true
 	}
 	content := sb.String()
@@ -231,22 +213,7 @@ func (c *Chat) refresh() {
 	}
 	c.toolRegions = toolRegions
 	c.thinkingRegions = thinkingRegions
-	if c.selection.hasSelection() {
-		c.viewport.SetContent(c.highlightedSelectionContent())
-	} else {
-		c.viewport.SetContent(content)
-	}
-	if c.follow {
-		c.viewport.GotoBottom()
-	}
-}
-
-func (c *Chat) refreshSelection() {
-	if c.selection.hasSelection() {
-		c.viewport.SetContent(c.highlightedSelectionContent())
-	} else {
-		c.viewport.SetContent(c.renderedContent)
-	}
+	c.itemRegions = itemRegions
 }
 
 func (c *Chat) highlightedSelectionContent() string {

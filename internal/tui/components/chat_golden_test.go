@@ -17,10 +17,10 @@ func TestChatGoldenTurnWithTool(t *testing.T) {
 	fixed := time.Date(2026, 6, 4, 14, 5, 0, 0, time.UTC)
 
 	c.messages = []msgItem{
-		&userItem{content: "Run the tool", timestamp: fixed},
-		&assistantItem{content: "I will inspect the workspace.", showLabel: true},
-		&toolItem{id: "tool-1", name: "bash", status: "completed", label: "ls -la", metadata: map[string]any{"tool_input": map[string]any{"command": "ls -la"}}, startedAt: fixed, finishedAt: fixed.Add(500 * time.Millisecond)},
-		&assistantItem{content: "The workspace contains 3 files.", showLabel: false},
+		&userItem{c: c, content: "Run the tool", timestamp: fixed},
+		&assistantItem{c: c, content: "I will inspect the workspace.", showLabel: true},
+		&toolItem{c: c, id: "tool-1", name: "bash", status: "completed", label: "ls -la", metadata: map[string]any{"tool_input": map[string]any{"command": "ls -la"}}, startedAt: fixed, finishedAt: fixed.Add(500 * time.Millisecond)},
+		&assistantItem{c: c, content: "The workspace contains 3 files.", showLabel: false},
 	}
 	c.refresh()
 
@@ -41,7 +41,7 @@ func TestChatGoldenCollapsedThinking(t *testing.T) {
 		collapsed:  true,
 	}
 	c.messages = []msgItem{
-		&assistantItem{thinking: thinking, content: "Final answer.", showLabel: true},
+		&assistantItem{c: c, thinking: thinking, content: "Final answer.", showLabel: true},
 	}
 	c.refresh()
 

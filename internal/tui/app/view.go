@@ -88,7 +88,8 @@ func (m Model) viewChat() string {
 		chatH := m.height - headerHeight - contentTopGap - footerHeight - statusH - inputH
 
 		m.chat.SetSize(chatW, max(1, chatH))
-		leftContent := strings.Join([]string{m.chat.View(), leftStatus, leftInput}, "\n")
+		chatView := lipgloss.NewStyle().Width(chatW).Height(max(1, chatH)).Render(m.chat.View())
+		leftContent := strings.Join([]string{chatView, leftStatus, leftInput}, "\n")
 		sideH := lipgloss.Height(leftContent)
 
 		detailView := m.chat.DetailView(detailW, sideH)
@@ -107,7 +108,7 @@ func (m Model) viewChat() string {
 	statusView := m.statusLine()
 	chatH := m.height - headerHeight - contentTopGap - footerHeight - lipgloss.Height(statusView) - lipgloss.Height(inputView)
 	m.chat.SetSize(contentW, max(1, chatH))
-	body := common.CenterHorizontally(lipgloss.NewStyle().Width(contentW).Render(m.chat.View()), m.width)
+	body := common.CenterHorizontally(lipgloss.NewStyle().Width(contentW).Height(max(1, chatH)).Render(m.chat.View()), m.width)
 
 	base := strings.Join([]string{m.header(), "", body, statusView, inputView, m.footer()}, "\n")
 	if m.state == statePermission && m.permission.HasPending() {

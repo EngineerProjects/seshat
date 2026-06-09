@@ -16,7 +16,7 @@ func TestChatAddToolProgressSealsAssistantAndCreatesContinuation(t *testing.T) {
 	c.AddUserMessage("user prompt")
 	c.StartAssistantMessage()
 	c.AppendChunk("first answer", false)
-	c.AddToolProgress("tool-1", "bash", "running", "running", nil)
+	c.AddToolProgress("tool-1", "bash", "running", "running", nil, "test")
 	c.AppendChunk("second answer", false)
 	c.FinishAssistantMessage(0, 0, "")
 
@@ -57,7 +57,7 @@ func TestChatAddToolProgressDropsEmptyAssistantPlaceholder(t *testing.T) {
 	c := NewChat(common.DefaultStyles(), 80, 20)
 
 	c.StartAssistantMessage()
-	c.AddToolProgress("tool-1", "bash", "running", "running", nil)
+	c.AddToolProgress("tool-1", "bash", "running", "running", nil, "test")
 
 	if got := len(c.messages); got != 1 {
 		t.Fatalf("expected 1 chat item after sealing empty assistant, got %d", got)
@@ -99,11 +99,11 @@ func TestChatToolSelectionAndDetails(t *testing.T) {
 	c.AddToolProgress("tool-1", "read_file", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"file_path": "/tmp/a.txt"},
 		"content":    "alpha\nbeta\ngamma",
-	})
+	}, "test")
 	c.AddToolProgress("tool-2", "bash", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"command": "ls -la"},
 		"stdout":     "file-a\nfile-b",
-	})
+	}, "test")
 
 	if !c.HasSelectedTool() {
 		t.Fatalf("expected latest tool to be selected")
@@ -128,7 +128,8 @@ func TestChatToolSelectionAndDetails(t *testing.T) {
 }
 
 func TestToolSummaryUsesCompactFileName(t *testing.T) {
-	tool := newToolItem("tool-1", "write_file", "completed", "done", map[string]any{
+	c := NewChat(common.DefaultStyles(), 80, 20)
+	tool := newToolItem(c, "tool-1", "write_file", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"file_path": "/tmp/example/nested/file.txt"},
 		"type":       "create",
 	})
@@ -142,7 +143,7 @@ func TestChatToolLineClickTogglesExpansion(t *testing.T) {
 	c.AddToolProgress("tool-1", "read_file", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"file_path": "/tmp/a.txt"},
 		"content":    "alpha\nbeta",
-	})
+	}, "test")
 	if len(c.toolRegions) == 0 {
 		t.Fatalf("expected tool regions to be populated")
 	}
@@ -239,7 +240,7 @@ func TestChatToolSelectThenDetailsViaToggle(t *testing.T) {
 	c.AddToolProgress("tool-1", "read_file", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"file_path": "/tmp/a.txt"},
 		"content":    "alpha\nbeta",
-	})
+	}, "test")
 	if len(c.toolRegions) == 0 {
 		t.Fatalf("expected tool regions to be populated")
 	}
@@ -259,7 +260,7 @@ func TestChatToolBodyClickSelectsWithoutToggling(t *testing.T) {
 	c.AddToolProgress("tool-1", "read_file", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"file_path": "/tmp/a.txt"},
 		"content":    "alpha\nbeta",
-	})
+	}, "test")
 	tool := c.selectedToolItem()
 	if tool == nil {
 		t.Fatalf("expected selected tool")
@@ -289,8 +290,8 @@ func TestChatToolBodyClickSelectsWithoutToggling(t *testing.T) {
 
 func TestUserItemRenderKeepsMessageInlineWithMarker(t *testing.T) {
 	c := NewChat(common.DefaultStyles(), 80, 20)
-	u := &userItem{content: "hello world", timestamp: time.Now()}
-	rendered := u.render(c, 80)
+	u := &userItem{c: c, content: "hello world", timestamp: time.Now()}
+	rendered := u.Render(80)
 	lines := strings.Split(rendered, "\n")
 	if len(lines) < 2 {
 		t.Fatalf("expected at least 2 rendered lines, got %d", len(lines))
@@ -367,7 +368,7 @@ func TestAutoExpandActionToolOnCompletion(t *testing.T) {
 	// Running tool should not be auto-expanded.
 	c.AddToolProgress("t1", "bash", "running", "", map[string]any{
 		"tool_input": map[string]any{"command": "echo hi"},
-	})
+	}, "test")
 	idx := c.selectedToolIndex()
 	if idx < 0 {
 		t.Fatal("no selected tool")
@@ -380,7 +381,7 @@ func TestAutoExpandActionToolOnCompletion(t *testing.T) {
 	c.AddToolProgress("t1", "bash", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"command": "echo hi"},
 		"stdout":     "hi\n",
-	})
+	}, "test")
 	if !tool.expanded {
 		t.Error("expected tool to be auto-expanded on completion")
 	}
@@ -390,7 +391,7 @@ func TestAutoExpandDoesNotExpandWebTools(t *testing.T) {
 	c := NewChat(common.DefaultStyles(), 80, 20)
 	c.AddToolProgress("w1", "web_search", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"query": "golang"},
-	})
+	}, "test")
 	idx := c.selectedToolIndex()
 	if idx < 0 {
 		t.Fatal("no selected tool")
@@ -478,7 +479,7 @@ func TestChatDetailViewScrollsLongContent(t *testing.T) {
 	c.AddToolProgress("tool-1", "bash", "completed", "done", map[string]any{
 		"tool_input": map[string]any{"command": "cat big.log"},
 		"stdout":     output.String(),
-	})
+	}, "test")
 	if !c.ToggleDetails() {
 		t.Fatalf("expected details to open")
 	}
@@ -496,14 +497,14 @@ func TestChatMouseDragAutoScrollsAtBottom(t *testing.T) {
 		c.AddUserMessage("line")
 	}
 	c.GotoTop()
-	startOffset := c.viewport.YOffset()
+	startOffset := c.list.Offset()
 	if !c.HandleMouseDown(0, c.height-1) {
 		t.Fatalf("expected mouse down at bottom visible line")
 	}
 	if !c.HandleMouseDrag(0, c.height+2) {
 		t.Fatalf("expected drag to continue")
 	}
-	if c.viewport.YOffset() <= startOffset {
+	if c.list.Offset() <= startOffset {
 		t.Fatalf("expected drag at bottom edge to autoscroll down")
 	}
 }
@@ -511,13 +512,14 @@ func TestChatMouseDragAutoScrollsAtBottom(t *testing.T) {
 func TestAssistantItemRenderCompactsInterimNarration(t *testing.T) {
 	c := NewChat(common.DefaultStyles(), 50, 20)
 	a := &assistantItem{
+		c:          c,
 		content:    "I will now inspect the workspace and check several files before running the next tool in order to verify the repository layout and current state.",
 		showLabel:  true,
 		streaming:  false,
 		finishedAt: time.Now(),
 		showMeta:   false,
 	}
-	rendered := ansi.Strip(a.render(c, 50))
+	rendered := ansi.Strip(a.Render(50))
 	if strings.Contains(rendered, "\n\nI will now inspect") {
 		t.Fatalf("expected interim narration to render compactly, got %q", rendered)
 	}

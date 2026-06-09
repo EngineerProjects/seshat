@@ -7,6 +7,7 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 	"github.com/muesli/reflow/wrap"
 )
 
@@ -113,6 +114,8 @@ func (tb *thinkingBlock) render(styles common.Styles, width int) string {
 }
 
 type assistantItem struct {
+	list.Versioned
+	c            *Chat
 	thinking     *thinkingBlock
 	content      string
 	streaming    bool
@@ -130,15 +133,15 @@ type assistantItem struct {
 	streamingContent streamingMarkdown
 }
 
-func newAssistantItem() *assistantItem {
-	return &assistantItem{streaming: true, showLabel: true, startedAt: time.Now()}
+func newAssistantItem(c *Chat) *assistantItem {
+	return &assistantItem{c: c, streaming: true, showLabel: true, startedAt: time.Now()}
 }
 
-func newContinuationItem(startedAt time.Time) *assistantItem {
+func newContinuationItem(c *Chat, startedAt time.Time) *assistantItem {
 	if startedAt.IsZero() {
 		startedAt = time.Now()
 	}
-	return &assistantItem{streaming: true, showLabel: false, startedAt: startedAt}
+	return &assistantItem{c: c, streaming: true, showLabel: false, startedAt: startedAt}
 }
 
 func (a *assistantItem) appendThinking(text string) {
@@ -150,6 +153,7 @@ func (a *assistantItem) appendThinking(text string) {
 	}
 	a.thinking.append(text)
 	a.contentCacheWidth = 0
+	a.Bump()
 }
 
 func (a *assistantItem) appendContent(text string) {
@@ -158,6 +162,7 @@ func (a *assistantItem) appendContent(text string) {
 	}
 	a.content += text
 	a.contentCacheWidth = 0
+	a.Bump()
 }
 
 func (a *assistantItem) finish(inputTokens, outputTokens int, stopReason string, showMeta bool) {
@@ -171,13 +176,35 @@ func (a *assistantItem) finish(inputTokens, outputTokens int, stopReason string,
 		a.thinking.finish()
 	}
 	a.contentCacheWidth = 0
+	a.Bump()
 }
 
-func (a *assistantItem) isFinished() bool { return !a.streaming }
-func (a *assistantItem) invalidate()      { a.contentCacheWidth = 0; a.streamingContent.Reset() }
+func (a *assistantItem) Finished() bool { return !a.streaming }
+func (a *assistantItem) invalidate()    { a.contentCacheWidth = 0; a.streamingContent.Reset(); a.Bump() }
 
-func (a *assistantItem) render(c *Chat, width int) string {
+func (a *assistantItem) Render(width int) string {
+	c := a.c
 	var sb strings.Builder
+
+	showDivider := false
+	if a.showLabel && c != nil {
+		for i, m := range c.messages {
+			if m == a {
+				if i > 0 {
+					if _, ok := c.messages[i-1].(*userItem); ok {
+						showDivider = true
+					}
+				}
+				break
+			}
+		}
+	}
+
+	if showDivider {
+		divider := c.styles.HeaderSep.Render(strings.Repeat("─", width))
+		sb.WriteString(divider + "\n\n")
+	}
+
 	if a.showLabel {
 		leftStyled := c.styles.AssistantMarker.Render("✦") + " " + c.styles.AssistantLabel.Render("Nexus")
 		rightStyled := ""

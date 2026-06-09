@@ -186,7 +186,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			label = msg.Status
 		}
 		wasOpen := m.chat.DetailsOpen()
-		m.chat.AddToolProgress(msg.ToolUseID, msg.ToolName, msg.Status, label, msg.Metadata)
+		m.chat.AddToolProgress(msg.ToolUseID, msg.ToolName, msg.Status, label, msg.Metadata, msg.SessionID)
 		if !wasOpen && m.chat.DetailsOpen() {
 			m = m.relayout()
 		}
@@ -264,6 +264,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.state = stateChat
 		} else {
 			m.activeSession = msg.ID
+			m.chat.ActiveSessionID = msg.ID
 			m.state = stateChat
 			m.focus = uiFocusEditor
 			m.chat.Clear()
@@ -289,7 +290,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 							meta[k] = v
 						}
 						meta["tool_input"] = tool.Input
-						m.chat.AddToolProgress(tool.ID, tool.Name, "completed", "", meta)
+						m.chat.AddToolProgress(tool.ID, tool.Name, "completed", "", meta, msg.ID)
 					}
 					m.chat.FinishAssistantMessage(entry.InputTokens, entry.OutputTokens, entry.StopReason)
 				}

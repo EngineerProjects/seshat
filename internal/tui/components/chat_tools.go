@@ -7,9 +7,12 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 )
 
 type toolItem struct {
+	list.Versioned
+	c          *Chat
 	id         string
 	name       string
 	status     string
@@ -19,6 +22,8 @@ type toolItem struct {
 	startedAt  time.Time
 	finishedAt time.Time
 
+	nestedTools []*toolItem
+
 	cacheW int
 	cacheR string
 
@@ -26,8 +31,9 @@ type toolItem struct {
 	detailCacheR string
 }
 
-func newToolItem(id, name, status, label string, metadata map[string]any) *toolItem {
+func newToolItem(c *Chat, id, name, status, label string, metadata map[string]any) *toolItem {
 	return &toolItem{
+		c:         c,
 		id:        id,
 		name:      name,
 		status:    status,
@@ -41,11 +47,18 @@ func (t *toolItem) isDone() bool {
 	return t.status == "completed" || t.status == "failed" || t.status == "done" || t.status == "error"
 }
 
-func (t *toolItem) isFinished() bool { return t.isDone() }
-func (t *toolItem) invalidate()      { t.cacheW = 0; t.cacheR = ""; t.detailCacheW = 0; t.detailCacheR = "" }
+func (t *toolItem) Finished() bool { return t.isDone() }
+func (t *toolItem) invalidate() {
+	t.cacheW = 0
+	t.cacheR = ""
+	t.detailCacheW = 0
+	t.detailCacheR = ""
+	t.Bump()
+}
 
-func (t *toolItem) render(c *Chat, width int) string {
-	return t.renderSelected(c, width, false)
+func (t *toolItem) Render(width int) string {
+	selected := t.c.selectedToolItem() == t
+	return t.renderSelected(t.c, width, selected)
 }
 
 func (t *toolItem) expanderSymbol() string {
@@ -163,7 +176,8 @@ func (t *toolItem) toolInput() map[string]any {
 
 func (t *toolItem) supportsPreview() bool {
 	switch t.name {
-	case "read_file", "write_file", "edit_file", "apply_patch", "bash", "web_search", "web_fetch":
+	case "read_file", "write_file", "edit_file", "apply_patch", "bash", "web_search", "web_fetch",
+		"agent", "spawn_agent", "wait_agent", "subagent_event", "job_output", "job_kill":
 		return true
 	default:
 		return false
@@ -220,7 +234,16 @@ func (t *toolItem) summaryText() string {
 		if cmd == "" {
 			cmd = strings.TrimSpace(stringFromMap(t.metadata, "description"))
 		}
+		if taskID := stringFromMap(t.metadata, "task_id"); taskID != "" {
+			return fmt.Sprintf("Background Task Started (PID %s) · %s", taskID, cmd)
+		}
 		return cmd
+	case "job_output":
+		jobID := strings.TrimSpace(stringFromMap(input, "job_id"))
+		return fmt.Sprintf("Get Output (PID %s)", jobID)
+	case "job_kill":
+		jobID := strings.TrimSpace(stringFromMap(input, "job_id"))
+		return fmt.Sprintf("Kill Job (PID %s)", jobID)
 	case "web_search":
 		query := strings.TrimSpace(stringFromMap(input, "query"))
 		if query == "" {

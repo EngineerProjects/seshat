@@ -45,12 +45,17 @@ func (t *toolItem) inlinePreview(c *Chat, width int) string {
 		}
 		return renderFilePanel(c.styles, stringFromMap(input, "file_path"), stringFromMap(input, "content"), width-4, inlinePreviewLines)
 	case "bash":
+		if isBackgroundBash(t) {
+			return renderBackgroundBashInline(c.styles, t, width-4, inlinePreviewLines)
+		}
 		return renderBashInline(c.styles, stringFromMap(input, "command"), stringFromMap(t.metadata, "content"), width-4, inlinePreviewLines)
+	case "job_output", "job_kill":
+		return renderJobInline(c.styles, t.name, t.resultContent(), width-4, inlinePreviewLines)
 	case "web_search":
 		return renderContentPanel(c.styles, "", stringFromMap(t.metadata, "content"), width-4, inlinePreviewLines, contentFlavorPlain)
 	case "web_fetch":
 		return renderContentPanel(c.styles, "", stringFromMap(t.metadata, "content"), width-4, inlinePreviewLines, contentFlavorPlain)
-	case "agent", "spawn_agent":
+	case "agent", "spawn_agent", "wait_agent", "subagent_event":
 		return t.renderSubagentInline(c, width)
 	}
 	if res := t.resultContent(); res != "" {
@@ -145,14 +150,20 @@ func (t *toolItem) detailBody(c *Chat, width int) string {
 			res = c.styles.Key.Render(label) + "\n\n" + renderColoredDiff(c.styles, diff, width, 0)
 		}
 	case "bash":
-		res = renderBashDetails(c.styles, stringFromMap(t.toolInput(), "command"), t.commandOutput(), width)
+		if isBackgroundBash(t) {
+			res = renderBackgroundBashDetails(c.styles, t, width)
+		} else {
+			res = renderBashDetails(c.styles, stringFromMap(t.toolInput(), "command"), t.commandOutput(), width)
+		}
+	case "job_output", "job_kill":
+		res = renderJobDetails(c.styles, t.name, t.resultContent(), width)
 	case "web_search":
 		res = renderWebSearchDetails(c.styles, t.summaryText(), t.resultContent(), width)
 	case "web_fetch":
 		res = renderWebFetchDetails(c.styles, t.summaryText(), t.resultContent(), width)
-	case "agent", "spawn_agent":
+	case "agent", "spawn_agent", "wait_agent", "subagent_event":
 		res = t.renderSubagentDetails(c, width)
-	case "wait_agent", "close_agent", "send_agent_message":
+	case "close_agent", "send_agent_message":
 		res = renderContentBody(c.styles, t.agentDetails(c), width, contentFlavorMarkdown)
 	default:
 		res = renderContentBody(c.styles, t.resultContent(), width, contentFlavorPlain)
@@ -435,16 +446,46 @@ func (t *toolItem) agentDetails(c *Chat) string {
 
 func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 	input := t.toolInput()
+	var spawningTool *toolItem
+	agentID := strings.TrimSpace(stringFromMap(input, "agent_id"))
+	if agentID == "" {
+		agentID = strings.TrimSpace(stringFromMap(t.metadata, "agent_id"))
+	}
+	if agentID != "" && c != nil {
+		spawningTool = c.findSpawningTool(agentID)
+	}
+
 	prompt := stringFromMap(input, "prompt")
 	if prompt == "" {
 		prompt = stringFromMap(input, "task")
 	}
+	if prompt == "" && spawningTool != nil {
+		spawningPrompt := stringFromMap(spawningTool.toolInput(), "prompt")
+		if spawningPrompt == "" {
+			spawningPrompt = stringFromMap(spawningTool.toolInput(), "task")
+		}
+		prompt = spawningPrompt
+	}
 
 	nickname := stringFromMap(input, "nickname")
+	if nickname == "" && spawningTool != nil {
+		nickname = stringFromMap(spawningTool.toolInput(), "nickname")
+	}
+
 	role := stringFromMap(input, "role")
+	if role == "" && spawningTool != nil {
+		role = stringFromMap(spawningTool.toolInput(), "role")
+	}
+
 	agentType := stringFromMap(input, "agent_type")
 	if agentType == "" {
 		agentType = stringFromMap(input, "type")
+	}
+	if agentType == "" && spawningTool != nil {
+		agentType = stringFromMap(spawningTool.toolInput(), "agent_type")
+		if agentType == "" {
+			agentType = stringFromMap(spawningTool.toolInput(), "type")
+		}
 	}
 	if agentType == "" {
 		agentType = "general-purpose"
@@ -480,8 +521,90 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 	promptBlock := header + "\n" + strings.Join(wrapped, "\n")
 
 	logText := stringFromMap(t.metadata, "subagent_log")
+	if logText == "" && spawningTool != nil {
+		logText = stringFromMap(spawningTool.metadata, "subagent_log")
+	}
+
+	var subagentTools []common.SubagentToolState
+	if val := t.metadata["subagent_tools"]; val != nil {
+		if slice, ok := val.([]common.SubagentToolState); ok {
+			subagentTools = slice
+		} else if slice, ok := val.([]any); ok {
+			for _, item := range slice {
+				if m, ok := item.(map[string]any); ok {
+					var state common.SubagentToolState
+					state.ID, _ = m["id"].(string)
+					state.Name, _ = m["name"].(string)
+					state.Status, _ = m["status"].(string)
+					state.Msg, _ = m["msg"].(string)
+					subagentTools = append(subagentTools, state)
+				}
+			}
+		}
+	}
+	if len(subagentTools) == 0 && spawningTool != nil {
+		if val := spawningTool.metadata["subagent_tools"]; val != nil {
+			if slice, ok := val.([]common.SubagentToolState); ok {
+				subagentTools = slice
+			} else if slice, ok := val.([]any); ok {
+				for _, item := range slice {
+					if m, ok := item.(map[string]any); ok {
+						var state common.SubagentToolState
+						state.ID, _ = m["id"].(string)
+						state.Name, _ = m["name"].(string)
+						state.Status, _ = m["status"].(string)
+						state.Msg, _ = m["msg"].(string)
+						subagentTools = append(subagentTools, state)
+					}
+				}
+			}
+		}
+	}
+
 	var activityBlock string
-	if logText != "" {
+	if len(subagentTools) > 0 {
+		showTools := subagentTools
+		truncated := false
+		if len(subagentTools) > 5 {
+			showTools = subagentTools[len(subagentTools)-5:]
+			truncated = true
+		}
+
+		formattedLines := make([]string, 0, len(showTools)+1)
+		if truncated {
+			formattedLines = append(formattedLines, "  "+c.styles.MsgTimestamp.Render("[... open details (ctrl+o) for full activity ...]"))
+		}
+		for i, tool := range showTools {
+			var icon string
+			switch tool.Status {
+			case "completed", "done", "success":
+				icon = c.styles.MsgTimestamp.Render("✓")
+			case "failed", "error":
+				icon = c.styles.ToolError.Render("✗")
+			case "running", "started":
+				frame := strings.TrimSpace(c.SpinnerFrame)
+				if frame == "" {
+					frame = "⠋"
+				}
+				icon = c.styles.ToolProgress.Render(frame)
+			default:
+				icon = c.styles.ToolProgress.Render("◆")
+			}
+
+			displayName := toolDisplayName(tool.Name)
+			line := c.styles.UserMsg.Render(displayName)
+			if tool.Msg != "" {
+				line += "  " + c.styles.MsgTimestamp.Render(truncate(tool.Msg, max(10, bodyWidth-lipgloss.Width(displayName)-8)))
+			}
+
+			prefix := "  ├─ "
+			if i == len(showTools)-1 {
+				prefix = "  └─ "
+			}
+			formattedLines = append(formattedLines, prefix+icon+" "+line)
+		}
+		activityBlock = "\n\n" + strings.Join(formattedLines, "\n")
+	} else if logText != "" {
 		renderedLog, err := common.RenderMarkdown(bodyWidth, logText)
 		if err != nil {
 			renderedLog = logText
@@ -525,14 +648,30 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 		}
 
 		lines := strings.Split(renderedRes, "\n")
-		for i, line := range lines {
+		// Remove trailing empty lines
+		for len(lines) > 0 && lines[len(lines)-1] == "" {
+			lines = lines[:len(lines)-1]
+		}
+
+		showLines := lines
+		truncated := false
+		if len(lines) > 5 {
+			showLines = lines[len(lines)-5:]
+			truncated = true
+		}
+
+		formattedLines := make([]string, 0, len(showLines)+1)
+		if truncated {
+			formattedLines = append(formattedLines, "  "+c.styles.MsgTimestamp.Render("[... open details (ctrl+o) for full result ...]"))
+		}
+		for _, line := range showLines {
 			if line != "" {
-				lines[i] = "  " + line
+				formattedLines = append(formattedLines, "  "+line)
 			} else {
-				lines[i] = ""
+				formattedLines = append(formattedLines, "")
 			}
 		}
-		resultBlock = "\n\n  " + headerRes + "\n" + strings.Join(lines, "\n")
+		resultBlock = "\n\n  " + headerRes + "\n" + strings.Join(formattedLines, "\n")
 	}
 
 	return promptBlock + activityBlock + resultBlock
@@ -540,16 +679,46 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 
 func (t *toolItem) renderSubagentDetails(c *Chat, width int) string {
 	input := t.toolInput()
+	var spawningTool *toolItem
+	agentID := strings.TrimSpace(stringFromMap(input, "agent_id"))
+	if agentID == "" {
+		agentID = strings.TrimSpace(stringFromMap(t.metadata, "agent_id"))
+	}
+	if agentID != "" && c != nil {
+		spawningTool = c.findSpawningTool(agentID)
+	}
+
 	prompt := stringFromMap(input, "prompt")
 	if prompt == "" {
 		prompt = stringFromMap(input, "task")
 	}
+	if prompt == "" && spawningTool != nil {
+		spawningPrompt := stringFromMap(spawningTool.toolInput(), "prompt")
+		if spawningPrompt == "" {
+			spawningPrompt = stringFromMap(spawningTool.toolInput(), "task")
+		}
+		prompt = spawningPrompt
+	}
 
 	nickname := stringFromMap(input, "nickname")
+	if nickname == "" && spawningTool != nil {
+		nickname = stringFromMap(spawningTool.toolInput(), "nickname")
+	}
+
 	role := stringFromMap(input, "role")
+	if role == "" && spawningTool != nil {
+		role = stringFromMap(spawningTool.toolInput(), "role")
+	}
+
 	agentType := stringFromMap(input, "agent_type")
 	if agentType == "" {
 		agentType = stringFromMap(input, "type")
+	}
+	if agentType == "" && spawningTool != nil {
+		agentType = stringFromMap(spawningTool.toolInput(), "agent_type")
+		if agentType == "" {
+			agentType = stringFromMap(spawningTool.toolInput(), "type")
+		}
 	}
 	if agentType == "" {
 		agentType = "general-purpose"
@@ -582,8 +751,81 @@ func (t *toolItem) renderSubagentDetails(c *Chat, width int) string {
 	promptBlock := header + "\n" + strings.Join(wrapped, "\n")
 
 	logText := stringFromMap(t.metadata, "subagent_log")
+	if logText == "" && spawningTool != nil {
+		logText = stringFromMap(spawningTool.metadata, "subagent_log")
+	}
+
+	var subagentTools []common.SubagentToolState
+	if val := t.metadata["subagent_tools"]; val != nil {
+		if slice, ok := val.([]common.SubagentToolState); ok {
+			subagentTools = slice
+		} else if slice, ok := val.([]any); ok {
+			for _, item := range slice {
+				if m, ok := item.(map[string]any); ok {
+					var state common.SubagentToolState
+					state.ID, _ = m["id"].(string)
+					state.Name, _ = m["name"].(string)
+					state.Status, _ = m["status"].(string)
+					state.Msg, _ = m["msg"].(string)
+					subagentTools = append(subagentTools, state)
+				}
+			}
+		}
+	}
+	if len(subagentTools) == 0 && spawningTool != nil {
+		if val := spawningTool.metadata["subagent_tools"]; val != nil {
+			if slice, ok := val.([]common.SubagentToolState); ok {
+				subagentTools = slice
+			} else if slice, ok := val.([]any); ok {
+				for _, item := range slice {
+					if m, ok := item.(map[string]any); ok {
+						var state common.SubagentToolState
+						state.ID, _ = m["id"].(string)
+						state.Name, _ = m["name"].(string)
+						state.Status, _ = m["status"].(string)
+						state.Msg, _ = m["msg"].(string)
+						subagentTools = append(subagentTools, state)
+					}
+				}
+			}
+		}
+	}
+
 	var activityBlock string
-	if logText != "" {
+	if len(subagentTools) > 0 {
+		formattedLines := make([]string, 0, len(subagentTools)+1)
+		formattedLines = append(formattedLines, c.styles.AssistantLabel.Render("✦ Subagent Activity"))
+		for i, tool := range subagentTools {
+			var icon string
+			switch tool.Status {
+			case "completed", "done", "success":
+				icon = c.styles.MsgTimestamp.Render("✓")
+			case "failed", "error":
+				icon = c.styles.ToolError.Render("✗")
+			case "running", "started":
+				frame := strings.TrimSpace(c.SpinnerFrame)
+				if frame == "" {
+					frame = "⠋"
+				}
+				icon = c.styles.ToolProgress.Render(frame)
+			default:
+				icon = c.styles.ToolProgress.Render("◆")
+			}
+
+			displayName := toolDisplayName(tool.Name)
+			line := c.styles.UserMsg.Render(displayName)
+			if tool.Msg != "" {
+				line += "  " + c.styles.MsgTimestamp.Render(tool.Msg)
+			}
+
+			prefix := "  ├─ "
+			if i == len(subagentTools)-1 {
+				prefix = "  └─ "
+			}
+			formattedLines = append(formattedLines, prefix+icon+" "+line)
+		}
+		activityBlock = "\n\n" + strings.Join(formattedLines, "\n")
+	} else if logText != "" {
 		renderedLog, err := common.RenderMarkdown(bodyWidth, logText)
 		if err != nil {
 			renderedLog = logText
@@ -1263,4 +1505,261 @@ func (c *Chat) findSpawningTool(agentID string) *toolItem {
 		}
 	}
 	return nil
+}
+
+func isBackgroundBash(t *toolItem) bool {
+	if t.name != "bash" {
+		return false
+	}
+	if stringFromMap(t.metadata, "background") == "true" {
+		return true
+	}
+	if stringFromMap(t.metadata, "task_id") != "" {
+		return true
+	}
+	// Check input parameters too
+	input := t.toolInput()
+	if runBg, ok := input["run_in_background"].(bool); ok && runBg {
+		return true
+	}
+	if runBgStr, ok := input["run_in_background"].(string); ok && runBgStr == "true" {
+		return true
+	}
+	return false
+}
+
+func parseJobOutput(body string) (jobID, status, exitCode, output string, noNewOutput bool) {
+	body = strings.ReplaceAll(body, "\r\n", "\n")
+	lines := strings.Split(body, "\n")
+
+	// Read headers until we hit a blank line
+	i := 0
+	for ; i < len(lines); i++ {
+		line := strings.TrimSpace(lines[i])
+		if line == "" {
+			break
+		}
+		if strings.HasPrefix(line, "job_id:") {
+			jobID = strings.TrimSpace(strings.TrimPrefix(line, "job_id:"))
+		} else if strings.HasPrefix(line, "status:") {
+			status = strings.TrimSpace(strings.TrimPrefix(line, "status:"))
+		} else if strings.HasPrefix(line, "exit_code:") {
+			exitCode = strings.TrimSpace(strings.TrimPrefix(line, "exit_code:"))
+		}
+	}
+
+	// Skip blank lines
+	for ; i < len(lines); i++ {
+		if strings.TrimSpace(lines[i]) != "" {
+			break
+		}
+	}
+
+	if i < len(lines) {
+		remaining := strings.Join(lines[i:], "\n")
+		if strings.HasPrefix(remaining, "output:") {
+			output = strings.TrimPrefix(remaining, "output:")
+			output = strings.TrimLeft(output, "\r\n ")
+		} else if strings.HasPrefix(remaining, "final output:") {
+			output = strings.TrimPrefix(remaining, "final output:")
+			output = strings.TrimLeft(output, "\r\n ")
+		} else if strings.Contains(remaining, "(no new output)") {
+			noNewOutput = true
+		} else {
+			output = remaining
+		}
+	}
+	return
+}
+
+func renderJobInline(styles common.Styles, toolName, resultBody string, width, maxLines int) string {
+	if strings.TrimSpace(resultBody) == "" {
+		return styles.MsgTimestamp.Render("Waiting for job task response...")
+	}
+
+	jobID, status, exitCode, output, noNewOutput := parseJobOutput(resultBody)
+
+	var headerParts []string
+	action := "Output"
+	if toolName == "job_kill" {
+		action = "Kill"
+	}
+
+	headerParts = append(headerParts, styles.Key.Render("Job ("+action+")"))
+	if jobID != "" {
+		headerParts = append(headerParts, styles.HeaderID.Render("PID "+jobID))
+	}
+	if status != "" {
+		statusStyle := styles.ToolProgress
+		if status == "completed" || status == "success" {
+			statusStyle = styles.ToolDone
+		} else if status == "failed" || status == "error" || status == "killed" {
+			statusStyle = styles.ToolError
+		}
+
+		statusText := status
+		if exitCode != "" {
+			statusText += " (exit: " + exitCode + ")"
+		}
+		headerParts = append(headerParts, statusStyle.Render("["+statusText+"]"))
+	}
+
+	header := strings.Join(headerParts, " ")
+
+	var body string
+	if noNewOutput {
+		body = styles.MsgTimestamp.Render("(no new output)")
+	} else if output != "" {
+		rawLines := strings.Split(output, "\n")
+		var lines []string
+		for _, ln := range rawLines {
+			lines = append(lines, wrap.String(common.Escape(ln), width))
+		}
+		hidden := 0
+		if maxLines > 0 && len(lines) > maxLines {
+			hidden = len(lines) - maxLines
+			lines = lines[:maxLines]
+		}
+		body = strings.Join(lines, "\n")
+		if hidden > 0 {
+			body += "\n" + styles.ToolTruncation.Render(fmt.Sprintf(previewTruncFmt, hidden))
+		}
+	} else {
+		body = styles.MsgTimestamp.Render("No output")
+	}
+
+	return header + "\n" + indentBlock(body, "  ")
+}
+
+func renderJobDetails(styles common.Styles, toolName, resultBody string, width int) string {
+	if strings.TrimSpace(resultBody) == "" {
+		return styles.MsgTimestamp.Render("No output")
+	}
+
+	jobID, status, exitCode, output, noNewOutput := parseJobOutput(resultBody)
+
+	var headerParts []string
+	action := "Output"
+	if toolName == "job_kill" {
+		action = "Kill"
+	}
+
+	headerParts = append(headerParts, styles.Key.Render("Job ("+action+")"))
+	if jobID != "" {
+		headerParts = append(headerParts, styles.HeaderID.Render("PID "+jobID))
+	}
+	if status != "" {
+		statusStyle := styles.ToolProgress
+		if status == "completed" || status == "success" {
+			statusStyle = styles.ToolDone
+		} else if status == "failed" || status == "error" || status == "killed" {
+			statusStyle = styles.ToolError
+		}
+
+		statusText := status
+		if exitCode != "" {
+			statusText += " (exit: " + exitCode + ")"
+		}
+		headerParts = append(headerParts, statusStyle.Render("["+statusText+"]"))
+	}
+
+	header := strings.Join(headerParts, " ")
+
+	var body string
+	if noNewOutput {
+		body = styles.MsgTimestamp.Render("(no new output)")
+	} else if output != "" {
+		rawLines := strings.Split(output, "\n")
+		var lines []string
+		for _, ln := range rawLines {
+			lines = append(lines, wrap.String(common.Escape(ln), width))
+		}
+		body = strings.Join(lines, "\n")
+	} else {
+		body = styles.MsgTimestamp.Render("No output")
+	}
+
+	return header + "\n\n" + body
+}
+
+func renderBackgroundBashInline(styles common.Styles, t *toolItem, width, maxLines int) string {
+	input := t.toolInput()
+	cmd := stringFromMap(input, "command")
+	desc := stringFromMap(input, "description")
+	taskID := stringFromMap(t.metadata, "task_id")
+
+	var headerParts []string
+	headerParts = append(headerParts, styles.Key.Render("Job (Start)"))
+	if taskID != "" {
+		headerParts = append(headerParts, styles.HeaderID.Render("PID "+taskID))
+	}
+
+	statusText := t.statusLabel()
+	statusStyle := styles.ToolProgress
+	if t.status == "completed" || t.status == "done" {
+		statusStyle = styles.ToolDone
+	} else if t.status == "failed" || t.status == "error" {
+		statusStyle = styles.ToolError
+	}
+	headerParts = append(headerParts, statusStyle.Render("["+statusText+"]"))
+
+	header := strings.Join(headerParts, " ")
+
+	var bodyParts []string
+	if desc != "" {
+		bodyParts = append(bodyParts, styles.MsgTimestamp.Render("Description: ")+desc)
+	}
+	if cmd != "" {
+		cmdOneLine := strings.ReplaceAll(cmd, "\n", "; ")
+		bodyParts = append(bodyParts, styles.MsgTimestamp.Render("Command: ")+ansi.Truncate(cmdOneLine, max(1, width-10), "…"))
+	}
+
+	body := strings.Join(bodyParts, "\n")
+	return header + "\n" + indentBlock(body, "  ")
+}
+
+func renderBackgroundBashDetails(styles common.Styles, t *toolItem, width int) string {
+	input := t.toolInput()
+	cmd := stringFromMap(input, "command")
+	desc := stringFromMap(input, "description")
+	taskID := stringFromMap(t.metadata, "task_id")
+	workDir := stringFromMap(t.metadata, "working_dir")
+	if workDir == "" {
+		workDir = stringFromMap(t.metadata, "working_directory")
+	}
+	outputPath := stringFromMap(t.metadata, "output_path")
+
+	var headerParts []string
+	headerParts = append(headerParts, styles.Key.Render("Job (Start)"))
+	if taskID != "" {
+		headerParts = append(headerParts, styles.HeaderID.Render("PID "+taskID))
+	}
+
+	statusText := t.statusLabel()
+	statusStyle := styles.ToolProgress
+	if t.status == "completed" || t.status == "done" {
+		statusStyle = styles.ToolDone
+	} else if t.status == "failed" || t.status == "error" {
+		statusStyle = styles.ToolError
+	}
+	headerParts = append(headerParts, statusStyle.Render("["+statusText+"]"))
+
+	header := strings.Join(headerParts, " ")
+
+	var bodyParts []string
+	if desc != "" {
+		bodyParts = append(bodyParts, styles.Key.Render("Description")+"\n"+desc)
+	}
+	if cmd != "" {
+		bodyParts = append(bodyParts, styles.Key.Render("Command")+"\n"+renderCodeBody(styles, "command.sh", cmd, width, 0, 0))
+	}
+	if workDir != "" {
+		bodyParts = append(bodyParts, styles.MsgTimestamp.Render("Directory: ")+prettyPath(workDir))
+	}
+	if outputPath != "" {
+		bodyParts = append(bodyParts, styles.MsgTimestamp.Render("Output Path: ")+prettyPath(outputPath))
+	}
+
+	body := strings.Join(bodyParts, "\n\n")
+	return header + "\n\n" + body
 }

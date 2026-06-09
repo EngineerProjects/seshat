@@ -8,6 +8,7 @@ import (
 	"charm.land/bubbles/v2/viewport"
 	"charm.land/glamour/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 )
 
 var toolIcons = map[string]string{
@@ -39,14 +40,15 @@ func toolIconFor(name string) string {
 }
 
 type Chat struct {
-	styles   common.Styles
-	viewport *viewport.Model
-	renderer *glamour.TermRenderer
-	detail   *viewport.Model
-	messages []msgItem
-	width    int
-	height   int
-	follow   bool
+	styles          common.Styles
+	list            *list.List
+	renderer        *glamour.TermRenderer
+	detail          *viewport.Model
+	messages        []msgItem
+	width           int
+	height          int
+	follow          bool
+	ActiveSessionID string
 
 	selectedTool int
 	detailOpen   bool
@@ -59,6 +61,7 @@ type Chat struct {
 	plainLines      []string
 	toolRegions     []toolRegion
 	thinkingRegions []thinkingRegion
+	itemRegions     []itemRegion
 	selection       mouseSelection
 	verboseInterim  bool
 	detailKey       string
@@ -67,14 +70,16 @@ type Chat struct {
 }
 
 func NewChat(styles common.Styles, width, height int) *Chat {
-	vp := viewport.New(viewport.WithWidth(width), viewport.WithHeight(height))
-	vp.SetContent("")
+	l := list.NewList()
+	l.SetGap(1)
+
 	detail := viewport.New(viewport.WithWidth(width), viewport.WithHeight(height))
 	detail.SetContent("")
 	r := common.MarkdownRenderer(width)
-	return &Chat{
+
+	c := &Chat{
 		styles:       styles,
-		viewport:     &vp,
+		list:         l,
 		renderer:     r,
 		detail:       &detail,
 		follow:       true,
@@ -82,6 +87,10 @@ func NewChat(styles common.Styles, width, height int) *Chat {
 		height:       height,
 		selectedTool: -1,
 	}
+	l.SetSize(width, height)
+	l.RegisterRenderCallback(list.FocusedRenderCallback(l))
+	l.RegisterRenderCallback(c.applyHighlightRange)
+	return c
 }
 
 func (c *Chat) SetSize(width, height int) {
@@ -90,8 +99,7 @@ func (c *Chat) SetSize(width, height int) {
 	}
 	c.width = width
 	c.height = height
-	c.viewport.SetWidth(width)
-	c.viewport.SetHeight(height)
+	c.list.SetSize(width, height)
 	if r := common.MarkdownRenderer(max(10, width-2)); r != nil {
 		c.renderer = r
 	}
@@ -133,7 +141,7 @@ func (c *Chat) ExecutionMode() string {
 func (c *Chat) AddUserMessage(text string) {
 	c.sealActiveAssistant()
 	c.selection.clear()
-	c.messages = append(c.messages, &userItem{content: text, timestamp: time.Now()})
+	c.messages = append(c.messages, &userItem{c: c, content: text, timestamp: time.Now()})
 	c.refresh()
 }
 
@@ -152,7 +160,7 @@ func (c *Chat) StartAssistantMessage() {
 		}
 	}
 
-	item := newAssistantItem()
+	item := newAssistantItem(c)
 	item.showLabel = showLabel
 	c.messages = append(c.messages, item)
 	c.refresh()
@@ -183,9 +191,9 @@ func (c *Chat) AppendChunk(text string, isThinking bool) {
 		}
 	}
 	if isContinuation {
-		c.messages = append(c.messages, newContinuationItem(continuationStart))
+		c.messages = append(c.messages, newContinuationItem(c, continuationStart))
 	} else {
-		c.messages = append(c.messages, newAssistantItem())
+		c.messages = append(c.messages, newAssistantItem(c))
 	}
 	c.AppendChunk(text, isThinking)
 }
@@ -208,7 +216,7 @@ func (c *Chat) FinishAssistantMessage(inputTokens, outputTokens int, stopReason 
 	c.refresh()
 }
 
-func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metadata map[string]any) {
+func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metadata map[string]any, sessionID string) {
 	if (toolName == "spawn_agent" || toolName == "agent") && (status == "completed" || status == "done") {
 		if isFinished, _ := metadata["subagent_finished"].(bool); !isFinished {
 			status = "running"
@@ -256,7 +264,7 @@ func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metada
 	c.selection.clear()
 
 	// Append as a new toolItem.
-	tool := newToolItem(toolUseID, toolName, status, label, metadata)
+	tool := newToolItem(c, toolUseID, toolName, status, label, metadata)
 	if (tool.isDone() || toolName == "agent" || toolName == "spawn_agent") && isAutoExpandTool(toolName) {
 		tool.expanded = true
 	}
@@ -290,14 +298,14 @@ func (c *Chat) sealActiveAssistant() {
 func (c *Chat) AddError(err error) {
 	c.sealActiveAssistant()
 	c.selection.clear()
-	c.messages = append(c.messages, &errorItem{content: err.Error()})
+	c.messages = append(c.messages, &errorItem{c: c, content: err.Error()})
 	c.refresh()
 }
 
 func (c *Chat) AddSystem(text string) {
 	c.sealActiveAssistant()
 	c.selection.clear()
-	c.messages = append(c.messages, &systemItem{content: text})
+	c.messages = append(c.messages, &systemItem{c: c, content: text})
 	c.refresh()
 }
 
@@ -310,7 +318,7 @@ func (c *Chat) Clear() {
 	c.detailKey = ""
 	c.detailToolID = ""
 	c.selection.clear()
-	c.viewport.SetContent("")
+	c.list.SetItems()
 	c.detail.SetContent("")
 	c.refresh()
 }
@@ -444,7 +452,7 @@ func (c *Chat) SelectPrevTool() bool {
 }
 
 func (c *Chat) HandleMouseDown(x, y int) bool {
-	line := c.viewport.YOffset() + clampInt(y, 0, max(0, c.height-1))
+	line := c.list.Offset() + clampInt(y, 0, max(0, c.height-1))
 	if line < 0 || line >= len(c.plainLines) {
 		return false
 	}
@@ -473,7 +481,7 @@ func (c *Chat) HandleMouseDrag(x, y int) bool {
 		c.ScrollDown(1)
 		y = max(0, c.height-1)
 	}
-	line := c.viewport.YOffset() + clampInt(y, 0, max(0, c.height-1))
+	line := c.list.Offset() + clampInt(y, 0, max(0, c.height-1))
 	line = clampInt(line, 0, len(c.plainLines)-1)
 	c.selection.update(line, max(0, x))
 	c.refreshSelection()
@@ -715,4 +723,8 @@ func (c *Chat) HasRunningTools() bool {
 		}
 	}
 	return false
+}
+
+func (c *Chat) applyHighlightRange(idx, _ int, item list.Item) list.Item {
+	return item
 }

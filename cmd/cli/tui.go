@@ -22,6 +22,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/providers"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 	tuiapp "github.com/EngineerProjects/nexus-engine/internal/tui/app"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
 	skillspkg "github.com/EngineerProjects/nexus-engine/pkg/skills"
@@ -105,8 +106,9 @@ type nexusWorkspace struct {
 	submitMu     sync.Mutex
 	submitCancel context.CancelFunc
 
-	subagentMu   sync.Mutex
-	subagentLogs map[string]string // keyed by AgentToolUseID
+	subagentMu    sync.Mutex
+	subagentLogs  map[string]string                     // keyed by AgentToolUseID
+	subagentTools map[string][]common.SubagentToolState // keyed by AgentToolUseID
 }
 
 // credKeyOllamaModels is the DB key for the cached Ollama model list.
@@ -177,12 +179,13 @@ func newNexusWorkspace(options runtimeOptions) (*nexusWorkspace, error) {
 		modelStr = options.Model.String()
 	}
 	w := &nexusWorkspace{
-		model:        modelStr,
-		workDir:      options.WorkingDir,
-		permMode:     string(options.PermissionMode),
-		sqlitePath:   options.SQLitePath,
-		clientOpts:   options,
-		subagentLogs: make(map[string]string),
+		model:         modelStr,
+		workDir:       options.WorkingDir,
+		permMode:      string(options.PermissionMode),
+		sqlitePath:    options.SQLitePath,
+		clientOpts:    options,
+		subagentLogs:  make(map[string]string),
+		subagentTools: make(map[string][]common.SubagentToolState),
 	}
 	w.debounce = newChunkDebounce(33*time.Millisecond, func(text string) {
 		w.send(tui.ChunkMsg{Text: text})
@@ -349,6 +352,7 @@ func (w *nexusWorkspace) CreateSession(ctx context.Context) {
 		_ = appdir.EnsureSessionDir(string(sess.GetID()))
 		w.subagentMu.Lock()
 		w.subagentLogs = make(map[string]string)
+		w.subagentTools = make(map[string][]common.SubagentToolState)
 		w.subagentMu.Unlock()
 		w.sessionMu.Lock()
 		w.session = sess
@@ -373,6 +377,7 @@ func (w *nexusWorkspace) LoadSession(ctx context.Context, id string) {
 		_ = appdir.EnsureSessionDir(id)
 		w.subagentMu.Lock()
 		w.subagentLogs = make(map[string]string)
+		w.subagentTools = make(map[string][]common.SubagentToolState)
 		w.subagentMu.Unlock()
 		w.sessionMu.Lock()
 		w.session = sess
@@ -1097,6 +1102,10 @@ func (w *nexusWorkspace) onRuntimeEvent(event sdk.RuntimeEvent) {
 
 	w.subagentMu.Lock()
 	logText := w.subagentLogs[event.AgentToolUseID]
+	tools := w.subagentTools[event.AgentToolUseID]
+	if tools == nil {
+		tools = make([]common.SubagentToolState, 0)
+	}
 	var updated bool
 
 	switch event.Type {
@@ -1122,14 +1131,36 @@ func (w *nexusWorkspace) onRuntimeEvent(event sdk.RuntimeEvent) {
 
 	case sdk.RuntimeEventTypeToolProgress:
 		if event.ToolProgress != nil {
+			id := event.ToolProgress.ToolUseID
+			name := event.ToolProgress.ToolName
 			status := string(event.ToolProgress.Stage)
+			msg := event.ToolProgress.Message
+
 			switch status {
 			case "running":
-				logText += fmt.Sprintf("\n* ▸ **Tool Call:** `%s` ...\n", event.ToolProgress.ToolName)
+				logText += fmt.Sprintf("\n* ▸ **Tool Call:** `%s` ...\n", name)
 			case "completed":
-				logText += fmt.Sprintf("* ✓ **Tool Completed:** `%s`\n", event.ToolProgress.ToolName)
+				logText += fmt.Sprintf("* ✓ **Tool Completed:** `%s`\n", name)
 			case "failed":
-				logText += fmt.Sprintf("* ✗ **Tool Failed:** `%s` (%s)\n", event.ToolProgress.ToolName, event.ToolProgress.Message)
+				logText += fmt.Sprintf("* ✗ **Tool Failed:** `%s` (%s)\n", name, msg)
+			}
+
+			found := false
+			for i, t := range tools {
+				if t.ID == id && id != "" {
+					tools[i].Status = status
+					tools[i].Msg = msg
+					found = true
+					break
+				}
+			}
+			if !found {
+				tools = append(tools, common.SubagentToolState{
+					ID:     id,
+					Name:   name,
+					Status: status,
+					Msg:    msg,
+				})
 			}
 			updated = true
 		}
@@ -1141,6 +1172,7 @@ func (w *nexusWorkspace) onRuntimeEvent(event sdk.RuntimeEvent) {
 
 	if updated {
 		w.subagentLogs[event.AgentToolUseID] = logText
+		w.subagentTools[event.AgentToolUseID] = tools
 		w.subagentMu.Unlock()
 
 		w.send(tui.ToolProgressMsg{
@@ -1149,7 +1181,8 @@ func (w *nexusWorkspace) onRuntimeEvent(event sdk.RuntimeEvent) {
 			Status:    "running",
 			Label:     "Sub-agent active",
 			Metadata: map[string]any{
-				"subagent_log": logText,
+				"subagent_log":   logText,
+				"subagent_tools": tools,
 			},
 		})
 	} else {
