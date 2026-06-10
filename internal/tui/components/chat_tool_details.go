@@ -10,6 +10,7 @@ import (
 	"time"
 
 	"charm.land/lipgloss/v2"
+	"charm.land/lipgloss/v2/tree"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/muesli/reflow/wrap"
@@ -561,6 +562,10 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 		}
 	}
 
+	// agentTree is set when we have subagentTools and want tree rendering.
+	// nil means fall back to the plain promptBlock+activityBlock path.
+	var agentTree *tree.Tree
+
 	var activityBlock string
 	if len(subagentTools) > 0 {
 		showTools := subagentTools
@@ -570,40 +575,16 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 			truncated = true
 		}
 
-		formattedLines := make([]string, 0, len(showTools)+1)
+		// Build a lipgloss/v2/tree rooted at the full prompt block.
+		// Each nested tool is a compact one-liner child. Mirrors Crush's
+		// AgentToolRenderContext.RenderTool() tree pattern.
+		agentTree = tree.Root(promptBlock).Enumerator(subagentTreeEnumerator)
 		if truncated {
-			formattedLines = append(formattedLines, "  "+c.styles.MsgTimestamp.Render("[... open details (ctrl+o) for full activity ...]"))
+			agentTree.Child(c.styles.MsgTimestamp.Render("[… open details (ctrl+o) for full activity …]"))
 		}
-		for i, tool := range showTools {
-			var icon string
-			switch tool.Status {
-			case "completed", "done", "success":
-				icon = c.styles.MsgTimestamp.Render("✓")
-			case "failed", "error":
-				icon = c.styles.ToolError.Render("✗")
-			case "running", "started":
-				frame := strings.TrimSpace(c.SpinnerFrame)
-				if frame == "" {
-					frame = "⠋"
-				}
-				icon = c.styles.ToolProgress.Render(frame)
-			default:
-				icon = c.styles.ToolProgress.Render("◆")
-			}
-
-			displayName := toolDisplayName(tool.Name)
-			line := c.styles.UserMsg.Render(displayName)
-			if tool.Msg != "" {
-				line += "  " + c.styles.MsgTimestamp.Render(truncate(tool.Msg, max(10, bodyWidth-lipgloss.Width(displayName)-8)))
-			}
-
-			prefix := "  ├─ "
-			if i == len(showTools)-1 {
-				prefix = "  └─ "
-			}
-			formattedLines = append(formattedLines, prefix+icon+" "+line)
+		for _, tool := range showTools {
+			agentTree.Child(renderSubagentToolCompact(c, tool, bodyWidth))
 		}
-		activityBlock = "\n\n" + strings.Join(formattedLines, "\n")
 	} else if logText != "" {
 		renderedLog, err := common.RenderMarkdown(bodyWidth, logText)
 		if err != nil {
@@ -674,6 +655,9 @@ func (t *toolItem) renderSubagentInline(c *Chat, width int) string {
 		resultBlock = "\n\n  " + headerRes + "\n" + strings.Join(formattedLines, "\n")
 	}
 
+	if agentTree != nil {
+		return agentTree.String() + resultBlock
+	}
 	return promptBlock + activityBlock + resultBlock
 }
 
@@ -1762,4 +1746,43 @@ func renderBackgroundBashDetails(styles common.Styles, t *toolItem, width int) s
 
 	body := strings.Join(bodyParts, "\n\n")
 	return header + "\n\n" + body
+}
+
+// subagentTreeEnumerator is the tree.Enumerator used for nested subagent tool lists.
+// Mirrors Crush's roundedEnumerator with our fixed two-space left padding.
+// The default enumeratorFunc in lipgloss/v2/tree appends PaddingRight(1), so
+// "  ├─" → "  ├─ " and "  ╰─" → "  ╰─ " in the final output.
+func subagentTreeEnumerator(children tree.Children, index int) string {
+	if children.Length()-1 == index {
+		return "  ╰─"
+	}
+	return "  ├─"
+}
+
+// renderSubagentToolCompact renders a single SubagentToolState as a compact one-liner
+// for use as a tree child. Equivalent to running a toolItem in compact mode but
+// operating on the lightweight SubagentToolState struct that arrives via metadata.
+func renderSubagentToolCompact(c *Chat, tool common.SubagentToolState, bodyWidth int) string {
+	var icon string
+	switch tool.Status {
+	case "completed", "done", "success":
+		icon = c.styles.MsgTimestamp.Render("✓")
+	case "failed", "error":
+		icon = c.styles.ToolError.Render("✗")
+	case "running", "started":
+		frame := strings.TrimSpace(c.SpinnerFrame)
+		if frame == "" {
+			frame = "⠋"
+		}
+		icon = c.styles.ToolProgress.Render(frame)
+	default:
+		icon = c.styles.ToolProgress.Render("◆")
+	}
+	displayName := toolDisplayName(tool.Name)
+	line := icon + " " + c.styles.UserMsg.Render(displayName)
+	if tool.Msg != "" {
+		maxMsgWidth := max(10, bodyWidth-lipgloss.Width(displayName)-8)
+		line += "  " + c.styles.MsgTimestamp.Render(truncate(tool.Msg, maxMsgWidth))
+	}
+	return line
 }

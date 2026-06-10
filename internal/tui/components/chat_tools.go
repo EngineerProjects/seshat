@@ -81,6 +81,10 @@ type toolItem struct {
 	// awaitingPermission: isDone() stays false so the render cache never freezes the item.
 	awaitingPermission bool
 
+	// compact renders a single-line header with no preview; used when this toolItem
+	// is embedded as a child inside a parent agent tool's tree view.
+	compact bool
+
 	// anim drives per-tool gradient animation. Started when the tool begins running;
 	// replaced by a static icon once done. Each tool animates independently so
 	// multiple concurrent tools don't share a single frame.
@@ -118,6 +122,15 @@ func newToolItem(c *Chat, id, name, status, label string, metadata map[string]an
 	return t
 }
 
+// SetCompact implements the Compactable interface. Mirrors Crush's baseToolMessageItem.SetCompact.
+func (t *toolItem) SetCompact(compact bool) {
+	if t.compact == compact {
+		return
+	}
+	t.compact = compact
+	t.invalidate()
+}
+
 func (t *toolItem) isDone() bool {
 	return t.status == "completed" || t.status == "failed" || t.status == "done" || t.status == "error"
 }
@@ -139,6 +152,22 @@ func (t *toolItem) rawRender(c *Chat, width int) string {
 		if raw, _, ok := t.cache.getRaw(width); ok {
 			return raw
 		}
+	}
+
+	// Compact mode: single-line icon + name + summary; no expander, no preview.
+	// Used when this item is a child inside a parent agent's tree view.
+	if t.compact {
+		icon := t.renderIcon(c)
+		nameStyle := t.renderNameStyle(c.styles)
+		name := nameStyle.Render(toolDisplayName(t.name))
+		out := icon + " " + name
+		if summary := truncate(t.summaryText(), max(12, width-20)); summary != "" {
+			out += " " + c.styles.MsgTimestamp.Render(summary)
+		}
+		if t.isDone() {
+			t.cache.setRaw(out, width, 1)
+		}
+		return out
 	}
 
 	icon := t.renderIcon(c)
@@ -195,8 +224,12 @@ func (t *toolItem) Render(width int) string {
 	selected := t.c.selectedToolItem() == t
 
 	// Determine the prefixed-cache key before any computation.
+	// key 0 = unselected, 1 = selected, 2 = compact (mirrors Crush).
 	var key uint64
-	if selected {
+	switch {
+	case t.compact:
+		key = 2
+	case selected:
 		key = 1
 	}
 
