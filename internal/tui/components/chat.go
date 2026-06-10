@@ -382,6 +382,15 @@ func (c *Chat) HasTools() bool {
 	return false
 }
 
+// FormatSelectedToolForCopy returns a Markdown copy of the currently-selected
+// tool item, or "" if nothing is selected.
+func (c *Chat) FormatSelectedToolForCopy() string {
+	if t := c.selectedToolItem(); t != nil {
+		return t.formatForCopy()
+	}
+	return ""
+}
+
 func (c *Chat) SetToolAwaitingPermission(toolUseID string, waiting bool) {
 	for _, m := range c.messages {
 		if t, ok := m.(*toolItem); ok && t.id == toolUseID {

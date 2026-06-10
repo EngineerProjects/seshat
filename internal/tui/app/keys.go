@@ -8,7 +8,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/components"
-	clipboard "github.com/atotto/clipboard"
+	"github.com/EngineerProjects/nexus-engine/internal/tui/fsext"
 )
 
 // pendingSubmitMsg is used to queue a prompt while session creation is pending.
@@ -204,7 +204,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) (bool, tea.Cmd) {
 			case "backspace":
 				cp.DeleteChar()
 			case "ctrl+v":
-				if text, err := clipboard.ReadAll(); err == nil && text != "" {
+				if text, err := fsext.ReadClipboardText(); err == nil && text != "" {
 					cp.TypeString(text)
 				}
 				return true, nil
@@ -265,7 +265,7 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) (bool, tea.Cmd) {
 			case "backspace":
 				sp.DeleteChar()
 			case "ctrl+v":
-				if text, err := clipboard.ReadAll(); err == nil && text != "" {
+				if text, err := fsext.ReadClipboardText(); err == nil && text != "" {
 					sp.TypeString(text)
 				}
 				return true, nil
@@ -472,6 +472,11 @@ func (m *Model) handleKey(msg tea.KeyPressMsg) (bool, tea.Cmd) {
 				return true, boolCmd(m.chat.SelectNextTool())
 			case "p":
 				return true, boolCmd(m.chat.SelectPrevTool())
+			case "c", "y":
+				if text := m.chat.FormatSelectedToolForCopy(); text != "" {
+					return true, m.copyToClipboard(text, "Tool content copied")
+				}
+				return true, nil
 			case "space":
 				return true, boolCmd(m.chat.ToggleSelectedToolExpanded())
 			case "o", "enter", "right":
