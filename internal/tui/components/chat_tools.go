@@ -3,12 +3,14 @@ package components
 import (
 	"encoding/json"
 	"fmt"
+	"image/color"
 	"path/filepath"
 	"strings"
 	"time"
 
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/hooks"
+	animPkg "github.com/EngineerProjects/nexus-engine/internal/tui/anim"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 	"github.com/charmbracelet/x/ansi"
@@ -79,6 +81,11 @@ type toolItem struct {
 	// awaitingPermission: isDone() stays false so the render cache never freezes the item.
 	awaitingPermission bool
 
+	// anim drives per-tool gradient animation. Started when the tool begins running;
+	// replaced by a static icon once done. Each tool animates independently so
+	// multiple concurrent tools don't share a single frame.
+	anim *animPkg.Anim
+
 	nestedTools []*toolItem
 
 	// cache is the two-level render cache for chat-list rendering.
@@ -92,7 +99,7 @@ type toolItem struct {
 }
 
 func newToolItem(c *Chat, id, name, status, label string, metadata map[string]any) *toolItem {
-	return &toolItem{
+	t := &toolItem{
 		c:         c,
 		id:        id,
 		name:      name,
@@ -101,6 +108,14 @@ func newToolItem(c *Chat, id, name, status, label string, metadata map[string]an
 		metadata:  cloneMap(metadata),
 		startedAt: time.Now(),
 	}
+	t.anim = animPkg.New(animPkg.Settings{
+		ID:          id,
+		Size:        10,
+		GradColorA:  color.RGBA{R: 0xE8, G: 0x63, B: 0x0A, A: 0xff}, // orange primary
+		GradColorB:  color.RGBA{R: 0x3B, G: 0x82, B: 0xF6, A: 0xff}, // blue
+		CycleColors: true,
+	})
+	return t
 }
 
 func (t *toolItem) isDone() bool {
@@ -245,6 +260,9 @@ func (t *toolItem) renderIcon(c *Chat) string {
 	case t.awaitingPermission && !t.isDone():
 		return c.styles.ToolProgress.Render("?")
 	case !t.isDone():
+		if t.anim != nil {
+			return t.anim.Render()
+		}
 		frame := strings.TrimSpace(c.SpinnerFrame)
 		if frame == "" {
 			frame = "⠋"

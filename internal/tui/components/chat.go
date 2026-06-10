@@ -6,7 +6,9 @@ import (
 	"unicode"
 
 	"charm.land/bubbles/v2/viewport"
+	tea "charm.land/bubbletea/v2"
 	"charm.land/glamour/v2"
+	animPkg "github.com/EngineerProjects/nexus-engine/internal/tui/anim"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/components/list"
 )
@@ -216,7 +218,7 @@ func (c *Chat) FinishAssistantMessage(inputTokens, outputTokens int, stopReason 
 	c.refresh()
 }
 
-func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metadata map[string]any, sessionID string) {
+func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metadata map[string]any, sessionID string) tea.Cmd {
 	if (toolName == "spawn_agent" || toolName == "agent") && (status == "completed" || status == "done") {
 		if isFinished, _ := metadata["subagent_finished"].(bool); !isFinished {
 			status = "running"
@@ -255,7 +257,7 @@ func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metada
 			}
 			t.invalidate()
 			c.refresh()
-			return
+			return nil
 		}
 	}
 
@@ -277,6 +279,12 @@ func (c *Chat) AddToolProgress(toolUseID, toolName, status, label string, metada
 	}
 
 	c.refresh()
+
+	// Start the per-tool gradient animation if the tool is not immediately done.
+	if !tool.isDone() && tool.anim != nil {
+		return tool.anim.Start()
+	}
+	return nil
 }
 
 func (c *Chat) sealActiveAssistant() {
@@ -380,6 +388,22 @@ func (c *Chat) HasTools() bool {
 		}
 	}
 	return false
+}
+
+// DispatchAnimStep forwards an anim.StepMsg to the tool whose anim ID matches,
+// then returns the next tick command so the animation continues. Only in-flight
+// tools are dispatched: finished tools never need further animation.
+func (c *Chat) DispatchAnimStep(msg animPkg.StepMsg) tea.Cmd {
+	for _, m := range c.messages {
+		t, ok := m.(*toolItem)
+		if !ok || t.isDone() || t.anim == nil {
+			continue
+		}
+		if cmd := t.anim.Animate(msg); cmd != nil {
+			return cmd
+		}
+	}
+	return nil
 }
 
 // FormatSelectedToolForCopy returns a Markdown copy of the currently-selected

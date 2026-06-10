@@ -11,6 +11,7 @@ import (
 	"charm.land/bubbles/v2/textarea"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
+	animPkg "github.com/EngineerProjects/nexus-engine/internal/tui/anim"
 	"github.com/EngineerProjects/nexus-engine/internal/tui"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/tui/components"
@@ -186,12 +187,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			label = msg.Status
 		}
 		wasOpen := m.chat.DetailsOpen()
-		m.chat.AddToolProgress(msg.ToolUseID, msg.ToolName, msg.Status, label, msg.Metadata, msg.SessionID)
+		if animCmd := m.chat.AddToolProgress(msg.ToolUseID, msg.ToolName, msg.Status, label, msg.Metadata, msg.SessionID); animCmd != nil {
+			cmds = append(cmds, animCmd)
+		}
 		if !wasOpen && m.chat.DetailsOpen() {
 			m = m.relayout()
 		}
 		if msg.Status == "running" || m.chat.HasRunningTools() {
 			cmds = append(cmds, m.spinner.Tick)
+		}
+
+	case animPkg.StepMsg:
+		if animCmd := m.chat.DispatchAnimStep(msg); animCmd != nil {
+			cmds = append(cmds, animCmd)
 		}
 
 	case tui.TurnStartMsg:
