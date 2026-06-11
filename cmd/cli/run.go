@@ -85,7 +85,6 @@ func runChat(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	flags := flag.NewFlagSet("chat", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	noTUI := flags.Bool("no-tui", false, "")
-	crushUI := flags.Bool("crush-ui", false, "Use Crush-based UI (experimental)")
 
 	model := flags.String("model", "", "")
 	permissionMode := flags.String("permission-mode", "", "")
@@ -113,10 +112,7 @@ func runChat(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 	// Launch the TUI when running interactively. Fall back to the text-mode
 	// chat loop when stdout is not a terminal or --no-tui is passed.
 	if !*noTUI && isatty.IsTerminal(os.Stdout.Fd()) {
-		if *crushUI {
-			return runNexusTUI(ctx, options, *resumeSessionID, *continueLast)
-		}
-		return runInteractive(ctx, options, *resumeSessionID, *continueLast)
+		return runNexusTUI(ctx, options, *resumeSessionID, *continueLast)
 	}
 
 	if err := validateProviderSetup(options); err != nil {

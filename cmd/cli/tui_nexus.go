@@ -5,12 +5,16 @@ import (
 	"io"
 	"log"
 	"os"
+	"path/filepath"
 
 	tea "charm.land/bubbletea/v2"
 	uv "github.com/charmbracelet/ultraviolet"
+	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
 	crushcommon "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
 	uimodel "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/model"
 	crushws "github.com/EngineerProjects/nexus-engine/internal/nexustui/workspace"
+	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
+	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
 )
 
 // runNexusTUI starts the Crush-based TUI. It reuses the same
@@ -64,4 +68,41 @@ func runNexusTUI(ctx context.Context, options runtimeOptions, initialSessionID s
 
 	ws.Shutdown()
 	return runErr
+}
+
+func buildTUIMonitoring() *sdk.MonitoringSystem {
+	logDir := filepath.Join(nexusLogDir(), "logs")
+	_ = os.MkdirAll(logDir, 0o755)
+	logPath := filepath.Join(logDir, "nexus.log")
+	logger := monitoring.NewLoggerWithConfig(&monitoring.LoggerConfig{
+		Level:    monitoring.LogLevelInfo,
+		Output:   "file",
+		FilePath: logPath,
+		Format:   "text",
+	})
+	return monitoring.NewSystem(logger)
+}
+
+func nexusLogDir() string {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return os.TempDir()
+	}
+	return filepath.Join(home, ".nexus")
+}
+
+func openCLILogFile() *os.File {
+	config, err := engineconfig.Load()
+	if err != nil {
+		return nil
+	}
+	logDir := filepath.Join(config.RuntimeRoot, "logs")
+	if err := os.MkdirAll(logDir, 0o755); err != nil {
+		return nil
+	}
+	f, err := os.OpenFile(filepath.Join(logDir, "cli.log"), os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o640)
+	if err != nil {
+		return nil
+	}
+	return f
 }
