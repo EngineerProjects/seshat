@@ -113,8 +113,8 @@ func CharmtonePantera() Styles {
 	})
 }
 
-// HypercrushObsidiana returns the Hypercrush dark theme.
-func HypercrushObsidiana() Styles {
+// HyperNexusObsidiana returns the HyperNexus dark theme.
+func HyperNexusObsidiana() Styles {
 	return quickStyle(quickStyleOpts{
 		primary:   charmtone.Charple,
 		secondary: charmtone.Dolly,

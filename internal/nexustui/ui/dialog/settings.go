@@ -568,7 +568,7 @@ func (s *Settings) infoTools() []string {
 		muted.Render("    Open the right-side details pane with ctrl+d."),
 		"",
 		accent.Render("  Disable specific tools:"),
-		muted.Render("    Set options.disabled_tools in crush.json to hide tools from the agent."),
+		muted.Render("    Set options.disabled_tools in nexus.json to hide tools from the agent."),
 		"",
 		muted.Render("  Press esc or ← to go back."),
 	}
@@ -589,7 +589,7 @@ func (s *Settings) infoMCP() []string {
 		muted.Render("    Configured servers are available to the agent during execution."),
 		"",
 		accent.Render("  Configuration:"),
-		muted.Render("    Edit the mcp section in crush.json / CRUSH.md to add servers."),
+		muted.Render("    Edit the mcp section in nexus.json / NEXUS.md to add servers."),
 		"",
 		accent.Render("  Docker MCP:"),
 		muted.Render("    Use Commands → Enable Docker MCP Catalog to add Docker-hosted tools."),
@@ -623,7 +623,7 @@ func (s *Settings) infoSkills() []string {
 	}
 	lines = append(lines,
 		"",
-		muted.Render("    Add paths via options.skills_paths in crush.json."),
+		muted.Render("    Add paths via options.skills_paths in nexus.json."),
 		"",
 		muted.Render("  Press esc or ← to go back."),
 	)

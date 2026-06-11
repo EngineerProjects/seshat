@@ -121,11 +121,11 @@ func LoadMCPPrompts() ([]MCPPrompt, error) {
 func buildCommandSources(cfg *config.Config) []commandSource {
 	return []commandSource{
 		{
-			path:   filepath.Join(home.Config(), "crush", "commands"),
+			path:   filepath.Join(home.Config(), "nexus", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{
-			path:   filepath.Join(home.Dir(), ".crush", "commands"),
+			path:   filepath.Join(home.Dir(), ".nexus", "commands"),
 			prefix: userCommandPrefix,
 		},
 		{

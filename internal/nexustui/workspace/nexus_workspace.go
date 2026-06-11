@@ -1,4 +1,4 @@
-// Package workspace implements the Crush workspace.Workspace interface backed
+// Package workspace implements the nexus-engine Workspace interface backed
 // by the nexus-engine SDK. All UI interactions (session management, streaming,
 // permissions) go through this adapter.
 package workspace
@@ -32,9 +32,9 @@ import (
 // Verify compile-time that NexusWorkspace implements Workspace.
 var _ Workspace = (*NexusWorkspace)(nil)
 
-// NexusWorkspace adapts the nexus-engine SDK to Crush's Workspace interface.
+// NexusWorkspace adapts the nexus-engine SDK to the Workspace interface.
 // It keeps an in-memory message store and publishes pubsub events that the
-// Crush UI consumes to render the conversation.
+// nexustui UI consumes to render the conversation.
 type NexusWorkspace struct {
 	// SDK layer
 	client  *sdk.Client
@@ -64,7 +64,7 @@ type NexusWorkspace struct {
 	streamMsg  *message.Message // the in-progress assistant message
 	streamSess string           // session ID of the streaming message
 
-	// debounce for streaming updates (33 ms crush pattern)
+	// debounce for streaming updates (33 ms)
 	debounce *msgDebounce
 
 	// busy flag
@@ -691,7 +691,7 @@ func (w *NexusWorkspace) HandleToolProgress(toolUseID, toolName, status, msg str
 	w.debounce.update(*cur, sessID)
 }
 
-// HandlePermissionRequest emits a permission request to the Crush UI.
+// HandlePermissionRequest emits a permission request to the nexustui UI.
 func (w *NexusWorkspace) HandlePermissionRequest(req permission.PermissionRequest) {
 	w.permBroker.Publish(pubsub.CreatedEvent, req)
 }
@@ -753,9 +753,9 @@ func (w *NexusWorkspace) OnSessionTitled(id sdk.SessionID, title string) {
 }
 
 // PromptFn blocks the agent goroutine waiting for the UI to resolve a permission request.
-// For now, we auto-allow all requests since Crush's permission dialog works differently.
+// For now, we auto-allow all requests since the permission dialog works differently.
 func (w *NexusWorkspace) PromptFn(_ context.Context, req sdk.PromptRequest) (sdk.PromptResponse, error) {
-	// Emit a permission request event so the Crush UI can show the dialog.
+	// Emit a permission request event so the nexustui UI can show the dialog.
 	permReq := permission.PermissionRequest{
 		ID:          uuid.New().String(),
 		ToolName:    req.Metadata["tool_name"].(string),
@@ -792,7 +792,7 @@ func (w *NexusWorkspace) publishMsg(evt pubsub.EventType, _ string, msg message.
 	w.msgBroker.Publish(evt, msg)
 }
 
-// convertSDKMessages converts the SDK message history to Crush message types.
+// convertSDKMessages converts the SDK message history to nexustui message types.
 func convertSDKMessages(sessionID string, sdkMsgs []sdk.Message) []message.Message {
 	// Pre-build tool result map keyed by tool_use_id.
 	type resultEntry struct {

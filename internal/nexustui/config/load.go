@@ -142,15 +142,15 @@ func mustMarshalConfig(cfg *Config) []byte {
 	return data
 }
 
-func PushPopCrushEnv() func() {
+func PushPopNexusEnv() func() {
 	var found []string
 	for _, ev := range os.Environ() {
-		if strings.HasPrefix(ev, "CRUSH_") {
+		if strings.HasPrefix(ev, "NEXUS_") {
 			pair := strings.SplitN(ev, "=", 2)
 			if len(pair) != 2 {
 				continue
 			}
-			found = append(found, strings.TrimPrefix(pair[0], "CRUSH_"))
+			found = append(found, strings.TrimPrefix(pair[0], "NEXUS_"))
 		}
 	}
 	backups := make(map[string]string)
@@ -159,7 +159,7 @@ func PushPopCrushEnv() func() {
 	}
 
 	for _, ev := range found {
-		os.Setenv(ev, os.Getenv("CRUSH_"+ev))
+		os.Setenv(ev, os.Getenv("NEXUS_"+ev))
 	}
 
 	restore := func() {
@@ -172,7 +172,7 @@ func PushPopCrushEnv() func() {
 
 func (c *Config) configureProviders(store *ConfigStore, env env.Env, resolver VariableResolver, knownProviders []catwalk.Provider) error {
 	knownProviderNames := make(map[string]bool)
-	restore := PushPopCrushEnv()
+	restore := PushPopNexusEnv()
 	defer restore()
 
 	// When disable_default_providers is enabled, skip all default/embedded
@@ -460,11 +460,11 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
-	if str, ok := os.LookupEnv("CRUSH_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
+	if str, ok := os.LookupEnv("NEXUS_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
 		c.Options.DisableProviderAutoUpdate, _ = strconv.ParseBool(str)
 	}
 
-	if str, ok := os.LookupEnv("CRUSH_DISABLE_DEFAULT_PROVIDERS"); ok {
+	if str, ok := os.LookupEnv("NEXUS_DISABLE_DEFAULT_PROVIDERS"); ok {
 		c.Options.DisableDefaultProviders, _ = strconv.ParseBool(str)
 	}
 
@@ -726,7 +726,7 @@ func configureSelectedModels(store *ConfigStore, knownProviders []catwalk.Provid
 // lookupConfigs searches config files starting at cwd and walking up
 // through the current project. The upward walk stops at the git
 // working tree root when one can be detected, otherwise at cwd itself,
-// so an unrelated crush.json placed above the project is never picked
+// so an unrelated nexus.json placed above the project is never picked
 // up. Global user-level config locations are always included
 // regardless of the boundary.
 func lookupConfigs(cwd string) []string {
@@ -892,8 +892,8 @@ func migrateDisableNotifications() {
 
 // GlobalConfig returns the global configuration file path for the application.
 func GlobalConfig() string {
-	if crushGlobal := os.Getenv("CRUSH_GLOBAL_CONFIG"); crushGlobal != "" {
-		return filepath.Join(crushGlobal, fmt.Sprintf("%s.json", appName))
+	if nexusGlobal := os.Getenv("NEXUS_GLOBAL_CONFIG"); nexusGlobal != "" {
+		return filepath.Join(nexusGlobal, fmt.Sprintf("%s.json", appName))
 	}
 	return filepath.Join(home.Config(), appName, fmt.Sprintf("%s.json", appName))
 }
@@ -901,8 +901,8 @@ func GlobalConfig() string {
 // GlobalCacheDir returns the path to the global cache directory for the
 // application.
 func GlobalCacheDir() string {
-	if crushCache := os.Getenv("CRUSH_CACHE_DIR"); crushCache != "" {
-		return crushCache
+	if nexusCache := os.Getenv("NEXUS_CACHE_DIR"); nexusCache != "" {
+		return nexusCache
 	}
 	if xdgCacheHome := os.Getenv("XDG_CACHE_HOME"); xdgCacheHome != "" {
 		return filepath.Join(xdgCacheHome, appName)
@@ -925,16 +925,16 @@ func ProjectConfigs(cwd string) []string {
 // GlobalConfigData returns the path to the main data directory for the application.
 // this config is used when the app overrides configurations instead of updating the global config.
 func GlobalConfigData() string {
-	if crushData := os.Getenv("CRUSH_GLOBAL_DATA"); crushData != "" {
-		return filepath.Join(crushData, fmt.Sprintf("%s.json", appName))
+	if nexusData := os.Getenv("NEXUS_GLOBAL_DATA"); nexusData != "" {
+		return filepath.Join(nexusData, fmt.Sprintf("%s.json", appName))
 	}
 	if xdgDataHome := os.Getenv("XDG_DATA_HOME"); xdgDataHome != "" {
 		return filepath.Join(xdgDataHome, appName, fmt.Sprintf("%s.json", appName))
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/crush/`
-	// for linux and macOS, it should be in `$HOME/.local/share/crush/`
+	// for windows, it should be in `%LOCALAPPDATA%/nexus/`
+	// for linux and macOS, it should be in `$HOME/.local/share/nexus/`
 	if runtime.GOOS == "windows" {
 		localAppData := cmp.Or(
 			os.Getenv("LOCALAPPDATA"),
@@ -999,7 +999,7 @@ func worktreeRoot(dir string) string {
 // projectBoundary returns the directory at which an upward configuration
 // search rooted at dir should stop. It is the git working tree root when
 // one can be detected, otherwise dir itself. Returning dir as a
-// fallback keeps Crush from silently adopting state files placed above
+// fallback keeps Nexus from silently adopting state files placed above
 // the current project.
 func projectBoundary(dir string) string {
 	if root := worktreeRoot(dir); root != "" {
@@ -1016,8 +1016,8 @@ func projectBoundary(dir string) string {
 // Skills in these directories are auto-discovered and their files can be read
 // without permission prompts.
 func GlobalSkillsDirs() []string {
-	if crushSkills := os.Getenv("CRUSH_SKILLS_DIR"); crushSkills != "" {
-		return []string{crushSkills}
+	if nexusSkills := os.Getenv("NEXUS_SKILLS_DIR"); nexusSkills != "" {
+		return []string{nexusSkills}
 	}
 
 	paths := []string{
@@ -1028,7 +1028,7 @@ func GlobalSkillsDirs() []string {
 		filepath.Join(home.Dir(), ".claude", "skills"),
 	}
 
-	// On Windows, also load from app data on top of `$HOME/.config/crush`.
+	// On Windows, also load from app data on top of `$HOME/.config/nexus`.
 	// This is here mostly for backwards compatibility.
 	if runtime.GOOS == "windows" {
 		appData := cmp.Or(
@@ -1045,12 +1045,12 @@ func GlobalSkillsDirs() []string {
 	return paths
 }
 
-// ProjectSkillsDir returns the default project directories for which Crush
+// ProjectSkillsDir returns the default project directories for which Nexus
 // will look for skills.
 func ProjectSkillsDir(workingDir string) []string {
 	return []string{
 		filepath.Join(workingDir, ".agents/skills"),
-		filepath.Join(workingDir, ".crush/skills"),
+		filepath.Join(workingDir, ".nexus/skills"),
 		filepath.Join(workingDir, ".claude/skills"),
 		filepath.Join(workingDir, ".cursor/skills"),
 	}

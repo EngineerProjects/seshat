@@ -31,7 +31,7 @@ func SyntaxHighlight(st *styles.Styles, source, fileName string, bg color.Color)
 		f = formatters.Fallback
 	}
 
-	style := chroma.MustNewStyle("crush", st.ChromaTheme())
+	style := chroma.MustNewStyle("nexus", st.ChromaTheme())
 
 	// Modify the style to use the provided background
 	s, err := style.Builder().Transform(

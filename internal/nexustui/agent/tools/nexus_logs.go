@@ -17,23 +17,23 @@ import (
 	"charm.land/fantasy"
 )
 
-const CrushLogsToolName = "crush_logs"
+const NexusLogsToolName = "nexus_logs"
 
-//go:embed crush_logs.md.tpl
-var crushLogsDescriptionTmpl []byte
+//go:embed nexus_logs.md.tpl
+var nexusLogsDescriptionTmpl []byte
 
-var crushLogsDescriptionTpl = template.Must(
-	template.New("crushLogsDescription").
-		Parse(string(crushLogsDescriptionTmpl)),
+var nexusLogsDescriptionTpl = template.Must(
+	template.New("nexusLogsDescription").
+		Parse(string(nexusLogsDescriptionTmpl)),
 )
 
-type crushLogsDescriptionData struct {
+type nexusLogsDescriptionData struct {
 	DefaultLines int
 	MaxLines     int
 }
 
-func crushLogsDescription() string {
-	return renderTemplate(crushLogsDescriptionTpl, crushLogsDescriptionData{
+func nexusLogsDescription() string {
+	return renderTemplate(nexusLogsDescriptionTpl, nexusLogsDescriptionData{
 		DefaultLines: defaultLogLines,
 		MaxLines:     maxLogLines,
 	})
@@ -69,23 +69,23 @@ var sensitiveKeys = []string{
 	"credential",
 }
 
-type CrushLogsParams struct {
+type NexusLogsParams struct {
 	Lines int `json:"lines,omitempty" description:"Number of recent log entries to return (default 50, max 100)"`
 }
 
-func NewCrushLogsTool(logFile string) fantasy.AgentTool {
+func NewNexusLogsTool(logFile string) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
-		CrushLogsToolName,
-		crushLogsDescription(),
-		func(ctx context.Context, params CrushLogsParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
-			result := runCrushLogs(logFile, params)
+		NexusLogsToolName,
+		nexusLogsDescription(),
+		func(ctx context.Context, params NexusLogsParams, call fantasy.ToolCall) (fantasy.ToolResponse, error) {
+			result := runNexusLogs(logFile, params)
 			return fantasy.NewTextResponse(result), nil
 		},
 	)
 }
 
-// runCrushLogs reads and formats the last N log entries from the given file.
-func runCrushLogs(logFile string, params CrushLogsParams) string {
+// runNexusLogs reads and formats the last N log entries from the given file.
+func runNexusLogs(logFile string, params NexusLogsParams) string {
 	// Validate and clamp the lines parameter.
 	lines := params.Lines
 	if lines <= 0 {

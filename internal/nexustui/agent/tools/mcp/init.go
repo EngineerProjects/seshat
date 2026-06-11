@@ -1,5 +1,5 @@
 // Package mcp provides functionality for managing Model Context Protocol (MCP)
-// clients within the Crush application.
+// clients within the Nexus application.
 package mcp
 
 import (
@@ -364,9 +364,9 @@ func createSession(ctx context.Context, name string, m config.MCPConfig, resolve
 
 	client := mcp.NewClient(
 		&mcp.Implementation{
-			Name:    "crush",
+			Name:    "nexus",
 			Version: version.Version,
-			Title:   "Crush",
+			Title:   "Nexus",
 		},
 		&mcp.ClientOptions{
 			ToolListChangedHandler: func(context.Context, *mcp.ToolListChangedRequest) {

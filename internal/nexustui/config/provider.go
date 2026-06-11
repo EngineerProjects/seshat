@@ -41,8 +41,8 @@ func cachePathFor(name string) string {
 	}
 
 	// return the path to the main data directory
-	// for windows, it should be in `%LOCALAPPDATA%/crush/`
-	// for linux and macOS, it should be in `$HOME/.local/share/crush/`
+	// for windows, it should be in `%LOCALAPPDATA%/nexus/`
+	// for linux and macOS, it should be in `$HOME/.local/share/nexus/`
 	if runtime.GOOS == "windows" {
 		localAppData := os.Getenv("LOCALAPPDATA")
 		if localAppData == "" {
@@ -162,7 +162,7 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 			items, err := catwalkSyncer.Get(ctx)
 			if err != nil {
 				catwalkURL := fmt.Sprintf("%s/v2/providers", cmp.Or(os.Getenv("CATWALK_URL"), defaultCatwalkURL))
-				errs = append(errs, fmt.Errorf("Crush was unable to fetch an updated list of providers from %s. Consider setting CRUSH_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this Crush release. You can also update providers manually. For more info see crush update-providers --help.\n\nCause: %w", catwalkURL, err)) //nolint:staticcheck
+				errs = append(errs, fmt.Errorf("Nexus was unable to fetch an updated list of providers from %s. Consider setting NEXUS_DISABLE_PROVIDER_AUTO_UPDATE=1 to use the embedded providers bundled at the time of this Nexus release. You can also update providers manually.\n\nCause: %w", catwalkURL, err)) //nolint:staticcheck
 				return
 			}
 			providers.Append(items...)
@@ -177,7 +177,7 @@ func Providers(cfg *Config) ([]catwalk.Provider, error) {
 
 			item, err := hyperSyncer.Get(ctx)
 			if err != nil {
-				errs = append(errs, fmt.Errorf("Crush was unable to fetch updated information from Hyper: %w", err)) //nolint:staticcheck
+				errs = append(errs, fmt.Errorf("Nexus was unable to fetch updated information from Hyper: %w", err)) //nolint:staticcheck
 				return
 			}
 			hyperProvider = item

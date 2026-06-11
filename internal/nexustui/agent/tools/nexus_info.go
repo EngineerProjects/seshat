@@ -14,14 +14,14 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
 )
 
-const CrushInfoToolName = "crush_info"
+const NexusInfoToolName = "nexus_info"
 
-//go:embed crush_info.md
-var crushInfoDescription string
+//go:embed nexus_info.md
+var nexusInfoDescription string
 
-type CrushInfoParams struct{}
+type NexusInfoParams struct{}
 
-func NewCrushInfoTool(
+func NewNexusInfoTool(
 	cfg *config.ConfigStore,
 	lspManager *lsp.Manager,
 	allSkills []*skills.Skill,
@@ -29,15 +29,15 @@ func NewCrushInfoTool(
 	skillTracker *skills.Tracker,
 ) fantasy.AgentTool {
 	return fantasy.NewAgentTool(
-		CrushInfoToolName,
-		crushInfoDescription,
-		func(ctx context.Context, _ CrushInfoParams, _ fantasy.ToolCall) (fantasy.ToolResponse, error) {
-			return fantasy.NewTextResponse(buildCrushInfo(cfg, lspManager, allSkills, activeSkills, skillTracker)), nil
+		NexusInfoToolName,
+		nexusInfoDescription,
+		func(ctx context.Context, _ NexusInfoParams, _ fantasy.ToolCall) (fantasy.ToolResponse, error) {
+			return fantasy.NewTextResponse(buildNexusInfo(cfg, lspManager, allSkills, activeSkills, skillTracker)), nil
 		},
 	)
 }
 
-func buildCrushInfo(cfg *config.ConfigStore, lspManager *lsp.Manager, allSkills []*skills.Skill, activeSkills []*skills.Skill, skillTracker *skills.Tracker) string {
+func buildNexusInfo(cfg *config.ConfigStore, lspManager *lsp.Manager, allSkills []*skills.Skill, activeSkills []*skills.Skill, skillTracker *skills.Tracker) string {
 	var b strings.Builder
 
 	writeConfigFiles(&b, cfg)
