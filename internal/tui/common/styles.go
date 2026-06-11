@@ -89,7 +89,19 @@ type Styles struct {
 	ToolDiffAdd    lipgloss.Style
 	ToolDiffDel    lipgloss.Style
 	ToolDiffHunk   lipgloss.Style
+
+	// Hook indicators
+	HookLabel        lipgloss.Style
+	HookName         lipgloss.Style
+	HookMatcher      lipgloss.Style
+	HookArrow        lipgloss.Style
+	HookOK           lipgloss.Style
+	HookDenied       lipgloss.Style
+	HookRewrote      lipgloss.Style
+	HookDeniedLabel  lipgloss.Style
+	HookDeniedReason lipgloss.Style
 }
+
 
 // DefaultStyles returns the theme used by the TUI.
 func DefaultStyles() Styles {
@@ -275,5 +287,17 @@ func DefaultStyles() Styles {
 	s.ToolDiffDel = lipgloss.NewStyle().Foreground(ColorRed)
 	s.ToolDiffHunk = lipgloss.NewStyle().Foreground(ColorBlue).Faint(true)
 
+	// Hook indicators
+	s.HookLabel = lipgloss.NewStyle().Foreground(ColorMuted).Faint(true)
+	s.HookName = lipgloss.NewStyle().Foreground(ColorText).Bold(true)
+	s.HookMatcher = lipgloss.NewStyle().Foreground(ColorMuted).Italic(true)
+	s.HookArrow = lipgloss.NewStyle().Foreground(ColorMuted)
+	s.HookOK = lipgloss.NewStyle().Foreground(ColorGreen)
+	s.HookDenied = lipgloss.NewStyle().Foreground(ColorRed)
+	s.HookRewrote = lipgloss.NewStyle().Foreground(ColorYellow)
+	s.HookDeniedLabel = lipgloss.NewStyle().Foreground(ColorRed).Bold(true)
+	s.HookDeniedReason = lipgloss.NewStyle().Foreground(ColorMuted).Italic(true)
+
 	return s
 }
+

@@ -109,20 +109,6 @@ func (h *header) drawHeader(
 		hyperCredits,
 	)
 
-	remainingWidth := width -
-		lipgloss.Width(b.String()) -
-		lipgloss.Width(details) -
-		leftPadding -
-		rightPadding -
-		diagToDetailsSpacing
-
-	if remainingWidth > 0 {
-		b.WriteString(t.Header.Diagonals.Render(
-			strings.Repeat(headerDiag, max(minHeaderDiags, remainingWidth)),
-		))
-		b.WriteString(" ")
-	}
-
 	b.WriteString(details)
 
 	view := uv.NewStyledString(

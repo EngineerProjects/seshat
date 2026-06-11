@@ -782,12 +782,23 @@ func quickStyle(o quickStyleOpts) Styles {
 	}
 
 	s.Messages.NoContent = lipgloss.NewStyle().Foreground(o.fgBase)
-	s.Messages.UserBlurred = s.Messages.NoContent.PaddingLeft(1).BorderLeft(true).
+
+	// Message turn headers and separators
+	s.Messages.UserHeaderLabel = lipgloss.NewStyle().Bold(true).Foreground(lipgloss.Color("#A5B4FC"))
+	s.Messages.AssistantHeaderLabel = lipgloss.NewStyle().Bold(true).Foreground(o.primary)
+	s.Messages.MsgTimestamp = muted
+	s.Messages.TurnSeparator = subtle
+	s.Messages.DoneLabel = lipgloss.NewStyle().Foreground(o.successMostSubtle)
+	s.Messages.DoneDots = subtle
+
+	// User messages: orange left bar (│ blurred, ▌ focused) with 2-space left margin
+	// to create visual breathing room: "  │ text". Agent responses have no bar.
+	s.Messages.UserBlurred = s.Messages.NoContent.MarginLeft(2).PaddingLeft(1).BorderLeft(true).
 		BorderForeground(o.primary).BorderStyle(lipgloss.NormalBorder())
-	s.Messages.UserFocused = s.Messages.NoContent.PaddingLeft(1).BorderLeft(true).
+	s.Messages.UserFocused = s.Messages.NoContent.MarginLeft(2).PaddingLeft(1).BorderLeft(true).
 		BorderForeground(o.primary).BorderStyle(messageFocussedBorder)
-	s.Messages.AssistantBlurred = s.Messages.NoContent.PaddingLeft(2)
-	s.Messages.AssistantFocused = s.Messages.NoContent.PaddingLeft(1).BorderLeft(true).
+	s.Messages.AssistantBlurred = s.Messages.NoContent.PaddingLeft(3)
+	s.Messages.AssistantFocused = s.Messages.NoContent.PaddingLeft(2).BorderLeft(true).
 		BorderForeground(o.successMostSubtle).BorderStyle(messageFocussedBorder)
 	s.Messages.Thinking = lipgloss.NewStyle().MaxHeight(10)
 	s.Messages.ErrorTag = lipgloss.NewStyle().Padding(0, 1).

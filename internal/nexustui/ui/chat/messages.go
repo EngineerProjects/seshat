@@ -7,23 +7,20 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/anim"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/attachments"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/list"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
 )
 
-// MessageLeftPaddingTotal is the total width that is taken up by the border +
-// padding. We also cap the width so text is readable to the maxTextWidth(120).
-const MessageLeftPaddingTotal = 2
+// MessageLeftPaddingTotal is the total width consumed by the user message prefix:
+// 2-space margin + border char (1) + 1-space padding = 4 chars. Used to cap
+// content width so lines don't exceed the available area.
+const MessageLeftPaddingTotal = 4
 
-// maxTextWidth is the maximum width text messages can be
-const maxTextWidth = 120
 
 // Identifiable is an interface for items that can provide a unique identifier.
 type Identifiable interface {
@@ -303,30 +300,21 @@ func (a *AssistantInfoItem) ID() string {
 
 // RawRender implements MessageItem.
 func (a *AssistantInfoItem) RawRender(width int) string {
-	innerWidth := max(0, width-MessageLeftPaddingTotal)
-	content, _, ok := a.getCachedRender(innerWidth)
+	content, _, ok := a.getCachedRender(width)
 	if !ok {
-		content = a.renderContent(innerWidth)
+		content = a.renderContent(width)
 		height := lipgloss.Height(content)
-		a.setCachedRender(content, innerWidth, height)
+		a.setCachedRender(content, width, height)
 	}
 	return content
 }
 
 // Render implements MessageItem.
 func (a *AssistantInfoItem) Render(width int) string {
-	// AssistantInfoItem uses a single, state-independent prefix; key 0
-	// is sufficient. The cache is invalidated whenever the underlying
-	// cachedMessageItem render is cleared.
 	if cached, ok := a.getCachedPrefixedRender(width, 0); ok {
 		return cached
 	}
-	prefix := a.sty.Messages.SectionHeader.Render()
-	lines := strings.Split(a.RawRender(width), "\n")
-	for i, line := range lines {
-		lines[i] = prefix + line
-	}
-	out := strings.Join(lines, "\n")
+	out := a.RawRender(width)
 	a.setCachedPrefixedRender(out, width, 0)
 	return out
 }
@@ -338,25 +326,25 @@ func (a *AssistantInfoItem) renderContent(width int) string {
 	}
 	finishTime := time.Unix(finishData.Time, 0)
 	duration := finishTime.Sub(a.lastUserMessageTime)
-	infoMsg := a.sty.Messages.AssistantInfoDuration.Render(duration.String())
-	icon := a.sty.Messages.AssistantInfoIcon.Render(styles.ModelIcon)
-	model := a.cfg.GetModel(a.message.Provider, a.message.Model)
-	if model == nil {
-		model = &catwalk.Model{Name: "Unknown Model"}
-	}
-	modelFormatted := a.sty.Messages.AssistantInfoModel.Render(model.Name)
-	providerName := a.message.Provider
-	if providerConfig, ok := a.cfg.Providers.Get(a.message.Provider); ok {
-		providerName = providerConfig.Name
-	}
-	provider := a.sty.Messages.AssistantInfoProvider.Render(fmt.Sprintf("via %s", providerName))
-	assistant := fmt.Sprintf("%s %s %s %s", icon, modelFormatted, provider, infoMsg)
-	return common.Section(a.sty, assistant, width)
+
+	doneLabel := a.sty.Messages.DoneLabel.Render("done")
+	dot := a.sty.Messages.MsgTimestamp.Render(" · ")
+	dur := a.sty.Messages.MsgTimestamp.Render(duration.String())
+
+	left := doneLabel + dot + dur
+	dotsW := max(0, width-lipgloss.Width(left))
+	dots := a.sty.Messages.DoneDots.Render(strings.Repeat("·", dotsW))
+	return left + dots
 }
 
-// cappedMessageWidth returns the maximum width for message content for readability.
+// maxTextWidth is the maximum width for tool/diff content blocks.
+// Message body text uses the full available width; see cappedMessageWidth.
+const maxTextWidth = 120
+
+// cappedMessageWidth returns the inner content width after subtracting the left bar/margin prefix.
+// There is no readability cap — text fills the full available width.
 func cappedMessageWidth(availableWidth int) int {
-	return min(availableWidth-MessageLeftPaddingTotal, maxTextWidth)
+	return max(0, availableWidth-MessageLeftPaddingTotal)
 }
 
 // ExtractMessageItems extracts [MessageItem]s from a [message.Message]. It

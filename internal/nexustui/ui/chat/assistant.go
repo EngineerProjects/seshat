@@ -244,6 +244,7 @@ func (a *AssistantMessageItem) Render(width int) string {
 			return cached
 		}
 	}
+
 	focused := a.sty.Messages.AssistantFocused.Render()
 	blurred := a.sty.Messages.AssistantBlurred.Render()
 	rendered := a.RawRender(width)

@@ -21,8 +21,11 @@ type ToolHookResult struct {
 
 	UpdatedInput map[string]any
 
+	Metadata map[string]any
+
 	ExtraMessages []types.Message
 }
+
 
 // ToolHookStop carries the information emitted when a hook stops execution.
 type ToolHookStop struct {

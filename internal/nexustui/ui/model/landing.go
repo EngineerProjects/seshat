@@ -102,3 +102,28 @@ func (m *UI) landingHeaderView(width int) string {
 	gap := max(0, width-lipgloss.Width(left)-lipgloss.Width(right)-2)
 	return " " + left + strings.Repeat(" ", gap) + right + " "
 }
+
+// chatHeaderView renders the one-line chat page header:
+// "NEXUS  provider:model" on the left, execution mode on the right.
+// Mode colors: execute=orange (default), plan=info blue, pair=success green.
+func (m *UI) chatHeaderView(width int) string {
+	t := m.com.Styles
+	orange := lipgloss.NewStyle().Foreground(t.Logo.FieldColor)
+	muted := t.Sidebar.WorkingDir
+
+	left := orange.Bold(true).Render("NEXUS")
+	model := m.selectedLargeModel()
+	if model != nil {
+		modelName := model.ModelCfg.Model
+		if model.ModelCfg.Provider != "" {
+			modelName = model.ModelCfg.Provider + ":" + modelName
+		}
+		left += "  " + muted.Render(modelName)
+	}
+
+	// Default mode is "execute" (orange). Will be wired to real engine mode later.
+	right := orange.Bold(true).Render("execute")
+
+	gap := max(0, width-lipgloss.Width(left)-lipgloss.Width(right)-2)
+	return " " + left + strings.Repeat(" ", gap) + right + " "
+}

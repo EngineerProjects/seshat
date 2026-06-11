@@ -297,8 +297,7 @@ func isSafeBoundaryAt(content string, p int) bool {
 // even when the immediately preceding line looks fine.
 func prefixHasOpenHazard(prefix string) bool {
 	inFence := false
-	lines := strings.Split(prefix, "\n")
-	for _, line := range lines {
+	for line := range splitLines(prefix) {
 		// Track fenced state so list/html/ref patterns inside a
 		// fenced code block do not falsely trigger the hazards.
 		if isFenceLine(line) {
@@ -331,8 +330,7 @@ func prefixHasOpenHazard(prefix string) bool {
 // countFenceLines counts lines that begin a fenced code block.
 func countFenceLines(s string) int {
 	n := 0
-	lines := strings.Split(s, "\n")
-	for _, line := range lines {
+	for line := range splitLines(s) {
 		if isFenceLine(line) {
 			n++
 		}
@@ -367,8 +365,7 @@ func isFenceLine(line string) bool {
 // when every line is blank.
 func lastNonBlankLine(s string) string {
 	last := ""
-	lines := strings.Split(s, "\n")
-	for _, line := range lines {
+	for line := range splitLines(s) {
 		if strings.TrimSpace(line) != "" {
 			last = line
 		}
@@ -379,8 +376,7 @@ func lastNonBlankLine(s string) string {
 // firstNonBlankLine returns the first non-blank line of s, or ""
 // when every line is blank.
 func firstNonBlankLine(s string) string {
-	lines := strings.Split(s, "\n")
-	for _, line := range lines {
+	for line := range splitLines(s) {
 		if strings.TrimSpace(line) != "" {
 			return line
 		}
@@ -580,3 +576,23 @@ func isLinkRefDefinition(line string) bool {
 	}
 	return i < len(line)
 }
+
+// splitLines yields the lines of s without their terminators. The
+// final segment is yielded even if not newline-terminated.
+func splitLines(s string) func(yield func(string) bool) {
+	return func(yield func(string) bool) {
+		start := 0
+		for i := 0; i < len(s); i++ {
+			if s[i] == '\n' {
+				if !yield(s[start:i]) {
+					return
+				}
+				start = i + 1
+			}
+		}
+		if start <= len(s)-1 {
+			yield(s[start:])
+		}
+	}
+}
+

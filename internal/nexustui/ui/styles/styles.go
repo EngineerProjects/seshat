@@ -243,6 +243,14 @@ type Styles struct {
 		ToolCallBlurred  lipgloss.Style
 		SectionHeader    lipgloss.Style
 
+		// Message header and turn separator
+		UserHeaderLabel      lipgloss.Style // "👤 You" bold label in user message header
+		AssistantHeaderLabel lipgloss.Style // "◆ Nexus" bold label in assistant message header
+		MsgTimestamp         lipgloss.Style // HH:MM:SS timestamp in message headers
+		TurnSeparator        lipgloss.Style // Full-width "──" separator after user message
+		DoneLabel            lipgloss.Style // "done" text at end of assistant turn
+		DoneDots             lipgloss.Style // "·····" fill between done label and right edge
+
 		// Thinking section styles
 		ThinkingBox            lipgloss.Style // Background for thinking content
 		ThinkingTruncationHint lipgloss.Style // "… (N lines hidden)" hint

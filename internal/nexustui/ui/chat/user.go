@@ -137,6 +137,8 @@ func (m *UserMessageItem) Render(width int) string {
 			return cached
 		}
 	}
+
+	// Body: per-line bar prefix applied to raw content
 	var prefix string
 	if m.focused {
 		prefix = m.sty.Messages.UserFocused.Render()
@@ -147,7 +149,12 @@ func (m *UserMessageItem) Render(width int) string {
 	for i, line := range lines {
 		lines[i] = prefix + line
 	}
-	out := strings.Join(lines, "\n")
+	body := strings.Join(lines, "\n")
+
+	// Separator: blank line + full-width rule + blank line to visually center
+	// the divider between the user turn and the agent response.
+	sep := m.sty.Messages.TurnSeparator.Render(strings.Repeat("─", max(0, width)))
+	out := body + "\n\n" + sep + "\n"
 	if useCache {
 		m.setCachedPrefixedRender(out, width, key)
 	}

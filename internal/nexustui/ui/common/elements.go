@@ -224,16 +224,7 @@ func Section(t *styles.Styles, text string, width int, info ...string) string {
 	return text
 }
 
-// DialogTitle renders a dialog title with a decorative line filling the
-// remaining width.
+// DialogTitle renders a dialog title without decorative diagonal lines.
 func DialogTitle(t *styles.Styles, title string, width int, fromColor, toColor color.Color) string {
-	char := "╱"
-	length := lipgloss.Width(title) + 1
-	remainingWidth := width - length
-	if remainingWidth > 0 {
-		lines := strings.Repeat(char, remainingWidth)
-		lines = styles.ApplyForegroundGrad(t.Dialog.TitleLineBase, lines, fromColor, toColor)
-		title = title + " " + lines
-	}
 	return title
 }

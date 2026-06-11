@@ -54,7 +54,10 @@ type ToolExecutionTrace struct {
 
 	LocalPermission  types.PermissionResult `json:"local_permission"`
 	GlobalPermission types.PermissionResult `json:"global_permission"`
+
+	Metadata map[string]any `json:"metadata,omitempty"`
 }
+
 
 // ExecutionError represents an error during tool execution.
 type ExecutionError struct {

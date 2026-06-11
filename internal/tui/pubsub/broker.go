@@ -1,26 +1,3 @@
-// Package pubsub provides a lightweight in-process broker for fan-out
-// event delivery between services and the UI.
-//
-// Delivery semantics:
-//
-//   - [Broker.Publish] is best-effort and lossy under contention. If a
-//     subscriber's channel is full, the event is dropped for that
-//     subscriber, a warning is logged, and a counter is incremented.
-//     This is the right choice for high-frequency intermediate updates
-//     (e.g. streaming token deltas) where only the latest state
-//     matters.
-//
-//   - [Broker.PublishMustDeliver] is bounded-blocking. For each
-//     subscriber it first tries a non-blocking send, then falls back to
-//     a per-subscriber blocking send with a hard timeout. On timeout the
-//     event is dropped for that subscriber, an error is logged, and the
-//     must-deliver drop counter is incremented. The publisher never
-//     blocks indefinitely. This is the right choice for terminal events
-//     (finish, tool result, error, cancel) that must not be silently
-//     coalesced away.
-//
-// Drop counters ([Broker.DropCount], [Broker.MustDeliverDropCount]) are
-// exposed so callers can surface saturation in telemetry.
 package pubsub
 
 import (

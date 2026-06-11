@@ -21,7 +21,7 @@ func (o *Orchestrator) executePreparedTool(
 	req ExecuteRequest,
 	toolCtx tool.ToolUseContext,
 ) toolExecutionOutcome {
-	initialProgress := progressForStage(prepared.toolUse, "resolving tool", 0)
+	initialProgress := progressForStage(prepared.toolUse, "resolving tool", 0, nil)
 	progressUpdates := []types.ToolProgress{initialProgress}
 	o.emitProgress(req, initialProgress)
 	extraMessages := []types.Message{}
@@ -67,7 +67,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 	defer span.End()
 	ctx = spanCtx
 
-	progPreHook := progressForStage(toolUse, "running pre-hooks", 20)
+	progPreHook := progressForStage(toolUse, "running pre-hooks", 20, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progPreHook)
 	o.emitProgress(req, progPreHook)
 
@@ -78,6 +78,15 @@ func (o *Orchestrator) executePreparedToolPipeline(
 		Input:     cloneToolInput(currentInput),
 		ToolCtx:   state.toolCtx,
 	})
+
+	// Add hook metadata to the tracking state so subsequent progress updates
+	// carry it for the TUI to render.
+	if preHookResult.Metadata != nil {
+		for k, v := range preHookResult.Metadata {
+			state.trace.Metadata[k] = v
+		}
+	}
+
 	if ctx.Err() != nil {
 		return o.cancelledOutcome(toolUse, index, progressUpdates, state, extraMessages, req)
 	}
@@ -90,7 +99,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 	}
 	extraMessages = append(extraMessages, preHookResult.ExtraMessages...)
 
-	progSafety := progressForStage(toolUse, "running safety checks", 25)
+	progSafety := progressForStage(toolUse, "running safety checks", 25, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progSafety)
 	o.emitProgress(req, progSafety)
 
@@ -110,7 +119,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 		}
 	}
 
-	progPerm := progressForStage(toolUse, "checking permissions", 33)
+	progPerm := progressForStage(toolUse, "checking permissions", 33, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progPerm)
 	o.emitProgress(req, progPerm)
 
@@ -134,7 +143,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 		req.DenialTracking.RecordSuccess()
 	}
 
-	progCall := progressForStage(toolUse, "calling tool", 66)
+	progCall := progressForStage(toolUse, "calling tool", 66, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progCall)
 	o.emitProgress(req, progCall)
 
@@ -143,7 +152,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 		span.SetStatus(codes.Error, callResult.GetContent())
 	}
 
-	progPostHook := progressForStage(toolUse, "running post-hooks", 90)
+	progPostHook := progressForStage(toolUse, "running post-hooks", 90, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progPostHook)
 	o.emitProgress(req, progPostHook)
 
@@ -156,11 +165,14 @@ func (o *Orchestrator) executePreparedToolPipeline(
 
 	callResult = o.formatAndTruncateResult(t, callResult)
 	if browserProgress := browserProgressForResult(toolUse, callResult); browserProgress != nil {
+		for k, v := range state.trace.Metadata {
+			browserProgress.Metadata[k] = v
+		}
 		progressUpdates = append(progressUpdates, *browserProgress)
 		o.emitProgress(req, *browserProgress)
 	}
 
-	progComp := completeProgress(toolUse, callResult)
+	progComp := completeProgress(toolUse, callResult, state.trace.Metadata)
 	progressUpdates = append(progressUpdates, progComp)
 	o.emitProgress(req, progComp)
 
@@ -173,6 +185,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 		Trace:    cloneTrace(state.trace),
 	}
 }
+
 
 func (o *Orchestrator) callToolSafe(
 	ctx context.Context,
