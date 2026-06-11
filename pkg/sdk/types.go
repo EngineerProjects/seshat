@@ -138,6 +138,7 @@ const (
 	APIProviderVertex     = types.APIProviderVertex
 	APIProviderWorkersAI  = types.APIProviderWorkersAI
 	APIProviderZAi        = types.APIProviderZAi
+	APIProviderKimi       = types.APIProviderKimi
 
 	ExecutionModeExecute         = modes.ExecutionModeExecute
 	ExecutionModePlan            = modes.ExecutionModePlan
