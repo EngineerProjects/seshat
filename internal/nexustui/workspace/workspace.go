@@ -1,7 +1,16 @@
-// Package workspace defines the Workspace interface used by all
-// frontends (TUI, CLI) to interact with a running workspace. Two
-// implementations exist: one wrapping a local app.App instance and one
-// wrapping the HTTP client SDK.
+// Package workspace defines the Workspace interface used by all nexustui
+// frontends (TUI pages, commands) to interact with a running session.
+//
+// Architecture — Option A (SDK-only path):
+//
+//	NexusWorkspace (nexus_workspace.go) is the sole active implementation.
+//	All LLM traffic flows through pkg/sdk: AgentRun → sdk.Session.SubmitMessage.
+//	Streaming is delivered via registered callbacks (OnChunk, OnProgress) which
+//	feed the in-process pubsub brokers that the TUI subscribes to.
+//
+//	The Fantasy-based agent package (internal/nexustui/agent/) is NOT wired into
+//	NexusWorkspace. It is preserved as a potential future AppWorkspace for
+//	fully-offline / provider-agnostic use, but is currently unused by the TUI.
 package workspace
 
 import (

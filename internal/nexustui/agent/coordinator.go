@@ -1,3 +1,6 @@
+// Package agent contains the Fantasy-based local LLM coordinator.
+// It is NOT wired into NexusWorkspace or the active TUI path.
+// Preserved for a future AppWorkspace (fully-offline, provider-agnostic mode).
 package agent
 
 import (

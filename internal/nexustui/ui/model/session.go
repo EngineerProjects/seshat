@@ -70,7 +70,12 @@ type SessionFile struct {
 // That report is fire-and-forget: errors are logged at debug and the
 // UI never blocks on the call.
 func (m *UI) loadSession(sessionID string) tea.Cmd {
-	load := func() tea.Msg {
+	return func() tea.Msg {
+		// Activate the session first so ListMessages returns history after loadSessionMsg arrives.
+		if err := m.com.Workspace.SetCurrentSession(context.Background(), sessionID); err != nil {
+			slog.Debug("Failed to activate session", "session_id", sessionID, "error", err)
+		}
+
 		session, err := m.com.Workspace.GetSession(context.Background(), sessionID)
 		if err != nil {
 			return util.ReportError(err)
@@ -92,7 +97,6 @@ func (m *UI) loadSession(sessionID string) tea.Cmd {
 			readFiles: readFiles,
 		}
 	}
-	return tea.Batch(load, m.reportCurrentSession(sessionID))
 }
 
 // reportCurrentSession returns a fire-and-forget tea.Cmd that

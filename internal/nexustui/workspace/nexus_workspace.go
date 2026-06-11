@@ -1,6 +1,8 @@
-// Package workspace implements the nexus-engine Workspace interface backed
-// by the nexus-engine SDK. All UI interactions (session management, streaming,
-// permissions) go through this adapter.
+// Package workspace implements the Workspace interface backed by pkg/sdk.
+//
+// NexusWorkspace is the active implementation (Option A — SDK-only path).
+// All LLM traffic flows through pkg/sdk.Client; the Fantasy-based agent
+// package (internal/nexustui/agent/) is NOT used here.
 package workspace
 
 import (
@@ -255,8 +257,27 @@ func (w *NexusWorkspace) DeleteSession(_ context.Context, sessionID string) erro
 	return nil
 }
 
-func (w *NexusWorkspace) SetCurrentSession(_ context.Context, _ string) error {
-	return nil // no-op in local mode
+func (w *NexusWorkspace) SetCurrentSession(ctx context.Context, sessionID string) error {
+	if sessionID == "" {
+		return nil
+	}
+	// Fast path: session is already active.
+	w.sessMu.Lock()
+	if w.session != nil && string(w.session.GetID()) == sessionID {
+		w.sessMu.Unlock()
+		return nil
+	}
+	w.sessMu.Unlock()
+
+	sess, err := w.client.LoadSession(ctx, sdk.SessionID(sessionID))
+	if err != nil {
+		return fmt.Errorf("activate session %q: %w", sessionID, err)
+	}
+	w.LoadSessionMessages(sessionID, sess.GetMessages())
+	w.sessMu.Lock()
+	w.session = sess
+	w.sessMu.Unlock()
+	return nil
 }
 
 // Agent tool session IDs use a simple "msgID:toolID" encoding.
@@ -755,10 +776,10 @@ func (w *NexusWorkspace) OnSessionTitled(id sdk.SessionID, title string) {
 // PromptFn blocks the agent goroutine waiting for the UI to resolve a permission request.
 // For now, we auto-allow all requests since the permission dialog works differently.
 func (w *NexusWorkspace) PromptFn(_ context.Context, req sdk.PromptRequest) (sdk.PromptResponse, error) {
-	// Emit a permission request event so the nexustui UI can show the dialog.
+	toolName, _ := req.Metadata["tool_name"].(string)
 	permReq := permission.PermissionRequest{
 		ID:          uuid.New().String(),
-		ToolName:    req.Metadata["tool_name"].(string),
+		ToolName:    toolName,
 		Description: req.Message,
 		Action:      string(req.Type),
 	}
