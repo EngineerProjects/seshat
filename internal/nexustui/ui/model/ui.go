@@ -117,9 +117,10 @@ type openEditorMsg struct {
 type (
 	// cancelTimerExpiredMsg is sent when the cancel timer expires.
 	cancelTimerExpiredMsg struct{}
-	// userCommandsLoadedMsg is sent when user commands are loaded.
+	// userCommandsLoadedMsg is sent when custom commands and skills are loaded.
 	userCommandsLoadedMsg struct {
 		Commands []commands.CustomCommand
+		Skills   []commands.CustomCommand
 	}
 	// mcpPromptsLoadedMsg is sent when mcp prompts are loaded.
 	mcpPromptsLoadedMsg struct {
@@ -244,8 +245,9 @@ type UI struct {
 	// Notification state
 	notifyBackend       notification.Backend
 	notifyWindowFocused bool
-	// custom commands & mcp commands
+	// custom commands, slash skills, and MCP prompts
 	customCommands []commands.CustomCommand
+	skillCommands  []commands.CustomCommand
 	mcpPrompts     []commands.MCPPrompt
 
 	// forceCompactMode tracks whether compact mode is forced by user toggle
@@ -387,7 +389,7 @@ func New(com *common.Common, initialSessionID string, continueLast bool) *UI {
 func (m *UI) Init() tea.Cmd {
 	var cmds []tea.Cmd
 	if m.state == uiOnboarding {
-		if cmd := m.openModelsDialog(); cmd != nil {
+		if cmd := m.openModelsDialog(""); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
 	}
@@ -526,13 +528,12 @@ func (m *UI) loadCustomCommands() tea.Cmd {
 		if err != nil {
 			slog.Error("Failed to load custom commands", "error", err)
 		}
-		// Append user-invocable skills as commands.
 		skillEntries, err := m.com.Workspace.ListSkills(context.Background())
 		if err != nil {
 			slog.Error("Failed to load skill commands", "error", err)
 		}
-		customCommands = append(customCommands, commands.FromSkillCatalog(skillEntries)...)
-		return userCommandsLoadedMsg{Commands: customCommands}
+		skillCommands := commands.FromSkillCatalog(skillEntries)
+		return userCommandsLoadedMsg{Commands: customCommands, Skills: skillCommands}
 	}
 }
 
@@ -599,12 +600,11 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if cmd := m.autoExpandPillsIfReasonable(); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+		if m.isAgentBusy() && !m.todoIsSpinning {
+			m.todoIsSpinning = true
+			cmds = append(cmds, m.todoSpinner.Tick)
+		}
 		if hasInProgressTodo(m.session.Todos) {
-			// only start spinner if there is an in-progress todo
-			if m.isAgentBusy() {
-				m.todoIsSpinning = true
-				cmds = append(cmds, m.todoSpinner.Tick)
-			}
 			m.updateLayoutAndSize()
 		}
 		// Reload prompt history for the new session.
@@ -625,14 +625,16 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	case userCommandsLoadedMsg:
 		m.customCommands = msg.Commands
-		dia := m.dialog.Dialog(dialog.CommandsID)
-		if dia == nil {
-			break
+		m.skillCommands = msg.Skills
+		if dia := m.dialog.Dialog(dialog.CommandsID); dia != nil {
+			if commands, ok := dia.(*dialog.Commands); ok {
+				commands.SetCustomCommands(m.customCommands)
+			}
 		}
-
-		commands, ok := dia.(*dialog.Commands)
-		if ok {
-			commands.SetCustomCommands(m.customCommands)
+		if dia := m.dialog.Dialog(dialog.SkillsPickerID); dia != nil {
+			if skillsDialog, ok := dia.(*dialog.SkillsPicker); ok {
+				skillsDialog.SetSkills(m.skillCommands)
+			}
 		}
 
 	case mcpStateChangedMsg:
@@ -696,8 +698,8 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case pubsub.DeletedEvent:
 			m.chat.RemoveMessage(msg.Payload.ID)
 		}
-		// start the spinner if there is a new message
-		if hasInProgressTodo(m.session.Todos) && m.isAgentBusy() && !m.todoIsSpinning {
+		// start the header spinner whenever the agent is working
+		if m.isAgentBusy() && !m.todoIsSpinning {
 			m.todoIsSpinning = true
 			cmds = append(cmds, m.todoSpinner.Tick)
 		}
@@ -728,14 +730,16 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, handleMCPResourcesEvent(m.com.Workspace, msg.Payload.Name)
 		}
 	case pubsub.Event[permission.PermissionRequest]:
-		if cmd := m.openPermissionsDialog(msg.Payload); cmd != nil {
-			cmds = append(cmds, cmd)
-		}
-		if cmd := m.sendNotification(notification.Notification{
-			Title:   "Nexus is waiting...",
-			Message: fmt.Sprintf("Permission required to execute \"%s\"", msg.Payload.ToolName),
-		}); cmd != nil {
-			cmds = append(cmds, cmd)
+		if msg.Type == pubsub.CreatedEvent {
+			if cmd := m.openPermissionsDialog(msg.Payload); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			if cmd := m.sendNotification(notification.Notification{
+				Title:   "Nexus is waiting...",
+				Message: fmt.Sprintf("Permission required to execute \"%s\"", msg.Payload.ToolName),
+			}); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 		}
 	case pubsub.Event[permission.PermissionNotification]:
 		m.handlePermissionNotification(msg.Payload)
@@ -770,7 +774,9 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.MouseClickMsg:
 		// Pass mouse events to dialogs first if any are open.
 		if m.dialog.HasDialogs() {
-			m.dialog.Update(msg)
+			if cmd := m.handleDialogMsg(msg); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
 			return m, tea.Batch(cmds...)
 		}
 
@@ -909,11 +915,13 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
-		if m.state == uiChat && m.hasSession() && hasInProgressTodo(m.session.Todos) && m.todoIsSpinning {
+		if m.state == uiChat && m.hasSession() && m.todoIsSpinning {
 			var cmd tea.Cmd
 			m.todoSpinner, cmd = m.todoSpinner.Update(msg)
 			if cmd != nil {
-				m.renderPills()
+				if hasInProgressTodo(m.session.Todos) {
+					m.renderPills()
+				}
 				cmds = append(cmds, cmd)
 			}
 		}
@@ -1227,10 +1235,44 @@ func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
 		}
 	}
 
+	// If the AssistantMessageItem was never created (first streaming event had
+	// only tool calls, so appendSessionMessage skipped it) but text has now
+	// arrived, create and place it before the first existing tool from this
+	// message so the text is shown above its tool calls.
+	if existingItem == nil && shouldRenderAssistant {
+		newItem := chat.NewAssistantMessageItem(m.com.Styles, &msg)
+		inserted := false
+		for _, tc := range msg.ToolCalls() {
+			if m.chat.MessageItem(tc.ID) != nil {
+				m.chat.InsertMessagesBefore(tc.ID, newItem)
+				inserted = true
+				break
+			}
+		}
+		if !inserted {
+			m.chat.AppendMessages(newItem)
+		}
+		if animatable, ok := newItem.(chat.Animatable); ok {
+			if cmd := animatable.StartAnimation(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+		}
+	}
+
 	if isEndTurn {
 		if infoItem := m.chat.MessageItem(chat.AssistantInfoID(msg.ID)); infoItem == nil {
 			newInfoItem := chat.NewAssistantInfoItem(m.com.Styles, &msg, m.com.Config(), time.Unix(m.lastUserMessageTime, 0))
 			m.chat.AppendMessages(newInfoItem)
+		}
+	}
+
+	// Build a result lookup by tool call ID so we can set results on items
+	// as they arrive from live streaming progress events.
+	toolResults := make(map[string]*message.ToolResult)
+	for i := range msg.Parts {
+		if tr, ok := msg.Parts[i].(message.ToolResult); ok {
+			trCopy := tr
+			toolResults[tr.ToolCallID] = &trCopy
 		}
 	}
 
@@ -1244,9 +1286,15 @@ func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
 			if (tc.Finished && !existingToolCall.Finished) || tc.Input != existingToolCall.Input {
 				toolItem.SetToolCall(tc)
 			}
+			// Set the result as soon as it arrives (live streaming path).
+			// Skip canceled tools to preserve their status.
+			if result, ok := toolResults[tc.ID]; ok && toolItem.Status() != chat.ToolStatusCanceled {
+				toolItem.SetResult(result)
+			}
 		}
 		if existingToolItem == nil {
-			items = append(items, chat.NewToolMessageItem(m.com.Styles, msg.ID, tc, nil, false))
+			canceled := msg.FinishReason() == message.FinishReasonCanceled
+			items = append(items, chat.NewToolMessageItem(m.com.Styles, msg.ID, tc, toolResults[tc.ID], canceled))
 		}
 	}
 
@@ -1258,7 +1306,19 @@ func (m *UI) updateSessionMessage(msg message.Message) tea.Cmd {
 		}
 	}
 
-	m.chat.AppendMessages(items...)
+	// Insert new tool items at the correct position relative to the assistant
+	// message: walk msg.Parts to find the last item from this message that is
+	// already in the chat, then insert after it. This preserves the natural
+	// tool-call order during live streaming instead of always appending at the end.
+	lastAnchorID := msg.ID
+	for _, part := range msg.Parts {
+		if tc, ok := part.(message.ToolCall); ok {
+			if m.chat.MessageItem(tc.ID) != nil {
+				lastAnchorID = tc.ID
+			}
+		}
+	}
+	m.chat.InsertMessagesAfter(lastAnchorID, items...)
 	if m.chat.Follow() {
 		if cmd := m.chat.ScrollToBottomAndAnimate(); cmd != nil {
 			cmds = append(cmds, cmd)
@@ -1385,7 +1445,7 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		m.dialog.CloseFrontDialog()
 
 		if isOnboarding {
-			if cmd := m.openModelsDialog(); cmd != nil {
+			if cmd := m.openModelsDialog(""); cmd != nil {
 				cmds = append(cmds, cmd)
 			}
 		}
@@ -1524,11 +1584,35 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 		m.dialog.CloseDialog(dialog.CommandsID)
 		cmds = append(cmds, m.disableDockerMCP)
 	case dialog.ActionOpenProviderConfig:
-		// Open the Models dialog — the user picks a model which triggers API key input.
-		m.dialog.CloseDialog(dialog.SettingsID)
-		if cmd := m.openModelsDialog(); cmd != nil {
+		providerID := string(msg.Provider.ID)
+		if providerID == "bedrock" || providerID == "vertex" {
+			if cmd := m.openModelsDialog(providerID); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			cmds = append(cmds, util.ReportInfo("Provider-specific env configuration is used for this provider."))
+			break
+		}
+		if cmd := m.openAuthenticationDialog(msg.Provider, config.SelectedModel{}, config.SelectedModelTypeLarge); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
+	case dialog.ActionOpenModels:
+		m.dialog.CloseDialog(dialog.APIKeyInputID)
+		m.dialog.CloseDialog(dialog.OAuthID)
+		if cmd := m.openModelsDialog(msg.PreferredProviderID); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionOpenWebSearchConfig:
+		if cmd := m.openWebSearchConfigDialog(msg.ProviderID); cmd != nil {
+			cmds = append(cmds, cmd)
+		}
+	case dialog.ActionSelectWebSearchProvider:
+		m.dialog.CloseDialog(dialog.WebSearchConfigID)
+		cmds = append(cmds, func() tea.Msg {
+			if err := m.com.Workspace.SetConfigField(config.ScopeGlobal, "web_search_provider", msg.ProviderID); err != nil {
+				return util.ReportError(err)()
+			}
+			return util.NewInfoMsg("Web search provider changed to " + strings.Title(msg.ProviderID))
+		})
 	case dialog.ActionCopyLastMessage:
 		m.dialog.CloseDialog(dialog.CommandsID)
 		cmds = append(cmds, m.copyLastUserMessage())
@@ -1838,7 +1922,7 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			}
 			return true
 		case key.Matches(msg, m.keyMap.Models):
-			if cmd := m.openModelsDialog(); cmd != nil {
+			if cmd := m.openModelsDialog(""); cmd != nil {
 				cmds = append(cmds, cmd)
 			}
 			return true
@@ -2049,6 +2133,10 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 			case key.Matches(msg, m.keyMap.Editor.Escape):
 				cmd := m.handleHistoryEscape(msg)
 				if cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			case key.Matches(msg, m.keyMap.Editor.Skills) && m.textarea.Value() == "":
+				if cmd := m.openSkillsDialog(); cmd != nil {
 					cmds = append(cmds, cmd)
 				}
 			case key.Matches(msg, m.keyMap.Editor.Commands) && m.textarea.Value() == "":
@@ -2381,9 +2469,6 @@ func (m *UI) ShortHelp() []key.Binding {
 	k := &m.keyMap
 	tab := k.Tab
 	commands := k.Commands
-	if m.focus == uiFocusEditor && m.textarea.Value() == "" {
-		commands.SetHelp("/ or ctrl+p", "commands")
-	}
 
 	switch m.state {
 	case uiInitialize:
@@ -2400,28 +2485,17 @@ func (m *UI) ShortHelp() []key.Binding {
 			binds = append(binds, cancelBinding)
 		}
 
-		if m.focus == uiFocusEditor {
-			tab.SetHelp("tab", "focus chat")
-		} else {
-			tab.SetHelp("tab", "focus editor")
-		}
-
-		binds = append(
-			binds,
-			tab,
-			commands,
-			k.Models,
-		)
-
 		switch m.focus {
 		case uiFocusEditor:
-			binds = append(
-				binds,
-				k.Editor.Newline,
-			)
+			// Same shortcuts as the landing page — no tab/skills/commands hints.
+			binds = append(binds, commands, k.Models, k.Editor.Newline)
 		case uiFocusMain:
+			tab.SetHelp("tab", "focus editor")
 			binds = append(
 				binds,
+				tab,
+				commands,
+				k.Models,
 				k.Chat.UpDown,
 				k.Chat.UpDownOneItem,
 				k.Chat.PageUp,
@@ -2462,9 +2536,6 @@ func (m *UI) FullHelp() [][]key.Binding {
 	hasAttachments := len(m.attachments.List()) > 0
 	hasSession := m.hasSession()
 	commands := k.Commands
-	if m.focus == uiFocusEditor && m.textarea.Value() == "" {
-		commands.SetHelp("/ or ctrl+p", "commands")
-	}
 
 	switch m.state {
 	case uiInitialize:
@@ -3120,7 +3191,7 @@ func mimeOf(content []byte) string {
 }
 
 var readyPlaceholders = [...]string{
-	"Ask Nexus...  /skill",
+	"Ask Nexus...  /skill  \\command",
 }
 
 var workingPlaceholders = [...]string{
@@ -3319,7 +3390,7 @@ func (m *UI) openDialog(id string) tea.Cmd {
 			cmds = append(cmds, cmd)
 		}
 	case dialog.ModelsID:
-		if cmd := m.openModelsDialog(); cmd != nil {
+		if cmd := m.openModelsDialog(""); cmd != nil {
 			cmds = append(cmds, cmd)
 		}
 	case dialog.CommandsID:
@@ -3367,7 +3438,7 @@ func (m *UI) openQuitDialog() tea.Cmd {
 }
 
 // openModelsDialog opens the models dialog.
-func (m *UI) openModelsDialog() tea.Cmd {
+func (m *UI) openModelsDialog(preferredProviderID string) tea.Cmd {
 	if m.dialog.ContainsDialog(dialog.ModelsID) {
 		// Bring to front
 		m.dialog.BringToFront(dialog.ModelsID)
@@ -3375,7 +3446,7 @@ func (m *UI) openModelsDialog() tea.Cmd {
 	}
 
 	isOnboarding := m.state == uiOnboarding
-	modelsDialog, err := dialog.NewModels(m.com, isOnboarding)
+	modelsDialog, err := dialog.NewModels(m.com, isOnboarding, preferredProviderID)
 	if err != nil {
 		return util.ReportError(err)
 	}
@@ -3386,6 +3457,46 @@ func (m *UI) openModelsDialog() tea.Cmd {
 }
 
 // openSettingsDialog opens the Settings hub dialog (ctrl+p).
+func isProviderConfigured(cfg *config.Config, providerID string) bool {
+	if cfg == nil {
+		return false
+	}
+	providerCfg, ok := cfg.Providers.Get(providerID)
+	if ok && (providerCfg.APIKey != "" || providerCfg.OAuthToken != nil || (!providerNeedsSetup(providerID) && providerCfg.BaseURL != "")) {
+		return true
+	}
+	switch strings.ToLower(providerID) {
+	case "bedrock":
+		return strings.TrimSpace(os.Getenv("AWS_REGION")) != ""
+	case "vertex":
+		return strings.TrimSpace(os.Getenv("ANTHROPIC_VERTEX_PROJECT_ID")) != "" && strings.TrimSpace(os.Getenv("CLOUD_ML_REGION")) != ""
+	default:
+		return false
+	}
+}
+
+func providerNeedsSetup(providerID string) bool {
+	switch strings.ToLower(providerID) {
+	case "ollama", "bedrock", "vertex":
+		return false
+	default:
+		return true
+	}
+}
+
+func (m *UI) openWebSearchConfigDialog(providerID string) tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.WebSearchConfigID) {
+		m.dialog.BringToFront(dialog.WebSearchConfigID)
+		return nil
+	}
+	cfgDialog, err := dialog.NewWebSearchConfig(m.com, providerID)
+	if err != nil {
+		return util.ReportError(err)
+	}
+	m.dialog.OpenDialog(cfgDialog)
+	return nil
+}
+
 func (m *UI) openSettingsDialog() tea.Cmd {
 	if m.dialog.ContainsDialog(dialog.SettingsID) {
 		m.dialog.BringToFront(dialog.SettingsID)
@@ -3396,6 +3507,19 @@ func (m *UI) openSettingsDialog() tea.Cmd {
 		return util.ReportError(err)
 	}
 	m.dialog.OpenDialog(s)
+	return nil
+}
+
+func (m *UI) openSkillsDialog() tea.Cmd {
+	if m.dialog.ContainsDialog(dialog.SkillsPickerID) {
+		m.dialog.BringToFront(dialog.SkillsPickerID)
+		return nil
+	}
+	skillsDialog, err := dialog.NewSkillsPicker(m.com, m.skillCommands)
+	if err != nil {
+		return util.ReportError(err)
+	}
+	m.dialog.OpenDialog(skillsDialog)
 	return nil
 }
 

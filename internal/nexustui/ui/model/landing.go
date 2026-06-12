@@ -106,6 +106,7 @@ func (m *UI) landingHeaderView(width int) string {
 // chatHeaderView renders the one-line chat page header:
 // "NEXUS  provider:model" on the left, execution mode on the right.
 // Mode colors: execute=orange (default), plan=info blue, pair=success green.
+// A spinner appears to the left of the mode label while the agent is running.
 func (m *UI) chatHeaderView(width int) string {
 	t := m.com.Styles
 	orange := lipgloss.NewStyle().Foreground(t.Logo.FieldColor)
@@ -122,7 +123,14 @@ func (m *UI) chatHeaderView(width int) string {
 	}
 
 	// Default mode is "execute" (orange). Will be wired to real engine mode later.
-	right := orange.Bold(true).Render("execute")
+	modeLabel := orange.Bold(true).Render("execute")
+
+	// Show spinner to the left of the mode label while the agent is running.
+	right := modeLabel
+	if m.isAgentBusy() {
+		spinnerStyle := lipgloss.NewStyle().Foreground(t.Pills.TodoSpinner.GetForeground())
+		right = spinnerStyle.Render(m.todoSpinner.View()) + " " + modeLabel
+	}
 
 	gap := max(0, width-lipgloss.Width(left)-lipgloss.Width(right)-2)
 	return " " + left + strings.Repeat(" ", gap) + right + " "

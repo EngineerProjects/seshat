@@ -267,6 +267,67 @@ func (m *Chat) AppendMessages(msgs ...chat.MessageItem) {
 	m.list.AppendItems(items...)
 }
 
+// InsertMessagesAfter inserts message items immediately after the item with
+// afterID. If afterID is not found, items are appended at the end.
+// All index map entries from the insertion point onwards are rebuilt.
+func (m *Chat) InsertMessagesAfter(afterID string, msgs ...chat.MessageItem) {
+	if len(msgs) == 0 {
+		return
+	}
+	afterIdx, ok := m.idInxMap[afterID]
+	if !ok {
+		m.AppendMessages(msgs...)
+		return
+	}
+	insertAt := afterIdx + 1
+	items := make([]list.Item, len(msgs))
+	for i, msg := range msgs {
+		items[i] = msg
+	}
+	m.list.InsertItems(insertAt, items...)
+	// Rebuild idInxMap for every item from the insertion point onwards
+	// (InsertItems shifted all subsequent indices by len(msgs)).
+	for i := insertAt; i < m.list.Len(); i++ {
+		if item, ok := m.list.ItemAt(i).(chat.MessageItem); ok {
+			m.idInxMap[item.ID()] = i
+			if container, ok := item.(chat.NestedToolContainer); ok {
+				for _, nested := range container.NestedTools() {
+					m.idInxMap[nested.ID()] = i
+				}
+			}
+		}
+	}
+}
+
+// InsertMessagesBefore inserts message items immediately before the item with
+// beforeID. If beforeID is not found, items are appended at the end.
+// All index map entries from the insertion point onwards are rebuilt.
+func (m *Chat) InsertMessagesBefore(beforeID string, msgs ...chat.MessageItem) {
+	if len(msgs) == 0 {
+		return
+	}
+	beforeIdx, ok := m.idInxMap[beforeID]
+	if !ok {
+		m.AppendMessages(msgs...)
+		return
+	}
+	items := make([]list.Item, len(msgs))
+	for i, msg := range msgs {
+		items[i] = msg
+	}
+	m.list.InsertItems(beforeIdx, items...)
+	for i := beforeIdx; i < m.list.Len(); i++ {
+		if item, ok := m.list.ItemAt(i).(chat.MessageItem); ok {
+			m.idInxMap[item.ID()] = i
+			if container, ok := item.(chat.NestedToolContainer); ok {
+				for _, nested := range container.NestedTools() {
+					m.idInxMap[nested.ID()] = i
+				}
+			}
+		}
+	}
+}
+
 // UpdateNestedToolIDs updates the ID map for nested tools within a container.
 // Call this after modifying nested tools to ensure animations work correctly.
 func (m *Chat) UpdateNestedToolIDs(containerID string) {

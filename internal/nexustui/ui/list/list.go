@@ -593,6 +593,24 @@ func (l *List) AppendItems(items ...Item) {
 	l.items = append(l.items, items...)
 }
 
+// InsertItems inserts items at the given index, shifting subsequent items down.
+func (l *List) InsertItems(at int, items ...Item) {
+	if len(items) == 0 {
+		return
+	}
+	at = max(0, min(at, len(l.items)))
+	n := len(items)
+	l.items = append(l.items, make([]Item, n)...)
+	copy(l.items[at+n:], l.items[at:])
+	copy(l.items[at:at+n], items)
+	if l.selectedIdx >= at {
+		l.selectedIdx += n
+	}
+	if l.offsetIdx >= at {
+		l.offsetIdx += n
+	}
+}
+
 // RemoveItem removes the item at the given index from the list.
 func (l *List) RemoveItem(idx int) {
 	if idx < 0 || idx >= len(l.items) {
