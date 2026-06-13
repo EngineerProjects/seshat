@@ -134,6 +134,8 @@ type tasksSectionRender struct {
 	Zones   []sidebarTaskHitZone
 }
 
+const sidebarTaskDetailsCollapsedLines = 6
+
 func sortSidebarTodos(todos []session.Todo) []session.Todo {
 	sorted := slices.Clone(todos)
 	slices.SortStableFunc(sorted, func(a, b session.Todo) int {
@@ -166,6 +168,10 @@ func (m *UI) ensureSidebarTaskSelection() {
 	if m.session == nil || len(m.session.Todos) == 0 {
 		m.selectedSidebarTaskID = ""
 		m.sidebarTaskHitZones = nil
+		m.sidebarTaskExpanded = false
+		if m.focus == uiFocusSidebar {
+			m.focus = uiFocusMain
+		}
 		return
 	}
 	if findSidebarTask(m.session.Todos, m.selectedSidebarTaskID) != nil {
@@ -240,7 +246,7 @@ func tasksInfo(todos []session.Todo, selectedTaskID, spinnerView string, sty *st
 	return tasksSectionRender{Section: lipgloss.NewStyle().Width(width).Render(strings.Join(lines, "\n")), Zones: zones}
 }
 
-func taskDetailsInfo(todos []session.Todo, selectedTaskID string, sty *styles.Styles, width int, isSection bool) string {
+func taskDetailsInfo(todos []session.Todo, selectedTaskID string, expanded bool, sty *styles.Styles, width int, isSection bool) string {
 	selected := findSidebarTask(todos, selectedTaskID)
 	statusInfo := ""
 	if selected != nil {
@@ -268,8 +274,58 @@ func taskDetailsInfo(todos []session.Todo, selectedTaskID string, sty *styles.St
 	if selected.Owner != "" {
 		parts = append(parts, sty.Section.Title.Render("Owner: "+selected.Owner))
 	}
-	parts = append(parts, sty.Tool.Body.Render(lipgloss.NewStyle().Width(width).Render(description)))
+	parts = append(parts, sty.Tool.Body.Render(renderSidebarTaskDescription(sty, description, width, expanded)))
 	return lipgloss.NewStyle().Width(width).Render(fmt.Sprintf("%s\n\n%s", title, strings.Join(parts, "\n")))
+}
+
+func renderSidebarTaskDescription(sty *styles.Styles, description string, width int, expanded bool) string {
+	lines := strings.Split(strings.ReplaceAll(description, "\r\n", "\n"), "\n")
+	if expanded || len(lines) <= sidebarTaskDetailsCollapsedLines {
+		return lipgloss.NewStyle().Width(width).Render(description)
+	}
+	visible := strings.Join(lines[:sidebarTaskDetailsCollapsedLines], "\n")
+	hint := sty.Files.TruncationHint.Render(fmt.Sprintf("… (%d lines hidden) [space to expand]", len(lines)-sidebarTaskDetailsCollapsedLines))
+	return lipgloss.NewStyle().Width(width).Render(visible) + "\n" + hint
+}
+
+func (m *UI) hasSidebarTasks() bool {
+	return m.session != nil && len(m.session.Todos) > 0
+}
+
+func (m *UI) moveSidebarTaskSelection(delta int) bool {
+	if !m.hasSidebarTasks() || delta == 0 {
+		return false
+	}
+	sorted := sortSidebarTodos(m.session.Todos)
+	idx := 0
+	for i, todo := range sorted {
+		if todo.ID == m.selectedSidebarTaskID {
+			idx = i
+			break
+		}
+	}
+	next := max(0, min(len(sorted)-1, idx+delta))
+	if sorted[next].ID == m.selectedSidebarTaskID {
+		return false
+	}
+	m.selectedSidebarTaskID = sorted[next].ID
+	return true
+}
+
+func (m *UI) selectSidebarTaskBoundary(first bool) bool {
+	if !m.hasSidebarTasks() {
+		return false
+	}
+	sorted := sortSidebarTodos(m.session.Todos)
+	target := sorted[len(sorted)-1].ID
+	if first {
+		target = sorted[0].ID
+	}
+	if target == m.selectedSidebarTaskID {
+		return false
+	}
+	m.selectedSidebarTaskID = target
+	return true
 }
 
 func (m *UI) drawSidebar(scr uv.Screen, area uv.Rectangle) {
@@ -325,7 +381,7 @@ func (m *UI) drawSidebar(scr uv.Screen, area uv.Rectangle) {
 	tasksOrigin := image.Pt(area.Min.X, area.Min.Y+lipgloss.Height(strings.Join(preTaskBlocks, "\n")))
 	tasksRender := tasksInfo(m.session.Todos, m.selectedSidebarTaskID, inProgressIcon, t, tasksOrigin, width, maxTasks, true)
 	m.sidebarTaskHitZones = tasksRender.Zones
-	taskDetailsSection := taskDetailsInfo(m.session.Todos, m.selectedSidebarTaskID, t, width, true)
+	taskDetailsSection := taskDetailsInfo(m.session.Todos, m.selectedSidebarTaskID, m.sidebarTaskExpanded, t, width, true)
 
 	uv.NewStyledString(
 		lipgloss.NewStyle().MaxWidth(width).MaxHeight(height).Render(

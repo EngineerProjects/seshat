@@ -99,6 +99,7 @@ const (
 	uiFocusNone uiFocusState = iota
 	uiFocusEditor
 	uiFocusMain
+	uiFocusSidebar
 )
 
 type uiState uint8
@@ -274,6 +275,7 @@ type UI struct {
 
 	selectedSidebarTaskID string
 	sidebarTaskHitZones   []sidebarTaskHitZone
+	sidebarTaskExpanded   bool
 
 	// mouse highlighting related state
 	lastClickTime time.Time
@@ -1232,7 +1234,13 @@ func (m *UI) handleSidebarClick(msg tea.MouseClickMsg) bool {
 	}
 	for _, zone := range m.sidebarTaskHitZones {
 		if pt.In(zone.Rect) {
+			if m.selectedSidebarTaskID != zone.TaskID {
+				m.sidebarTaskExpanded = false
+			}
 			m.selectedSidebarTaskID = zone.TaskID
+			m.focus = uiFocusSidebar
+			m.textarea.Blur()
+			m.chat.Blur()
 			return true
 		}
 	}
@@ -1244,6 +1252,11 @@ func (m *UI) handleClickFocus(msg tea.MouseClickMsg) (cmd tea.Cmd) {
 	case m.state != uiChat:
 		return nil
 	case image.Pt(msg.X, msg.Y).In(m.layout.sidebar):
+		if m.focus != uiFocusSidebar {
+			m.focus = uiFocusSidebar
+			m.textarea.Blur()
+			m.chat.Blur()
+		}
 		return nil
 	case m.focus != uiFocusEditor && image.Pt(msg.X, msg.Y).In(m.layout.editor):
 		m.focus = uiFocusEditor
@@ -2268,9 +2281,14 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 		case uiFocusMain:
 			switch {
 			case key.Matches(msg, m.keyMap.Tab):
-				m.focus = uiFocusEditor
-				cmds = append(cmds, m.textarea.Focus())
-				m.chat.Blur()
+				if m.hasSidebarTasks() {
+					m.focus = uiFocusSidebar
+					m.chat.Blur()
+				} else {
+					m.focus = uiFocusEditor
+					cmds = append(cmds, m.textarea.Focus())
+					m.chat.Blur()
+				}
 			case key.Matches(msg, m.keyMap.Chat.NewSession):
 				if !m.hasSession() {
 					break
@@ -2352,13 +2370,44 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 					handleGlobalKeys(msg)
 				}
 			}
+		case uiFocusSidebar:
+			switch {
+			case key.Matches(msg, m.keyMap.Tab):
+				m.focus = uiFocusEditor
+				cmds = append(cmds, m.textarea.Focus())
+			case key.Matches(msg, m.keyMap.Chat.Up), key.Matches(msg, m.keyMap.Chat.UpOneItem):
+				if m.moveSidebarTaskSelection(-1) {
+					m.sidebarTaskExpanded = false
+					m.updateLayoutAndSize()
+				}
+			case key.Matches(msg, m.keyMap.Chat.Down), key.Matches(msg, m.keyMap.Chat.DownOneItem):
+				if m.moveSidebarTaskSelection(1) {
+					m.sidebarTaskExpanded = false
+					m.updateLayoutAndSize()
+				}
+			case key.Matches(msg, m.keyMap.Chat.Home), key.Matches(msg, m.keyMap.Chat.PageUp), key.Matches(msg, m.keyMap.Chat.HalfPageUp):
+				if m.selectSidebarTaskBoundary(true) {
+					m.sidebarTaskExpanded = false
+					m.updateLayoutAndSize()
+				}
+			case key.Matches(msg, m.keyMap.Chat.End), key.Matches(msg, m.keyMap.Chat.PageDown), key.Matches(msg, m.keyMap.Chat.HalfPageDown):
+				if m.selectSidebarTaskBoundary(false) {
+					m.sidebarTaskExpanded = false
+					m.updateLayoutAndSize()
+				}
+			case key.Matches(msg, m.keyMap.Chat.Expand):
+				if m.hasSidebarTasks() {
+					m.sidebarTaskExpanded = !m.sidebarTaskExpanded
+					m.updateLayoutAndSize()
+				}
+			default:
+				handleGlobalKeys(msg)
+			}
 		default:
 			handleGlobalKeys(msg)
 		}
-	default:
-		handleGlobalKeys(msg)
-	}
 
+	}
 	return tea.Sequence(cmds...)
 }
 
@@ -2553,7 +2602,11 @@ func (m *UI) ShortHelp() []key.Binding {
 			// Same shortcuts as the landing page — no tab/skills/commands hints.
 			binds = append(binds, commands, k.Models, k.Editor.Newline)
 		case uiFocusMain:
-			tab.SetHelp("tab", "focus editor")
+			if m.hasSidebarTasks() {
+				tab.SetHelp("tab", "focus tasks")
+			} else {
+				tab.SetHelp("tab", "focus editor")
+			}
 			binds = append(
 				binds,
 				tab,
@@ -2568,6 +2621,18 @@ func (m *UI) ShortHelp() []key.Binding {
 			if m.pillsExpanded && hasIncompleteTodos(m.session.Todos) && m.promptQueue > 0 {
 				binds = append(binds, k.Chat.PillLeft)
 			}
+		case uiFocusSidebar:
+			tab.SetHelp("tab", "focus editor")
+			binds = append(
+				binds,
+				tab,
+				commands,
+				k.Models,
+				k.Chat.UpDown,
+				k.Chat.Home,
+				k.Chat.End,
+				k.Chat.Expand,
+			)
 		}
 	default:
 		// TODO: other states
@@ -2622,6 +2687,8 @@ func (m *UI) FullHelp() [][]key.Binding {
 		tab := k.Tab
 		if m.focus == uiFocusEditor {
 			tab.SetHelp("tab", "focus chat")
+		} else if m.focus == uiFocusMain && m.hasSidebarTasks() {
+			tab.SetHelp("tab", "focus tasks")
 		} else {
 			tab.SetHelp("tab", "focus editor")
 		}
@@ -2684,6 +2751,23 @@ func (m *UI) FullHelp() [][]key.Binding {
 			if m.pillsExpanded && hasIncompleteTodos(m.session.Todos) && m.promptQueue > 0 {
 				binds = append(binds, []key.Binding{k.Chat.PillLeft})
 			}
+		case uiFocusSidebar:
+			binds = append(
+				binds,
+				[]key.Binding{
+					k.Chat.UpDown,
+					k.Chat.UpDownOneItem,
+					k.Chat.Home,
+					k.Chat.End,
+				},
+				[]key.Binding{
+					k.Chat.PageUp,
+					k.Chat.PageDown,
+					k.Chat.HalfPageUp,
+					k.Chat.HalfPageDown,
+				},
+				[]key.Binding{k.Chat.Expand},
+			)
 		}
 	default:
 		if m.session == nil {
