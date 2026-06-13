@@ -51,6 +51,12 @@ The canonical runtime sources are:
 - [x] Tool body content indentation increased from 2 to 4 spaces to visually anchor body content under the tool name.
 - [x] All tool body content now uses muted grey (`ContentText` / `ContentLine`) so tool output sits below agent conclusion text in the visual hierarchy. `glob`, `grep`, and `list_directory` compact renderers were aligned to this rule (previously `glob` and `grep` used bright `fgBase` for filenames).
 - [x] `glob`, `grep`, and `list_directory` now have dedicated compact renderers: pattern/path + counts in the header, file/match lists in the body with `+N more` truncation and expand/collapse support.
+- [x] `read_file` success body is now fully silent — removed "Content hidden in transcript" line. Only errors surface a body. Skill-backed read and image reads are exceptions and keep their body.
+- [x] `remove_file`, `create_directory`, `get_file_metadata` now have dedicated quiet renderers: header-only on success; error body on failure. They were previously falling through to `GenericToolMessageItem` which echoed the raw result text (`"Removed: /path"`, `"Directory created: /path"`, JSON blob).
+- [x] Permission panel `PromptFn` now builds typed params structs (`WritePermissionsParams`, `EditPermissionsParams`, `BashPermissionsParams`, etc.) from the raw `tool_input` metadata. Previously `Params` was always `nil`, causing every dialog type-assertion to fail and the content area to be empty.
+- [x] `write_file` permission dialog now shows a real diff: old content is read from disk before the write, new content is the incoming `content` param. `edit_file` permission dialog shows a diff of `old_string` → `new_string`.
+- [x] `edit_file` chat diff now renders correctly. The edit tool stores the original file under `"original_file"` (not `"old_content"`); `extractEditDiffContent()` reads the correct key and computes `newContent` via string replacement, producing the full red/green diff.
+- [x] Permission panel `renderBashContent` now syntax-highlights the bash command via `SyntaxHighlight("command.sh")` before wrapping it in the content panel.
 
 ## Cross-Cutting Product Rules
 
@@ -200,9 +206,9 @@ These tools should remain visible in the transcript, but only as summaries. The 
 
 | Tool(s) | Surface | State | Notes |
 |---|---|---|---|
-| `read_file` | `chat` | Done | Show file path plus line-range / partial-read metadata; hide file contents inline. |
+| `read_file` | `chat` | Done | Header-only on success (file path, optional line range in header params). No body text — not even "Content hidden". Image and skill-backed reads still show their body. |
 | `read_document_url` | `chat` | Planned | Same philosophy as `read_file`: source URL + conversion/read summary, not full extracted body. |
-| `get_file_metadata` | `chat` | Planned | Keep size, type, timestamps, permissions; no verbose JSON dump. |
+| `get_file_metadata` | `chat` | Done | Header-only on success (path in header param). JSON blob suppressed. Errors still surface a body. |
 | `browser_snapshot`, `browser_extract` | `chat` | Planned | Summarize what was captured and from which page; hide large extraction bodies by default. |
 | `browser_network_list`, `browser_list_downloads`, `browser_list_pages`, `browser_search_content` | `chat` | Planned | Show counts, active page, matched items, and key identifiers only. |
 | `list_agents` | `chat` | Planned | If it stays in chat at all, render agent count and brief status summaries instead of raw payload. |
@@ -239,8 +245,8 @@ These tools are meaningful execution steps and should stay visibly represented a
 | `bash` | `chat` | Planned | Keep rich renderer. Important for execution auditability. |
 | `write_stdin` | `chat` | Planned | Treat as a compact or rich shell continuation event under the shell family. |
 | `job_output`, `job_kill` | `chat` | Planned | Already shell-adjacent; keep visible. |
-| `write_file`, `edit_file`, `apply_patch`, `notebook_edit` | `chat` | Planned | Keep diff-oriented rendering with current truncation/expand behavior. |
-| `create_directory`, `remove_file` | `chat` | Planned | Mutation events should remain explicit in chat. |
+| `write_file`, `edit_file`, `apply_patch`, `notebook_edit` | `chat` | Done (write/edit/patch) | `write_file`: renders new content (markdown-interpreted for `.md`, syntax-highlighted otherwise). `edit_file`: full red/green diff via `extractEditDiffContent`. `apply_patch`: file list with semantic color per operation (+ green / ~ grey / - red / → teal). `notebook_edit` still generic. |
+| `create_directory`, `remove_file` | `chat` | Done | Header-only on success (path in header param); error body on failure. Raw result text (`"Directory created: …"`, `"Removed: …"`) is suppressed. |
 | `docx` | `chat` | Planned | File-generation style tool; visible result is useful. |
 | `agent`, `spawn_agent`, `resume_agent` | `chat` | Planned | Multi-agent orchestration deserves dedicated rendering, not generic JSON blobs. |
 | `generate_image`, `tts`, `stt`, `code_complete` | `chat` | Planned | Result is user-visible and worth a richer item, even if renderer stays simple at first. |
