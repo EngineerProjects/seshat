@@ -19,7 +19,7 @@
 
 ---
 
-## Terminal UI
+## 🖥️ Terminal UI
 
 `nexus chat` drops you into a full-featured terminal interface built for long-running agent sessions.
 
@@ -64,9 +64,9 @@
 
 ---
 
-## Three ways to use it
+## 🔀 Three Ways to Use It
 
-### 1. CLI — `nexus`
+### 1. 💻 CLI — `nexus`
 
 An AI agent in your terminal. Multi-provider, local-first, skills-aware.
 
@@ -89,11 +89,9 @@ sudo cp bin/nexus /usr/local/bin/nexus
 **Configure a provider**
 
 ```bash
-# Set your API key and default model
 nexus config --provider anthropic --api-key sk-ant-...
 nexus config --model anthropic:claude-sonnet-4-20250514
 
-# Check current config
 nexus config --print
 ```
 
@@ -109,11 +107,11 @@ nexus sessions list --status active               # active sessions only
 nexus help                                        # full command reference
 ```
 
-Sessions are persisted locally in SQLite. Skills are loaded from `.nexus/skills/` in your project. The full tool set is available — file edits, sandboxed bash, web search, browser, MCP servers, sub-agents.
+Sessions are persisted locally in SQLite. Skills are loaded from `.nexus/skills/` in your project. The full tool set is available: file edits, sandboxed bash, web search, browser, MCP servers, sub-agents.
 
 ---
 
-### 2. gRPC server
+### 2. 🌐 gRPC Server
 
 Run nexus-engine as a gRPC service and generate clients for any language.
 
@@ -139,7 +137,7 @@ One runtime. Every language.
 
 ---
 
-### 3. Go SDK
+### 3. 📦 Go SDK
 
 Embed the full runtime in your own Go application.
 
@@ -166,24 +164,77 @@ fmt.Println(resp.Content)
 
 ---
 
-## Capabilities
+## 📊 How Nexus Engine Compares
 
-| Capability | Details |
-|---|---|
-| **Multi-provider** | 15 providers: Anthropic, OpenAI, Gemini, Mistral, DeepSeek, Ollama, OpenRouter, AWS Bedrock, GCP Vertex, Azure Foundry, Codex, MiniMax, Z.ai, OpenCode, Cloudflare Workers AI |
-| **60+ built-in tools** | File read/write/patch, bash (Landlock sandbox on Linux), web search, web fetch, browser (Playwright), grep/glob, LSP, sub-agents, RAG, tasks, memory, worktree, notebooks, image generation, TTS/STT |
-| **MCP client** | Universal MCP client — plug in any MCP server (GitHub, Postgres, Slack, Docker, Notion, …) |
-| **Skills** | Markdown instruction files injected into the system prompt — encode your team's conventions and domain expertise |
-| **Execution modes** | `execute` (default), `plan` (review before act), `pair_programming` (collaborative) |
-| **Permission engine** | Per-tool deny rules, auto-mode LLM classifier, configurable per session (`auto` / `acceptEdits` / `onRequest` / `bypass` / `never`) |
-| **Session persistence** | SQLite-backed multi-turn sessions, resumable across restarts |
-| **Streaming** | Text chunks + structured runtime events (tool calls, plan events, permission requests, token usage) |
-| **Long-context compaction** | Automatic context compression when approaching the model's window (configurable threshold) |
-| **Observability** | Prometheus metrics + OpenTelemetry tracing (OTLP gRPC export, no-op when endpoint not set) |
+| Feature | **nexus-engine** | Claude Agent SDK | OpenAI Agents SDK | LangGraph | CrewAI |
+|---|:---:|:---:|:---:|:---:|:---:|
+| Language | **Go** | Python/TS | Python | Python | Python |
+| Single binary (no deps) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| CLI included | ✅ | ❌ | ❌ | ❌ | ❌ |
+| gRPC server (any language) | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Multi-provider | ✅ (15) | ❌ Claude only | ❌ OpenAI only | ✅ | ✅ |
+| MCP client | ✅ | ✅ | ✅ | Partial | ❌ |
+| Sandboxed bash (Landlock) | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Skills system | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Built-in RAG | ✅ | ❌ | ❌ | ❌ | ❌ |
+| Browser automation | ✅ | ✅ | ❌ | ❌ | ❌ |
+| Session persistence | ✅ | ❌ | ❌ | ✅ | ❌ |
+| OTel tracing | ✅ | ❌ | ❌ | ✅ | ❌ |
+| Open-source license | Apache 2.0 | MIT | MIT | MIT | Apache 2.0 |
 
 ---
 
-## Supported providers
+## ✨ Capabilities
+
+| Capability | Details |
+|---|---|
+| 🌍 **Multi-provider** | 15 providers: Anthropic, OpenAI, Gemini, Mistral, DeepSeek, Ollama, OpenRouter, AWS Bedrock, GCP Vertex, Azure Foundry, Codex, MiniMax, Z.ai, OpenCode, Cloudflare Workers AI |
+| 🛠️ **60+ built-in tools** | File read/write/patch, bash (Landlock sandbox), web search, web fetch, browser (Playwright), grep/glob, LSP, sub-agents, RAG, tasks, memory, worktree, notebooks, image generation, TTS/STT |
+| 🔌 **MCP client** | Universal MCP client: plug in any MCP server (GitHub, Postgres, Slack, Docker, Notion, ...) |
+| ⚡ **Skills** | Markdown instruction files injected into the system prompt: encode your team's conventions and domain expertise |
+| 🎯 **Execution modes** | `execute` (default), `plan` (review before act), `pair_programming` (collaborative) |
+| 🔒 **Permission engine** | Per-tool deny rules, auto-mode LLM classifier, configurable per session (`auto` / `acceptEdits` / `onRequest` / `bypass` / `never`) |
+| 💾 **Session persistence** | SQLite-backed multi-turn sessions, resumable across restarts |
+| 📡 **Streaming** | Text chunks + structured runtime events (tool calls, plan events, permission requests, token usage) |
+| 🧠 **Long-context compaction** | Automatic context compression when approaching the model's window (configurable threshold) |
+| 📉 **Observability** | Prometheus metrics + OpenTelemetry tracing (OTLP gRPC export, no-op when endpoint not set) |
+
+---
+
+## 🗂️ Repository Structure
+
+```
+nexus-engine/
+├── cmd/
+│   ├── cli/              ← nexus CLI entrypoint (TUI + one-shot commands)
+│   └── grpc/             ← gRPC server entrypoint
+├── pkg/                  ← public API (safe to import from outside)
+│   ├── sdk/              ← Go SDK: Client, sessions, streaming, callbacks
+│   ├── types/            ← shared types: Message, ToolUse, TokenUsage, ...
+│   ├── agent/            ← agent definitions, built-in registry
+│   ├── providers/        ← LLM provider abstraction, routing, fallback
+│   ├── mcp/              ← MCP client: stdio, SSE, HTTP transports
+│   ├── rag/              ← chunking, embedding, hybrid vector search
+│   ├── skills/           ← skill loading, frontmatter parsing, injection
+│   ├── memory/           ← in-session state, compaction strategies
+│   ├── web/              ← web search, fetch, browser (Playwright)
+│   ├── storage/          ← artifact store: S3, local filesystem
+│   ├── vector/           ← vector DB abstraction
+│   ├── contract/         ← Tool interface, CallResult, registry
+│   ├── auth/             ← provider auth abstraction, OAuth device flow
+│   ├── workspace/        ← sandbox path resolution, workspace layout
+│   ├── monitoring/       ← Prometheus metrics, OTel spans
+│   ├── docling/          ← PDF/DOCX/audio conversion via docling-serve
+│   ├── grpc/             ← proto definitions and generated code
+│   └── config/           ← app-level config from env
+└── internal/             ← private implementation (do not import directly)
+```
+
+> nexus-ai and any third-party consumer must import `pkg/*` only, never `internal/*`.
+
+---
+
+## 🌐 Supported Providers
 
 | Provider ID | Service | Auth |
 |---|---|---|
@@ -207,13 +258,13 @@ Full model listings and capabilities: [`docs/providers.md`](./docs/providers.md)
 
 ---
 
-## Quick start
+## 🚀 Quick Start
 
 ```bash
 # 1. Clone and build
 git clone https://github.com/EngineerProjects/nexus-engine
 cd nexus-engine
-make build                    # → bin/nexus  and  bin/nexus-grpc
+make build                    # produces bin/nexus and bin/nexus-grpc
 export PATH="$PATH:$(pwd)/bin"
 
 # 2. Set your API key and model
@@ -238,7 +289,7 @@ ANTHROPIC_API_KEY=sk-ant-... ./bin/nexus-grpc
 
 ---
 
-## Skills
+## ⚡ Skills
 
 Skills are Markdown files that encode expertise injected into the agent's system prompt at runtime.
 
@@ -249,9 +300,11 @@ Skills are Markdown files that encode expertise injected into the agent's system
   security-rules.md     # "never log secrets, validate all external input at boundaries..."
 ```
 
+The official skill collection is [nexus-skills](https://github.com/EngineerProjects/nexus-skills), installable from any URL directly from the CLI.
+
 ---
 
-## MCP
+## 🔌 MCP
 
 Any MCP server is immediately usable — no additional development needed.
 
@@ -267,7 +320,7 @@ client, _ := sdk.NewClient(&sdk.ClientConfig{
 
 ---
 
-## Architecture
+## 🏗️ Architecture
 
 <p align="center">
   <img src="docs/images/ideal_vision.png" alt="Nexus Engine Architecture" width="800">
@@ -277,19 +330,19 @@ Full architecture diagrams (Mermaid): [`docs/vision/diagrams.md`](./docs/vision/
 
 ---
 
-## Building a product on top
+## 🧩 Building a Product on Top
 
-nexus-engine is the open-source core runtime — no users, no billing, no access control.
+nexus-engine is the headless runtime — no users, no billing, no access control.
 
-If you need multi-user auth, organizations, workspaces, per-user provider credentials, and a REST/SSE HTTP API, those live in **nexus-product** — a private product layer built on top of this engine.
+**[nexus-ai](https://github.com/EngineerProjects/nexus-ai)** is the full production platform built on top: multi-user auth, organizations, workspaces, per-user provider credentials, REST + SSE HTTP API, desktop app, and more — all open-source (AGPL-3.0).
 
 ---
 
-## Documentation
+## 📖 Documentation
 
 | Doc | What it covers |
 |---|---|
-| [Vision & Roadmap](./docs/vision/README.md) | Project idea, design principles, Level 1→2→3 roadmap |
+| [Vision & Roadmap](./docs/vision/README.md) | Project idea, design principles, Level 1->2->3 roadmap |
 | [Architecture](./docs/architecture.md) | System design, layer diagrams, query loop state machine |
 | [SDK Guide](./docs/sdk.md) | `ClientConfig`, sessions, streaming, callbacks, MCP |
 | [Tools](./docs/tools.md) | Built-in tools reference, permission pipeline |
@@ -301,10 +354,10 @@ If you need multi-user auth, organizations, workspaces, per-user provider creden
 
 ---
 
-## Development
+## 🛠️ Development
 
 ```bash
-make build       # build CLI and gRPC binaries → bin/
+make build       # build CLI and gRPC binaries to bin/
 make test        # run all tests
 make test-race   # run tests with race detector
 make lint        # golangci-lint
@@ -315,12 +368,12 @@ See [`CONTRIBUTING.md`](./CONTRIBUTING.md) for the full contribution guide.
 
 ---
 
-## Security
+## 🔒 Security
 
 To report a vulnerability, see [`SECURITY.md`](./SECURITY.md).
 
 ---
 
-## License
+## 📄 License
 
 [Apache 2.0](./LICENSE)
