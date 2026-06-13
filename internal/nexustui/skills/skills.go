@@ -14,8 +14,8 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/charlievieth/fastwalk"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
+	"github.com/charlievieth/fastwalk"
 	"gopkg.in/yaml.v3"
 )
 

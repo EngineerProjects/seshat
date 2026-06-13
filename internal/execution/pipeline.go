@@ -186,7 +186,6 @@ func (o *Orchestrator) executePreparedToolPipeline(
 	}
 }
 
-
 func (o *Orchestrator) callToolSafe(
 	ctx context.Context,
 	state toolRuntimeState,

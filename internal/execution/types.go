@@ -58,7 +58,6 @@ type ToolExecutionTrace struct {
 	Metadata map[string]any `json:"metadata,omitempty"`
 }
 
-
 // ExecutionError represents an error during tool execution.
 type ExecutionError struct {
 	ToolUseID string     `json:"tool_use_id"`

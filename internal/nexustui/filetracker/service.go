@@ -18,8 +18,8 @@ type noopService struct{}
 // NewNoopService returns a Service that does nothing.
 func NewNoopService() Service { return &noopService{} }
 
-func (*noopService) RecordRead(_ context.Context, _, _ string)              {}
-func (*noopService) LastReadTime(_ context.Context, _, _ string) time.Time  { return time.Time{} }
+func (*noopService) RecordRead(_ context.Context, _, _ string)             {}
+func (*noopService) LastReadTime(_ context.Context, _, _ string) time.Time { return time.Time{} }
 func (*noopService) ListReadFiles(_ context.Context, _ string) ([]string, error) {
 	return nil, nil
 }

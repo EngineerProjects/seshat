@@ -54,7 +54,6 @@ func ExecutePre(ctx context.Context, hooks []ToolHook, input ToolHookInput) PreE
 	}
 }
 
-
 func ExecutePost(ctx context.Context, hooks []ToolHook, input ToolHookInput) []types.Message {
 	extraMessages := make([]types.Message, 0)
 

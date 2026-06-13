@@ -102,7 +102,6 @@ type AggregateResult struct {
 	Hooks        []HookInfo
 }
 
-
 // compiled pairs a HookConfig with its compiled matcher.
 type compiled struct {
 	cfg     HookConfig
@@ -307,7 +306,6 @@ func aggregate(configs []HookConfig, results []HookResult, inputJSON string) Agg
 	}
 	return agg
 }
-
 
 func buildEnv(sessionID, toolName, cwd, projectDir, inputJSON string) []string {
 	return []string{

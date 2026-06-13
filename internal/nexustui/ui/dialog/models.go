@@ -70,7 +70,6 @@ const (
 // ModelsID is the identifier for the model selection dialog.
 const ModelsID = "models"
 
-
 // Models represents a model selection dialog.
 type Models struct {
 	com                 *common.Common

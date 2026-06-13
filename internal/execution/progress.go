@@ -171,4 +171,3 @@ func (o *Orchestrator) hookStopOutcome(
 		Trace:      cloneTrace(state.trace),
 	}
 }
-

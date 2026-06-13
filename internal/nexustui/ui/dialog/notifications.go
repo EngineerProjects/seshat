@@ -17,7 +17,7 @@ import (
 
 const (
 	// NotificationsID is the identifier for the notification style picker dialog.
-	NotificationsID             = "notifications"
+	NotificationsID              = "notifications"
 	notificationsDialogMaxWidth  = settingsCardMaxWidth
 	notificationsDialogMaxHeight = settingsCardMaxHeight
 )

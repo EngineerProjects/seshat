@@ -453,7 +453,7 @@ func (a *AssistantMessageItem) renderThinking(thinking string, width int) string
 	borderH := thinkingBox.GetHorizontalBorderSize()
 	padH := thinkingBox.GetHorizontalPadding()
 	contentWidth := max(1, width-borderH-padH) // glamour wrap width (inner content area)
-	boxWidth := max(1, width-borderH)           // Width() value (includes padding, not borders)
+	boxWidth := max(1, width-borderH)          // Width() value (includes padding, not borders)
 
 	renderer := common.QuietMarkdownRenderer(a.sty, contentWidth)
 	mu := common.LockMarkdownRenderer(renderer)

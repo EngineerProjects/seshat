@@ -46,7 +46,6 @@ func cachePathFor(name string) string {
 	return filepath.Join(home.Dir(), ".local", "share", appName, name+".json")
 }
 
-
 // Providers returns the nexus-engine provider catalog as catwalk.Provider
 // values so the TUI models dialog can render them. The list is built once
 // from pkg/config.AvailableProviders() (the SDK's own registry) extended

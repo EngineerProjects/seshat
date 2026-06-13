@@ -5,9 +5,9 @@ import (
 	"sync"
 
 	"charm.land/glamour/v2"
-	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/xchroma"
+	"github.com/alecthomas/chroma/v2/formatters"
 )
 
 const formatterName = "nexus"

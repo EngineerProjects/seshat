@@ -4,11 +4,11 @@ import (
 	"bytes"
 	"image/color"
 
+	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/formatters"
 	"github.com/alecthomas/chroma/v2/lexers"
 	chromastyles "github.com/alecthomas/chroma/v2/styles"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
 )
 
 // SyntaxHighlight applies syntax highlighting to the given source code based

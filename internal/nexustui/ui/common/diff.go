@@ -1,9 +1,9 @@
 package common
 
 import (
-	"github.com/alecthomas/chroma/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/diffview"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/alecthomas/chroma/v2"
 )
 
 // DiffFormatter returns a diff formatter with the given styles that can be

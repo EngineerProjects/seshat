@@ -26,7 +26,6 @@ type ToolHookResult struct {
 	ExtraMessages []types.Message
 }
 
-
 // ToolHookStop carries the information emitted when a hook stops execution.
 type ToolHookStop struct {
 	Content string

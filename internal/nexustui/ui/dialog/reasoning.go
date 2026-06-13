@@ -19,7 +19,7 @@ import (
 
 const (
 	// ReasoningID is the identifier for the reasoning effort dialog.
-	ReasoningID             = "reasoning"
+	ReasoningID              = "reasoning"
 	reasoningDialogMaxWidth  = settingsCardMaxWidth
 	reasoningDialogMaxHeight = settingsCardMaxHeight
 )

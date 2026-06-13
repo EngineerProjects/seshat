@@ -9,8 +9,8 @@ import (
 	"strings"
 	"sync"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lsp"
+	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
 )
 
 const LSPRestartToolName = "lsp_restart"

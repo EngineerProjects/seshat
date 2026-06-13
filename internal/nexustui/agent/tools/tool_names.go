@@ -258,4 +258,3 @@ type SourcegraphParams struct {
 
 // ResetCache clears any tool-level in-memory caches (e.g. file content, image caches).
 func ResetCache() {}
-

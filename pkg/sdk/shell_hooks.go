@@ -77,7 +77,6 @@ func (c *Client) registerShellPreToolHooks(cfgs []PreToolHookConfig, workDir str
 				Metadata: metadata,
 			}
 
-
 			// Rewrite tool input if the hook returned updatedInput.
 			if agg.UpdatedInput != "" {
 				var updated map[string]any

@@ -88,7 +88,6 @@ func NewNexusLogsTool(logFile string) tool.Tool {
 	return t
 }
 
-
 // runNexusLogs reads and formats the last N log entries from the given file.
 func runNexusLogs(logFile string, params NexusLogsParams) string {
 	// Validate and clamp the lines parameter.

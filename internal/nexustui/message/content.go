@@ -292,7 +292,6 @@ func (m *Message) AppendReasoningSignature(signature string) {
 	m.Parts = append(m.Parts, ReasoningContent{Signature: signature})
 }
 
-
 func (m *Message) FinishThinking() {
 	for i, part := range m.Parts {
 		if c, ok := part.(ReasoningContent); ok {
