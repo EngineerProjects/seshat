@@ -61,10 +61,8 @@ func (b *BashToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *
 		return renderJobTool(sty, opts, cappedWidth, "Start", meta.ShellID, description, content)
 	}
 
-	// Regular bash command.
-	cmd := strings.ReplaceAll(params.Command, "\n", " ")
-	cmd = strings.ReplaceAll(cmd, "\t", "    ")
-	toolParams := []string{cmd}
+	// Build header: show first line of command only; suffix "(+N lines)" for scripts.
+	toolParams := []string{bashHeaderCmd(params.Command)}
 	if params.RunInBackground {
 		toolParams = append(toolParams, "background", "true")
 	}
@@ -86,13 +84,37 @@ func (b *BashToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *
 	if output == "" && opts.Result.Content != tools.BashNoOutput {
 		output = opts.Result.Content
 	}
+
 	if output == "" {
-		return header
+		noOut := sty.Tool.StateCancelled.Render("(no output)")
+		return joinToolParts(header, sty.Tool.Body.Render(noOut))
 	}
 
-	bodyWidth := cappedWidth - toolBodyLeftPaddingTotal
-	body := sty.Tool.Body.Render(toolOutputPlainContent(sty, output, bodyWidth, opts.ExpandedContent))
+	body := toolOutputCodeContent(sty, bashOutputLang(output), output, 0, cappedWidth, opts.ExpandedContent)
 	return joinToolParts(header, body)
+}
+
+// bashHeaderCmd formats a bash command for the header line.
+// Multi-line scripts show only the first non-empty line and a "(+N lines)" count.
+func bashHeaderCmd(cmd string) string {
+	cmd = strings.TrimSpace(cmd)
+	lines := strings.Split(cmd, "\n")
+	if len(lines) <= 1 {
+		return strings.ReplaceAll(cmd, "\t", "    ")
+	}
+	first := strings.TrimSpace(lines[0])
+	first = strings.ReplaceAll(first, "\t", "    ")
+	return fmt.Sprintf("%s (+%d lines)", first, len(lines)-1)
+}
+
+// bashOutputLang returns the chroma filename hint for the command output.
+// Detects JSON blobs; falls back to plain text for everything else.
+func bashOutputLang(output string) string {
+	t := strings.TrimSpace(output)
+	if len(t) > 0 && (t[0] == '{' || t[0] == '[') {
+		return "output.json"
+	}
+	return "output.txt"
 }
 
 // -----------------------------------------------------------------------------

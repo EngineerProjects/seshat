@@ -242,7 +242,7 @@ These tools are meaningful execution steps and should stay visibly represented a
 
 | Tool(s) | Surface | State | Notes |
 |---|---|---|---|
-| `bash` | `chat` | Planned | Keep rich renderer. Important for execution auditability. |
+| `bash` | `chat` | Done | Rich renderer. Header shows first line of command + `(+N lines)` for multi-line scripts. Output body uses `toolOutputCodeContent` (line numbers, JSON auto-detection via `bashOutputLang`). Empty output shows a styled `(no output)` indicator instead of a bare header. |
 | `write_stdin` | `chat` | Planned | Treat as a compact or rich shell continuation event under the shell family. |
 | `job_output`, `job_kill` | `chat` | Planned | Already shell-adjacent; keep visible. |
 | `write_file`, `edit_file`, `apply_patch`, `notebook_edit` | `chat` | Done (write/edit/patch) | `write_file`: renders new content (markdown-interpreted for `.md`, syntax-highlighted otherwise). `edit_file`: full red/green diff via `extractEditDiffContent`. `apply_patch`: file list with semantic color per operation (+ green / ~ grey / - red / → teal). `notebook_edit` still generic. |
