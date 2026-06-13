@@ -104,6 +104,9 @@ type Workspace interface {
 	AgentModel() AgentModel
 	AgentIsReady() bool
 	ExecutionMode() string
+	// WorktreePath returns the active git worktree path for the current session,
+	// or empty string if no worktree is active.
+	WorktreePath() string
 	AgentQueuedPrompts(sessionID string) int
 	AgentQueuedPromptsList(sessionID string) []string
 	AgentClearQueue(sessionID string)

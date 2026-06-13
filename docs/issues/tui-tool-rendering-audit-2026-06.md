@@ -68,8 +68,8 @@ These tools should not produce normal transcript tool items. Their effect should
 | `submit_plan` | `artifact`, `header` | Planned | Prefer plan artifact / review state over a normal tool bubble. |
 | `task_create`, `task_update` | `compact task panel` | Done | Hidden from transcript. Session-scoped task state is persisted and rendered in the compact `Tasks` panel. |
 | `task_list`, `task_get`, `task_stop` | `chat`, `compact task panel` | Done | Visible in chat as compact inspection/control tools. The compact `Tasks` panel is the current source of truth for task progress in the main chat layout. |
-| `enter_worktree`, `exit_worktree` | `header`, `workspace chrome` | Planned | Should update displayed workspace root / worktree state, not clutter chat. |
-| `request_permissions` | `modal` | Planned | Permission request already has dedicated UX; transcript bubble should not be primary. |
+| `enter_worktree`, `exit_worktree` | `header`, `workspace chrome` | Done | Hidden from transcript. Header displays `⎇ <worktree-path>` when a worktree is active, reading live from the worktree session registry. Path clears automatically on `exit_worktree`. |
+| `request_permissions` | `modal` | Done | Hidden from transcript. The permission modal/panel is the sole UX surface for this tool. |
 
 ### `submit_plan` long-term roadmap
 
@@ -362,7 +362,7 @@ These names still appear in legacy TUI code or config, but they are not part of 
 
 | Legacy name | Status | Notes |
 |---|---|---|
-| `todos` | Legacy | Old transcript/task concept. Should be replaced by the `task_*` family and sidebar work. |
+| `todos` | Removed | Renderer, constants (`TodosToolName`, `TodosParams`, `TodosResponseMetadata`), and config entry removed. `FormatTodosList` and helpers retained in `todos.go` as shared utilities used by `task.go` and `pills.go`. |
 | `multi_edit` | Legacy | TUI still has a renderer, but canonical runtime centers on `apply_patch`, `edit_file`, and `write_file`. |
 | `download` | Legacy | Not part of the current builtin registry. |
 | `fetch` | Legacy | Superseded by `web_fetch` and `read_document_url` depending on intent. |

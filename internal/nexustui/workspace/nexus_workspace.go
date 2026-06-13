@@ -39,6 +39,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
 	internalproviders "github.com/EngineerProjects/nexus-engine/internal/providers"
+	worktreePkg "github.com/EngineerProjects/nexus-engine/internal/tools/special/worktree"
 	tasktool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 	"github.com/EngineerProjects/nexus-engine/internal/types"
 	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
@@ -207,6 +208,20 @@ func (w *NexusWorkspace) ExecutionMode() string {
 		return mode
 	}
 	return string(w.session.GetExecutionMode())
+}
+
+func (w *NexusWorkspace) WorktreePath() string {
+	w.sessMu.Lock()
+	sess := w.session
+	w.sessMu.Unlock()
+	if sess == nil {
+		return ""
+	}
+	wt := worktreePkg.GetSession(types.SessionID(sess.GetID()))
+	if wt == nil {
+		return ""
+	}
+	return wt.WorktreePath
 }
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
