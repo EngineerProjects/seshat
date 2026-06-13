@@ -574,7 +574,13 @@ func (p *Permissions) renderBashContent(width int) string {
 		return ""
 	}
 
-	return p.renderContentPanel(params.Command, width)
+	t := p.com.Styles
+	content := params.Command
+	if highlighted, err := common.SyntaxHighlight(t, content, "command.sh", t.Dialog.Permissions.ParamsBg); err == nil {
+		content = highlighted
+	}
+
+	return p.renderContentPanel(content, width)
 }
 
 func (p *Permissions) renderEditContent(contentWidth int) string {

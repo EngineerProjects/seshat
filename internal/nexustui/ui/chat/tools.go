@@ -1442,22 +1442,19 @@ func (t *baseToolMessageItem) formatEditResultForCopy() string {
 		return ""
 	}
 
-	var meta tools.EditResponseMetadata
-	if json.Unmarshal([]byte(t.result.Metadata), &meta) != nil {
-		return t.result.Content
-	}
+	oldContent, newContent := extractEditDiffContent(t.result.Metadata)
 
 	var params tools.EditParams
 	json.Unmarshal([]byte(t.toolCall.Input), &params)
 
 	var result strings.Builder
 
-	if meta.OldContent != "" || meta.NewContent != "" {
+	if oldContent != "" || newContent != "" {
 		fileName := params.FilePath
 		if fileName != "" {
 			fileName = fsext.PrettyPath(fileName)
 		}
-		diffContent, additions, removals := diff.GenerateDiff(meta.OldContent, meta.NewContent, fileName)
+		diffContent, additions, removals := diff.GenerateDiff(oldContent, newContent, fileName)
 
 		fmt.Fprintf(&result, "Changes: +%d -%d\n", additions, removals)
 		result.WriteString("```diff\n")

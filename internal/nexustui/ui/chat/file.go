@@ -247,14 +247,14 @@ func (e *EditToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *
 	}
 
 	// Get diff content from metadata.
-	var meta tools.EditResponseMetadata
-	if err := json.Unmarshal([]byte(opts.Result.Metadata), &meta); err != nil {
+	oldContent, newContent := extractEditDiffContent(opts.Result.Metadata)
+	if oldContent == "" && newContent == "" {
 		bodyWidth := width - toolBodyLeftPaddingTotal
 		body := sty.Tool.Body.Render(toolOutputPlainContent(sty, opts.Result.Content, bodyWidth, opts.ExpandedContent))
 		return joinToolParts(header, body)
 	}
 
-	diff := toolOutputDiffContent(sty, file, meta.OldContent, meta.NewContent, width, opts.ExpandedContent)
+	diff := toolOutputDiffContent(sty, file, oldContent, newContent, width, opts.ExpandedContent)
 
 	// On error (e.g. denied permission), show error above the diff.
 	if opts.Result.IsError {
@@ -464,6 +464,31 @@ func renderApplyPatchFileList(sty *styles.Styles, lines []string, width int) str
 		out = append(out, sigilStr+" "+pathStr)
 	}
 	return strings.Join(out, "\n")
+}
+
+// extractEditDiffContent reads the raw metadata JSON from an edit_file result and
+// returns the full file content before the edit (oldContent) and after (newContent).
+// The edit tool stores the original file under "original_file" and the replaced
+// snippet under "old_string"/"new_string", so newContent is computed by applying
+// the replacement to the original file.
+func extractEditDiffContent(metadataJSON string) (oldContent, newContent string) {
+	var raw map[string]any
+	if err := json.Unmarshal([]byte(metadataJSON), &raw); err != nil {
+		return "", ""
+	}
+	oldContent, _ = raw["original_file"].(string)
+	oldString, _ := raw["old_string"].(string)
+	newString, _ := raw["new_string"].(string)
+	replaceAll, _ := raw["replace_all"].(bool)
+
+	if oldContent != "" && oldString != "" {
+		count := 1
+		if replaceAll {
+			count = -1
+		}
+		newContent = strings.Replace(oldContent, oldString, newString, count)
+	}
+	return
 }
 
 // isMarkdownPath reports whether the file path has a markdown extension.

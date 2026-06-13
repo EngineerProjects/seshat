@@ -1510,6 +1510,84 @@ func (w *NexusWorkspace) OnSessionTitled(id sdk.SessionID, title string) {
 	w.sessionsMu.Unlock()
 }
 
+// buildToolPermissionParams constructs the typed permission params struct for a tool
+// from its raw input map. Returns nil for tools with no typed params.
+func buildToolPermissionParams(toolName string, input map[string]any) any {
+	if input == nil {
+		return nil
+	}
+	str := func(key string) string {
+		s, _ := input[key].(string)
+		return s
+	}
+	intVal := func(key string) int {
+		switch v := input[key].(type) {
+		case int:
+			return v
+		case float64:
+			return int(v)
+		}
+		return 0
+	}
+
+	switch toolName {
+	case tuiTools.WriteToolName:
+		filePath := str("file_path")
+		var oldContent string
+		if filePath != "" {
+			if data, err := os.ReadFile(filePath); err == nil {
+				oldContent = string(data)
+			}
+		}
+		return tuiTools.WritePermissionsParams{
+			FilePath:   filePath,
+			OldContent: oldContent,
+			NewContent: str("content"),
+		}
+	case tuiTools.EditToolName:
+		return tuiTools.EditPermissionsParams{
+			FilePath:   str("file_path"),
+			OldContent: str("old_string"),
+			NewContent: str("new_string"),
+		}
+	case tuiTools.MultiEditToolName:
+		return tuiTools.MultiEditPermissionsParams{
+			FilePath: str("file_path"),
+		}
+	case tuiTools.BashToolName:
+		return tuiTools.BashPermissionsParams{
+			Command:     str("command"),
+			Description: str("description"),
+		}
+	case tuiTools.ViewToolName:
+		return tuiTools.ViewPermissionsParams{
+			FilePath: str("file_path"),
+			Offset:   intVal("offset"),
+			Limit:    intVal("limit"),
+		}
+	case tuiTools.LSToolName:
+		return tuiTools.LSPermissionsParams{
+			Path: str("path"),
+		}
+	case tuiTools.DownloadToolName:
+		return tuiTools.DownloadPermissionsParams{
+			URL:      str("url"),
+			FilePath: str("file_path"),
+			Timeout:  intVal("timeout"),
+		}
+	case tuiTools.FetchToolName:
+		return tuiTools.FetchPermissionsParams{
+			URL: str("url"),
+		}
+	case tuiTools.AgenticFetchToolName:
+		return tuiTools.AgenticFetchPermissionsParams{
+			URL:    str("url"),
+			Prompt: str("prompt"),
+		}
+	}
+	return nil
+}
+
 // PromptFn blocks the SDK agent goroutine until the UI resolves the permission dialog.
 // The UI calls PermissionGrant/PermissionDeny which unblock this via pendingPerms.
 func (w *NexusWorkspace) PromptFn(ctx context.Context, req sdk.PromptRequest) (sdk.PromptResponse, error) {
@@ -1524,6 +1602,9 @@ func (w *NexusWorkspace) PromptFn(ctx context.Context, req sdk.PromptRequest) (s
 	if workDir == "" {
 		workDir = w.workDir
 	}
+	toolInput, _ := req.Metadata["tool_input"].(map[string]any)
+
+	params := buildToolPermissionParams(toolName, toolInput)
 
 	permID := uuid.New().String()
 	permReq := permission.PermissionRequest{
@@ -1533,6 +1614,7 @@ func (w *NexusWorkspace) PromptFn(ctx context.Context, req sdk.PromptRequest) (s
 		Description: req.Message,
 		Action:      string(req.Type),
 		Path:        workDir,
+		Params:      params,
 	}
 
 	// Register the resolution channel before publishing (avoids race with fast UI).
