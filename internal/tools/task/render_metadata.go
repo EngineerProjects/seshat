@@ -25,13 +25,35 @@ type taskListBackgroundRenderItem struct {
 	Status  string `json:"status"`
 }
 
+type TaskGetTodoDetails struct {
+	ID          string   `json:"id"`
+	Subject     string   `json:"subject"`
+	Description string   `json:"description"`
+	Status      string   `json:"status"`
+	ActiveForm  string   `json:"activeForm,omitempty"`
+	Owner       string   `json:"owner,omitempty"`
+	Blocks      []string `json:"blocks,omitempty"`
+	BlockedBy   []string `json:"blockedBy,omitempty"`
+	CreatedAt   int64    `json:"createdAt"`
+	UpdatedAt   int64    `json:"updatedAt"`
+}
+
 type taskGetRenderMetadata struct {
-	Task *TaskDetails `json:"task,omitempty"`
+	TaskType   string              `json:"taskType,omitempty"`
+	Todo       *TaskGetTodoDetails `json:"todo,omitempty"`
+	Background *TaskDetails        `json:"background,omitempty"`
+}
+
+type TaskStopTodoDetails struct {
+	ID             string `json:"id"`
+	Subject        string `json:"subject"`
+	PreviousStatus string `json:"previousStatus,omitempty"`
 }
 
 type taskStopRenderMetadata struct {
-	TaskID   string `json:"taskId"`
-	TaskType string `json:"taskType,omitempty"`
-	Command  string `json:"command,omitempty"`
-	Message  string `json:"message,omitempty"`
+	TaskID   string               `json:"taskId"`
+	TaskType string               `json:"taskType,omitempty"`
+	Todo     *TaskStopTodoDetails `json:"todo,omitempty"`
+	Command  string               `json:"command,omitempty"`
+	Message  string               `json:"message,omitempty"`
 }

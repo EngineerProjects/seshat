@@ -73,7 +73,9 @@ type taskGetToolMetadataEnvelope struct {
 }
 
 type taskGetToolMetadata struct {
-	Task *taskTool.TaskDetails `json:"task"`
+	TaskType   string                       `json:"taskType"`
+	Todo       *taskTool.TaskGetTodoDetails `json:"todo"`
+	Background *taskTool.TaskDetails        `json:"background"`
 }
 
 type taskStopToolMetadataEnvelope struct {
@@ -81,10 +83,11 @@ type taskStopToolMetadataEnvelope struct {
 }
 
 type taskStopToolMetadata struct {
-	TaskID   string `json:"taskId"`
-	TaskType string `json:"taskType"`
-	Command  string `json:"command"`
-	Message  string `json:"message"`
+	TaskID   string                        `json:"taskId"`
+	TaskType string                        `json:"taskType"`
+	Todo     *taskTool.TaskStopTodoDetails `json:"todo"`
+	Command  string                        `json:"command"`
+	Message  string                        `json:"message"`
 }
 
 func (t *TaskListToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
@@ -96,15 +99,20 @@ func (t *TaskListToolRenderContext) RenderTool(sty *styles.Styles, width int, op
 	if err := json.Unmarshal([]byte(opts.ToolCall.Input), &params); err != nil {
 		return invalidInputContent(sty, opts, "Task List", cappedWidth)
 	}
+	var meta taskListToolMetadataEnvelope
+	_ = json.Unmarshal([]byte(metadataOrEmpty(opts.Result)), &meta)
+	if params.ListType == "" {
+		params.ListType = meta.TaskList.ListType
+	}
 	if params.ListType == "" {
 		params.ListType = "background"
 	}
 	if params.Status == "" {
+		params.Status = meta.TaskList.StatusFilter
+	}
+	if params.Status == "" {
 		params.Status = "running"
 	}
-
-	var meta taskListToolMetadataEnvelope
-	_ = json.Unmarshal([]byte(metadataOrEmpty(opts.Result)), &meta)
 
 	summary := taskListSummary(params, meta.TaskList)
 	header := toolHeader(sty, opts.Status, "Task List", cappedWidth, opts.Compact, summary)
@@ -141,23 +149,48 @@ func (t *TaskGetToolRenderContext) RenderTool(sty *styles.Styles, width int, opt
 	}
 	var meta taskGetToolMetadataEnvelope
 	_ = json.Unmarshal([]byte(metadataOrEmpty(opts.Result)), &meta)
-	if meta.TaskGet.Task == nil {
+	if meta.TaskGet.Todo == nil && meta.TaskGet.Background == nil {
 		if opts.HasEmptyResult() {
 			return header
 		}
 		body := sty.Tool.Body.Render(toolOutputPlainContent(sty, opts.Result.Content, bodyWidth(cappedWidth), opts.ExpandedContent))
 		return joinToolParts(header, body)
 	}
+	if meta.TaskGet.Todo != nil {
+		lines := []string{
+			fmt.Sprintf("Subject: %s", meta.TaskGet.Todo.Subject),
+			fmt.Sprintf("Status: %s", meta.TaskGet.Todo.Status),
+		}
+		if meta.TaskGet.Todo.Owner != "" {
+			lines = append(lines, fmt.Sprintf("Owner: %s", meta.TaskGet.Todo.Owner))
+		}
+		if meta.TaskGet.Todo.ActiveForm != "" {
+			lines = append(lines, fmt.Sprintf("Active: %s", meta.TaskGet.Todo.ActiveForm))
+		}
+		if len(meta.TaskGet.Todo.BlockedBy) > 0 {
+			lines = append(lines, fmt.Sprintf("Blocked by: %s", strings.Join(meta.TaskGet.Todo.BlockedBy, ", ")))
+		}
+		if len(meta.TaskGet.Todo.Blocks) > 0 {
+			lines = append(lines, fmt.Sprintf("Blocks: %s", strings.Join(meta.TaskGet.Todo.Blocks, ", ")))
+		}
+		lines = append(lines, fmt.Sprintf("Created: %s", formatUnix(meta.TaskGet.Todo.CreatedAt)))
+		lines = append(lines, fmt.Sprintf("Updated: %s", formatUnix(meta.TaskGet.Todo.UpdatedAt)))
+		if meta.TaskGet.Todo.Description != "" {
+			lines = append(lines, "", meta.TaskGet.Todo.Description)
+		}
+		body := sty.Tool.Body.Render(toolOutputPlainContent(sty, strings.Join(lines, "\n"), bodyWidth(cappedWidth), opts.ExpandedContent))
+		return joinToolParts(header, body)
+	}
 	lines := []string{
-		fmt.Sprintf("Status: %s", meta.TaskGet.Task.Status),
-		fmt.Sprintf("Command: %s", meta.TaskGet.Task.Command),
-		fmt.Sprintf("Started: %s", formatUnix(meta.TaskGet.Task.StartTime)),
+		fmt.Sprintf("Status: %s", meta.TaskGet.Background.Status),
+		fmt.Sprintf("Command: %s", meta.TaskGet.Background.Command),
+		fmt.Sprintf("Started: %s", formatUnix(meta.TaskGet.Background.StartTime)),
 	}
-	if meta.TaskGet.Task.EndTime != nil {
-		lines = append(lines, fmt.Sprintf("Ended: %s", formatUnix(*meta.TaskGet.Task.EndTime)))
+	if meta.TaskGet.Background.EndTime != nil {
+		lines = append(lines, fmt.Sprintf("Ended: %s", formatUnix(*meta.TaskGet.Background.EndTime)))
 	}
-	if meta.TaskGet.Task.ExitCode != nil {
-		lines = append(lines, fmt.Sprintf("Exit code: %d", *meta.TaskGet.Task.ExitCode))
+	if meta.TaskGet.Background.ExitCode != nil {
+		lines = append(lines, fmt.Sprintf("Exit code: %d", *meta.TaskGet.Background.ExitCode))
 	}
 	body := sty.Tool.Body.Render(toolOutputPlainContent(sty, strings.Join(lines, "\n"), bodyWidth(cappedWidth), opts.ExpandedContent))
 	return joinToolParts(header, body)
@@ -180,6 +213,9 @@ func (t *TaskStopToolRenderContext) RenderTool(sty *styles.Styles, width int, op
 	if meta.TaskStop.TaskType != "" {
 		headerParam = fmt.Sprintf("%s (%s)", params.TaskID, meta.TaskStop.TaskType)
 	}
+	if meta.TaskStop.Todo != nil {
+		headerParam = fmt.Sprintf("%s (%s)", meta.TaskStop.Todo.Subject, meta.TaskStop.TaskType)
+	}
 	header := toolHeader(sty, opts.Status, "Task Stop", cappedWidth, opts.Compact, headerParam)
 	if opts.Compact {
 		return header
@@ -193,6 +229,11 @@ func (t *TaskStopToolRenderContext) RenderTool(sty *styles.Styles, width int, op
 	lines := []string{}
 	if meta.TaskStop.Message != "" {
 		lines = append(lines, meta.TaskStop.Message)
+	}
+	if meta.TaskStop.Todo != nil {
+		if meta.TaskStop.Todo.PreviousStatus != "" {
+			lines = append(lines, fmt.Sprintf("Previous status: %s", meta.TaskStop.Todo.PreviousStatus))
+		}
 	}
 	if meta.TaskStop.Command != "" {
 		lines = append(lines, fmt.Sprintf("Command: %s", meta.TaskStop.Command))

@@ -51,6 +51,21 @@ func hasInProgressTodo(todos []session.Todo) bool {
 	return false
 }
 
+func (m *UI) collapseAutoExpandedPillsIfDone() bool {
+	if !m.pillsAutoExpanded {
+		return false
+	}
+	if m.promptQueue > 0 {
+		return false
+	}
+	if m.hasSession() && hasIncompleteTodos(m.session.Todos) {
+		return false
+	}
+	m.pillsExpanded = false
+	m.pillsAutoExpanded = false
+	return true
+}
+
 // queuePill renders the queue count pill with gradient triangles.
 func queuePill(queue int, focused, panelFocused bool, t *styles.Styles) string {
 	if queue <= 0 {
@@ -87,7 +102,7 @@ func todoPill(todos []session.Todo, spinnerView string, focused, panelFocused bo
 
 	total := len(todos)
 
-	label := t.Pills.TodoLabel.Render("To-Do")
+	label := t.Pills.TodoLabel.Render("Tasks")
 	progress := t.Pills.TodoProgress.Render(fmt.Sprintf("%d/%d", completed, total))
 
 	var content string

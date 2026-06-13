@@ -676,15 +676,27 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			break
 		}
 		if m.session != nil && msg.Payload.ID == m.session.ID {
+			wasFollowing := m.state == uiChat && m.chat.Follow()
 			prevHasInProgress := hasInProgressTodo(m.session.Todos)
 			m.session = &msg.Payload
 			m.ensureSidebarTaskSelection()
 			if !prevHasInProgress && hasInProgressTodo(m.session.Todos) {
 				m.todoIsSpinning = true
 				cmds = append(cmds, m.todoSpinner.Tick)
-				m.updateLayoutAndSize()
 			}
-			m.autoExpandPillsIfReasonable()
+			if !hasInProgressTodo(m.session.Todos) && !m.isAgentBusy() {
+				m.todoIsSpinning = false
+			}
+			m.collapseAutoExpandedPillsIfDone()
+			if cmd := m.autoExpandPillsIfReasonable(); cmd != nil {
+				cmds = append(cmds, cmd)
+			}
+			m.updateLayoutAndSize()
+			if wasFollowing {
+				if cmd := m.chat.ScrollToBottomAndAnimate(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			}
 		}
 	case pubsub.Event[message.Message]:
 		// Check if this is a child session message for an agent tool.
