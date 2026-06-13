@@ -1016,9 +1016,9 @@ func NewDefaultRules() []PermissionRule {
 		{
 			Value:    PermissionRuleValue{ToolName: "bash", RuleContent: "rm -rf *"},
 			Pattern:  "tool:bash:rm -rf *",
-			Behavior: types.PermissionBehaviorDeny,
+			Behavior: types.PermissionBehaviorAsk,
 			Priority: 100,
-			Reason:   "destructive command blocked",
+			Reason:   "destructive rm command requires approval",
 			Source:   types.PermissionSourceStatic,
 		},
 	}
