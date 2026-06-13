@@ -369,6 +369,11 @@ type Styles struct {
 		ResultTruncation lipgloss.Style // "… and N more" truncation line
 		ResultItemName   lipgloss.Style // Item name (left column in result lists)
 		ResultItemDesc   lipgloss.Style // Item description (right column)
+
+		// File mutation status colors (apply_patch, write_file, edit_file).
+		ResultAdded   lipgloss.Style // Added file (green)
+		ResultDeleted lipgloss.Style // Deleted file (red/destructive)
+		ResultMoved   lipgloss.Style // Moved/renamed file (accent)
 	}
 
 	// Dialog styles

@@ -687,6 +687,9 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Tool.ResultTruncation = lipgloss.NewStyle().Foreground(o.fgMostSubtle)
 	s.Tool.ResultItemName = lipgloss.NewStyle().Foreground(o.fgBase)
 	s.Tool.ResultItemDesc = lipgloss.NewStyle().Foreground(o.fgMostSubtle)
+	s.Tool.ResultAdded = lipgloss.NewStyle().Foreground(o.success)
+	s.Tool.ResultDeleted = lipgloss.NewStyle().Foreground(o.destructive)
+	s.Tool.ResultMoved = lipgloss.NewStyle().Foreground(o.accent)
 
 	// Buttons
 	s.Button.Focused = lipgloss.NewStyle().Foreground(o.onPrimary).Background(o.secondary)

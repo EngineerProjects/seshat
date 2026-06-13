@@ -7,6 +7,7 @@ const (
 	EditToolName         = "edit_file"
 	WriteToolName        = "write_file"
 	MultiEditToolName    = "multi_edit"
+	ApplyPatchToolName   = "apply_patch"
 	ViewToolName         = "read_file"
 	DownloadToolName     = "download"
 	FetchToolName        = "fetch"
@@ -203,6 +204,11 @@ type EditResponseMetadata struct {
 type MultiEditParams struct {
 	FilePath string `json:"file_path"`
 	Edits    []any  `json:"edits,omitempty"`
+}
+
+// ApplyPatchParams holds the input for an apply_patch tool call.
+type ApplyPatchParams struct {
+	Patch string `json:"patch"`
 }
 
 // DownloadParams holds the input for a download tool call.

@@ -328,6 +328,10 @@ func (p *Permissions) hasDiffView() bool {
 	return false
 }
 
+func (p *Permissions) hasApplyPatchView() bool {
+	return p.permission.ToolName == tools.ApplyPatchToolName
+}
+
 func (p *Permissions) isSplitMode() bool {
 	if p.diffSplitMode != nil {
 		return *p.diffSplitMode
@@ -488,6 +492,8 @@ func (p *Permissions) renderHeader(contentWidth int) string {
 		if params, ok := p.permission.Params.(tools.LSPermissionsParams); ok {
 			lines = append(lines, p.renderKeyValue("Directory", fsext.PrettyPath(params.Path), contentWidth))
 		}
+	case tools.ApplyPatchToolName:
+		// File count is embedded in Description; no single path to display.
 	}
 
 	return lipgloss.JoinVertical(lipgloss.Left, lines...)
@@ -537,6 +543,8 @@ func (p *Permissions) renderContent(width int) string {
 		return p.renderWriteContent(width)
 	case tools.MultiEditToolName:
 		return p.renderMultiEditContent(width)
+	case tools.ApplyPatchToolName:
+		return p.renderApplyPatchContent(width)
 	case tools.DownloadToolName:
 		return p.renderDownloadContent(width)
 	case tools.FetchToolName:
@@ -550,6 +558,14 @@ func (p *Permissions) renderContent(width int) string {
 	default:
 		return p.renderDefaultContent(width)
 	}
+}
+
+func (p *Permissions) renderApplyPatchContent(width int) string {
+	content := strings.TrimSpace(p.permission.Description)
+	if content == "" {
+		return ""
+	}
+	return p.renderContentPanel(content, width)
 }
 
 func (p *Permissions) renderBashContent(width int) string {

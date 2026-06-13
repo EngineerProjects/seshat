@@ -5,10 +5,12 @@ import (
 	"fmt"
 	"strings"
 
+	"charm.land/lipgloss/v2"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/charmbracelet/x/ansi"
 )
 
 // -----------------------------------------------------------------------------
@@ -180,9 +182,15 @@ func (w *WriteToolRenderContext) RenderTool(sty *styles.Styles, width int, opts 
 		return joinToolParts(header, toolErrorContent(sty, opts.Result, cappedWidth))
 	}
 
-	// Render code content with syntax highlighting.
+	// Render content: interpreted markdown for .md files, syntax-highlighted code otherwise.
 	if params.Content != "" {
-		body := toolOutputCodeContent(sty, params.FilePath, params.Content, 0, cappedWidth, opts.ExpandedContent)
+		bodyWidth := cappedWidth - toolBodyLeftPaddingTotal
+		var body string
+		if isMarkdownPath(params.FilePath) {
+			body = sty.Tool.Body.Render(toolOutputMarkdownContent(sty, params.Content, bodyWidth, opts.ExpandedContent))
+		} else {
+			body = toolOutputCodeContent(sty, params.FilePath, params.Content, 0, cappedWidth, opts.ExpandedContent)
+		}
 		return joinToolParts(header, body)
 	}
 
@@ -329,6 +337,139 @@ func (m *MultiEditToolRenderContext) RenderTool(sty *styles.Styles, width int, o
 	}
 
 	return joinToolParts(header, diff)
+}
+
+// -----------------------------------------------------------------------------
+// Apply Patch Tool
+// -----------------------------------------------------------------------------
+
+// ApplyPatchToolMessageItem is a message item that represents an apply_patch tool call.
+type ApplyPatchToolMessageItem struct {
+	*baseToolMessageItem
+}
+
+var _ ToolMessageItem = (*ApplyPatchToolMessageItem)(nil)
+
+// NewApplyPatchToolMessageItem creates a new [ApplyPatchToolMessageItem].
+func NewApplyPatchToolMessageItem(
+	sty *styles.Styles,
+	toolCall message.ToolCall,
+	result *message.ToolResult,
+	canceled bool,
+) ToolMessageItem {
+	return newBaseToolMessageItem(sty, toolCall, result, &ApplyPatchToolRenderContext{}, canceled)
+}
+
+// ApplyPatchToolRenderContext renders apply_patch tool messages.
+type ApplyPatchToolRenderContext struct{}
+
+// RenderTool implements the [ToolRenderer] interface.
+func (a *ApplyPatchToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
+	cappedWidth := cappedToolWidth(width)
+	if opts.IsPending() {
+		return pendingTool(sty, "Apply Patch", opts.Anim, opts.Compact)
+	}
+
+	var fileLines []string
+	var added, updated, deleted, moved int
+	if opts.HasResult() && opts.Result.Content != "" {
+		added, updated, deleted, moved, fileLines = parseApplyPatchResult(opts.Result.Content)
+	}
+
+	total := added + updated + deleted + moved
+	headerParams := []string{}
+	if opts.HasResult() {
+		if total > 0 {
+			s := "files"
+			if total == 1 {
+				s = "file"
+			}
+			headerParams = append(headerParams, fmt.Sprintf("%d %s", total, s))
+		} else if opts.Result.IsError {
+			headerParams = append(headerParams, "failed")
+		}
+	}
+
+	header := toolHeader(sty, opts.Status, "Apply Patch", cappedWidth, opts.Compact, headerParams...)
+	if opts.Compact {
+		return header
+	}
+
+	if earlyState, ok := toolEarlyStateContent(sty, opts, cappedWidth); ok {
+		return joinToolParts(header, earlyState)
+	}
+
+	if len(fileLines) == 0 {
+		return header
+	}
+
+	bodyWidth := cappedWidth - toolBodyLeftPaddingTotal
+	body := renderApplyPatchFileList(sty, fileLines, bodyWidth)
+	return joinToolParts(header, sty.Tool.Body.Render(body))
+}
+
+// parseApplyPatchResult parses the text returned by formatSummary into counts and lines.
+// Lines follow "Added: path", "Updated: path", "Deleted: path", "Moved: path" format.
+func parseApplyPatchResult(content string) (added, updated, deleted, moved int, lines []string) {
+	for _, line := range strings.Split(strings.TrimSpace(content), "\n") {
+		line = strings.TrimSpace(line)
+		if line == "" || line == "Patch applied (no files changed)." {
+			continue
+		}
+		lines = append(lines, line)
+		switch {
+		case strings.HasPrefix(line, "Added:"):
+			added++
+		case strings.HasPrefix(line, "Updated:"):
+			updated++
+		case strings.HasPrefix(line, "Deleted:"):
+			deleted++
+		case strings.HasPrefix(line, "Moved:"):
+			moved++
+		}
+	}
+	return
+}
+
+// renderApplyPatchFileList renders each file change line with semantic color.
+func renderApplyPatchFileList(sty *styles.Styles, lines []string, width int) string {
+	var out []string
+	for _, line := range lines {
+		var sigil string
+		var labelStyle lipgloss.Style
+		var path string
+		switch {
+		case strings.HasPrefix(line, "Added: "):
+			sigil = "+"
+			labelStyle = sty.Tool.ResultAdded
+			path = fsext.PrettyPath(strings.TrimPrefix(line, "Added: "))
+		case strings.HasPrefix(line, "Updated: "):
+			sigil = "~"
+			labelStyle = sty.Tool.ContentText
+			path = fsext.PrettyPath(strings.TrimPrefix(line, "Updated: "))
+		case strings.HasPrefix(line, "Deleted: "):
+			sigil = "-"
+			labelStyle = sty.Tool.ResultDeleted
+			path = fsext.PrettyPath(strings.TrimPrefix(line, "Deleted: "))
+		case strings.HasPrefix(line, "Moved: "):
+			sigil = "→"
+			labelStyle = sty.Tool.ResultMoved
+			path = strings.TrimPrefix(line, "Moved: ")
+		default:
+			out = append(out, sty.Tool.ContentText.Render(ansi.Truncate(line, width, "…")))
+			continue
+		}
+		sigilStr := labelStyle.Render(sigil)
+		pathStr := sty.Tool.ContentText.Render(ansi.Truncate(path, width-len(sigil)-1, "…"))
+		out = append(out, sigilStr+" "+pathStr)
+	}
+	return strings.Join(out, "\n")
+}
+
+// isMarkdownPath reports whether the file path has a markdown extension.
+func isMarkdownPath(path string) bool {
+	lower := strings.ToLower(path)
+	return strings.HasSuffix(lower, ".md") || strings.HasSuffix(lower, ".markdown")
 }
 
 // -----------------------------------------------------------------------------
