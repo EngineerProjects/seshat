@@ -96,6 +96,9 @@ func (t *TaskGetTool) Call(ctx context.Context, input tool.CallInput, permission
 
 	return tool.CallResult{
 		Data: output,
+		Metadata: &tool.ResultMetadata{Additional: map[string]any{
+			"task_get": taskGetRenderMetadata{Task: &taskDetails},
+		}},
 	}, nil
 }
 

@@ -60,12 +60,20 @@ func (t *TaskStopTool) Call(ctx context.Context, input tool.CallInput, permissio
 		return tool.CallResult{Error: fmt.Errorf("failed to stop task: %w", err)}, nil
 	}
 
+	messageText := fmt.Sprintf("Successfully stopped task: %s", taskID)
 	return tool.CallResult{Data: map[string]any{
-		"message":   fmt.Sprintf("Successfully stopped task: %s", taskID),
+		"message":   messageText,
 		"task_id":   taskID,
 		"task_type": string(task.Type),
 		"command":   task.Command,
-	}}, nil
+	}, Metadata: &tool.ResultMetadata{Additional: map[string]any{
+		"task_stop": taskStopRenderMetadata{
+			TaskID:   taskID,
+			TaskType: string(task.Type),
+			Command:  task.Command,
+			Message:  messageText,
+		},
+	}}}, nil
 }
 
 func (t *TaskStopTool) Description(ctx context.Context) (string, error) {

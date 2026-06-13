@@ -20,6 +20,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/list"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 	"github.com/charmbracelet/x/ansi"
 )
 
@@ -257,6 +258,12 @@ func NewToolMessageItem(
 		item = NewWebSearchToolMessageItem(sty, toolCall, result, canceled)
 	case tools.TodosToolName:
 		item = NewTodosToolMessageItem(sty, toolCall, result, canceled)
+	case taskTool.ToolNameTaskList:
+		item = NewTaskListToolMessageItem(sty, toolCall, result, canceled)
+	case taskTool.ToolNameTaskGet:
+		item = NewTaskGetToolMessageItem(sty, toolCall, result, canceled)
+	case taskTool.ToolNameTaskStop:
+		item = NewTaskStopToolMessageItem(sty, toolCall, result, canceled)
 	case tools.ReferencesToolName:
 		item = NewReferencesToolMessageItem(sty, toolCall, result, canceled)
 	case tools.LSPRestartToolName:

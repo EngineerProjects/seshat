@@ -39,6 +39,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
 	internalproviders "github.com/EngineerProjects/nexus-engine/internal/providers"
+	tasktool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 	"github.com/EngineerProjects/nexus-engine/internal/types"
 	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
 	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
@@ -60,6 +61,9 @@ type NexusWorkspace struct {
 	// Active session
 	sessMu  sync.Mutex
 	session *sdk.Session
+
+	modeMu        sync.RWMutex
+	liveExecModes map[string]string
 
 	// In-memory stores (sessionID → records)
 	msgMu    sync.RWMutex
@@ -124,15 +128,16 @@ type NexusWorkspace struct {
 // modelStr is the "provider:model" string shown in the UI header.
 func NewNexusWorkspace(client *sdk.Client, workDir, modelStr string) *NexusWorkspace {
 	w := &NexusWorkspace{
-		client:     client,
-		workDir:    workDir,
-		model:      modelStr,
-		msgStore:   make(map[string][]message.Message),
-		sessStore:  make(map[string]session.Session),
-		sessBroker: pubsub.NewBroker[session.Session](),
-		msgBroker:  pubsub.NewBroker[message.Message](),
-		permBroker: pubsub.NewBroker[permission.PermissionRequest](),
-		planBroker: pubsub.NewBroker[planreview.Submission](),
+		client:        client,
+		workDir:       workDir,
+		model:         modelStr,
+		msgStore:      make(map[string][]message.Message),
+		sessStore:     make(map[string]session.Session),
+		liveExecModes: make(map[string]string),
+		sessBroker:    pubsub.NewBroker[session.Session](),
+		msgBroker:     pubsub.NewBroker[message.Message](),
+		permBroker:    pubsub.NewBroker[permission.PermissionRequest](),
+		planBroker:    pubsub.NewBroker[planreview.Submission](),
 	}
 	w.debounce = newMsgDebounce(33*time.Millisecond, func(msg message.Message, sessID string) {
 		w.publishMsg(pubsub.UpdatedEvent, sessID, msg)
@@ -197,6 +202,9 @@ func (w *NexusWorkspace) ExecutionMode() string {
 	defer w.sessMu.Unlock()
 	if w.session == nil {
 		return string(sdk.ExecutionModeExecute)
+	}
+	if mode := w.liveExecutionMode(string(w.session.GetID())); mode != "" {
+		return mode
 	}
 	return string(w.session.GetExecutionMode())
 }
@@ -327,6 +335,7 @@ func (w *NexusWorkspace) SetCurrentSession(ctx context.Context, sessionID string
 		return fmt.Errorf("activate session %q: %w", sessionID, err)
 	}
 	w.LoadSessionMessages(sessionID, sess.GetMessages())
+	w.syncSessionTodos(sessionID)
 	w.sessMu.Lock()
 	w.session = sess
 	w.sessMu.Unlock()
@@ -1388,6 +1397,22 @@ func (w *NexusWorkspace) OnProgress(p sdk.ToolProgress) {
 // surfaces outside the normal transcript.
 func (w *NexusWorkspace) OnRuntimeEvent(ev sdk.RuntimeEvent) {
 	switch ev.Type {
+	case sdk.RuntimeEventTypeTaskChanged:
+		sessionID := string(ev.SessionID)
+		if sessionID == "" {
+			return
+		}
+		w.syncSessionTodos(sessionID)
+		w.publishSessionRefresh(sessionID)
+	case sdk.RuntimeEventTypeExecutionModeChanged, sdk.RuntimeEventTypeTurnStarted, sdk.RuntimeEventTypeTurnCompleted:
+		sessionID := string(ev.SessionID)
+		if sessionID == "" {
+			return
+		}
+		if ev.ExecutionMode != "" {
+			w.setLiveExecutionMode(sessionID, ev.ExecutionMode)
+		}
+		w.publishSessionRefresh(sessionID)
 	case sdk.RuntimeEventTypePlanSubmitted:
 		if ev.PlanEvent == nil {
 			return
@@ -1406,6 +1431,58 @@ func (w *NexusWorkspace) OnRuntimeEvent(ev sdk.RuntimeEvent) {
 }
 
 // OnSessionTitled updates the session title in our local store.
+func (w *NexusWorkspace) liveExecutionMode(sessionID string) string {
+	w.modeMu.RLock()
+	defer w.modeMu.RUnlock()
+	return w.liveExecModes[sessionID]
+}
+
+func (w *NexusWorkspace) setLiveExecutionMode(sessionID, mode string) {
+	w.modeMu.Lock()
+	defer w.modeMu.Unlock()
+	if mode == "" {
+		delete(w.liveExecModes, sessionID)
+		return
+	}
+	w.liveExecModes[sessionID] = mode
+}
+
+func (w *NexusWorkspace) syncSessionTodos(sessionID string) {
+	tasks, err := tasktool.GlobalTaskStore().ListTasks(context.Background(), sessionID)
+	if err != nil {
+		return
+	}
+	todos := make([]session.Todo, 0, len(tasks))
+	for _, task := range tasks {
+		status := session.TodoStatusPending
+		switch task.Status {
+		case tasktool.TaskStatusCompleted:
+			status = session.TodoStatusCompleted
+		case tasktool.TaskStatusInProgress:
+			status = session.TodoStatusInProgress
+		default:
+			status = session.TodoStatusPending
+		}
+		todos = append(todos, session.Todo{ID: task.ID, Content: task.Subject, Description: task.Description, Status: status, ActiveForm: task.ActiveForm, Owner: task.Owner})
+	}
+	w.sessionsMu.Lock()
+	if s, ok := w.sessStore[sessionID]; ok {
+		s.Todos = todos
+		w.sessStore[sessionID] = s
+	}
+	w.sessionsMu.Unlock()
+}
+
+func (w *NexusWorkspace) publishSessionRefresh(sessionID string) {
+	w.sessionsMu.RLock()
+	s, ok := w.sessStore[sessionID]
+	w.sessionsMu.RUnlock()
+	if !ok {
+		return
+	}
+	w.sessBroker.Publish(pubsub.UpdatedEvent, s)
+}
+
 func (w *NexusWorkspace) OnSessionTitled(id sdk.SessionID, title string) {
 	sessID := string(id)
 	w.sessionsMu.Lock()

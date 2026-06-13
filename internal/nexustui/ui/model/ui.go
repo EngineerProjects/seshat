@@ -272,6 +272,9 @@ type UI struct {
 	todoSpinner    spinner.Model
 	todoIsSpinning bool
 
+	selectedSidebarTaskID string
+	sidebarTaskHitZones   []sidebarTaskHitZone
+
 	// mouse highlighting related state
 	lastClickTime time.Time
 
@@ -588,6 +591,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 		m.setState(uiChat, m.focus)
 		m.session = msg.session
+		m.ensureSidebarTaskSelection()
 		m.sessionFiles = msg.files
 		cmds = append(cmds, m.startLSPs(msg.lspFilePaths()))
 		msgs, err := m.com.Workspace.ListMessages(context.Background(), m.session.ID)
@@ -672,6 +676,7 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		if m.session != nil && msg.Payload.ID == m.session.ID {
 			prevHasInProgress := hasInProgressTodo(m.session.Todos)
 			m.session = &msg.Payload
+			m.ensureSidebarTaskSelection()
 			if !prevHasInProgress && hasInProgressTodo(m.session.Todos) {
 				m.todoIsSpinning = true
 				cmds = append(cmds, m.todoSpinner.Tick)
@@ -788,6 +793,9 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 		if m.handleAttachmentClick(msg) {
+			return m, tea.Batch(cmds...)
+		}
+		if m.handleSidebarClick(msg) {
 			return m, tea.Batch(cmds...)
 		}
 
@@ -1212,6 +1220,23 @@ func (m *UI) handleAttachmentClick(msg tea.MouseClickMsg) bool {
 	x := msg.X - m.layout.editor.Min.X
 	y := msg.Y - m.layout.editor.Min.Y
 	return m.attachments.HandleClick(x, y, m.layout.editor.Dx())
+}
+
+func (m *UI) handleSidebarClick(msg tea.MouseClickMsg) bool {
+	if m.state != uiChat || m.session == nil {
+		return false
+	}
+	pt := image.Pt(msg.X, msg.Y)
+	if !pt.In(m.layout.sidebar) {
+		return false
+	}
+	for _, zone := range m.sidebarTaskHitZones {
+		if pt.In(zone.Rect) {
+			m.selectedSidebarTaskID = zone.TaskID
+			return true
+		}
+	}
+	return false
 }
 
 func (m *UI) handleClickFocus(msg tea.MouseClickMsg) (cmd tea.Cmd) {

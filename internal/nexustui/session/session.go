@@ -25,9 +25,12 @@ func HashID(id string) string {
 }
 
 type Todo struct {
-	Content    string     `json:"content"`
-	Status     TodoStatus `json:"status"`
-	ActiveForm string     `json:"active_form"`
+	ID          string     `json:"id,omitempty"`
+	Content     string     `json:"content"`
+	Description string     `json:"description,omitempty"`
+	Status      TodoStatus `json:"status"`
+	ActiveForm  string     `json:"active_form"`
+	Owner       string     `json:"owner,omitempty"`
 }
 
 // HasIncompleteTodos returns true if there are any non-completed todos.
@@ -86,4 +89,3 @@ func UnmarshalTodos(data []byte) ([]Todo, error) {
 	}
 	return todos, nil
 }
-

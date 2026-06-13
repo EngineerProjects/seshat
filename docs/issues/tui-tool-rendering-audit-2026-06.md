@@ -66,8 +66,8 @@ These tools should not produce normal transcript tool items. Their effect should
 |---|---|---|---|
 | `enter_plan_mode`, `exit_plan_mode` | `header` | Done | Hidden from the transcript. The header mode badge now follows the real execution mode (`execute` / `plan` / `pair`). |
 | `submit_plan` | `artifact`, `header` | Planned | Prefer plan artifact / review state over a normal tool bubble. |
-| `task_create`, `task_update` | `sidebar` | Open | Preferred direction: tasks move to sidebar and replace legacy todo-style transcript items. |
-| `task_list`, `task_get`, `task_stop` | `sidebar` | Open | Likely sidebar-first; exact fallback behavior in chat still needs confirmation. |
+| `task_create`, `task_update` | `sidebar` | Done | Hidden from transcript. Session-scoped task state is persisted and rendered in the sidebar task section. |
+| `task_list`, `task_get`, `task_stop` | `chat`, `sidebar` | Planned | Keep visible as compact/meta inspection or control tools in chat while the sidebar remains the source of truth for session tasks. |
 | `enter_worktree`, `exit_worktree` | `header`, `workspace chrome` | Planned | Should update displayed workspace root / worktree state, not clutter chat. |
 | `request_permissions` | `modal` | Planned | Permission request already has dedicated UX; transcript bubble should not be primary. |
 
@@ -142,6 +142,110 @@ Current product direction, still open in detail:
 Open product question:
 
 - keep a brand new task visual language, or intentionally reuse the current todo representation with updated semantics
+
+
+### `task_*` long-term roadmap
+
+Long-term product objective:
+
+- `task_*` becomes the canonical execution-tracking surface for mono-run work
+- the old transcript-centered `todos` mental model is retired
+- the main transcript stays focused on user intent, assistant synthesis, and important execution evidence, while task state lives primarily in the sidebar
+- tasks are session-scoped, persist across reload, and survive resume cleanly
+- tasks can later connect plan approval, execution progress, and background/runtime work in one continuous system surface
+
+Current technical constraints to design around:
+
+- the current `TaskStore` in `internal/tools/task/store.go` is an in-memory global store
+- it is not session-scoped yet
+- it is not persisted yet
+- `task_list` currently mixes two concepts: background runtime tasks and todo-style planning tasks
+- the current sidebar has no task section yet; it only renders session/model/files/LSP/MCP/skills
+
+Design principles:
+
+- task state should be represented once, in one canonical UI surface
+- `task_create` and `task_update` should not spam the transcript once the sidebar task surface exists
+- task status should be readable at a glance without opening tool details
+- the active task should be obvious from both the sidebar and compact header/pill state
+- background processes and planning tasks are related but not identical; the UI should distinguish them cleanly
+- the first implementation should reuse the strongest current `todos` UX ideas rather than inventing a second parallel visual language
+
+#### V1 — replace `todos` with a session task section in the sidebar
+
+Scope locked for first implementation:
+
+- hide `task_create` and `task_update` from the normal transcript
+- add a new task section at the bottom of the sidebar
+- auto-open or auto-expand the sidebar task section on the first task mutation of the session
+- reuse the current checklist semantics from `todos`:
+  - pending: empty box
+  - in progress: spinner / active marker
+  - completed: checkmark
+- primary row text is the task `subject`
+- secondary/active text uses `activeForm` when a task is `in_progress`
+- show compact progress summary above the list, for example `2/5 completed` plus the active task label when relevant
+- keep `task_list`, `task_get`, and `task_stop` visible in chat only as compact/meta fallback items for now
+- no user editing from the sidebar in V1; it is a system state display only
+
+V1 technical requirements:
+
+- make task state session-scoped instead of process-global
+- persist task state so reload/resume restores the sidebar accurately
+- create a workspace-to-UI update path for task mutations, similar in spirit to plan review and permission surfaces
+- define a canonical sort order:
+  - in progress first
+  - pending next
+  - completed last
+- preserve stable ordering for tasks created from an approved plan
+
+#### V2 — unify planning tasks and background tasks under one task surface
+
+Desired additions after V1 is stable:
+
+- merge the sidebar task section with runtime/background execution visibility where it makes product sense
+- expose task dependencies visually when `blocks` / `blockedBy` are present
+- support grouped states such as:
+  - ready
+  - blocked
+  - running
+  - completed
+- allow the user to inspect one selected task in a right-side details pane or sidebar subview
+- show task metadata that matters operationally:
+  - owner
+  - timestamps
+  - blocking relationships
+  - relevant runtime output links when applicable
+- define whether `task_list(listType=background|todo|all)` remains a tool-first concept or becomes mostly an internal/system surface
+
+#### V3 — task-centric execution workspace
+
+Longer-term target if the task flow becomes central:
+
+- tasks become the execution backbone after `submit_plan` approval
+- approved plan steps map cleanly into created tasks with stable ordering and maybe plan-step references in metadata
+- selecting a task can filter or highlight the related transcript/tool activity
+- task state can drive automation around execution sequencing, verification, or delegation
+- future multi-agent work can attach ownership/status directly to tasks rather than inventing a parallel progress surface
+
+Implementation order for the task work itself:
+
+1. define the canonical session-scoped task state model and persistence shape
+2. add runtime eventing or equivalent workspace notifications for `task_create` / `task_update` / deletion
+3. add the sidebar task section with V1 visual language
+4. hide `task_create` and `task_update` from the transcript once the sidebar state is trustworthy
+5. decide the final role of `task_list`, `task_get`, and `task_stop`
+6. only after that, remove the remaining legacy `todos` transcript behavior
+
+Recommended visual language:
+
+- do not invent a radically new style first
+- reuse the current `todos` strengths:
+  - concise progress ratio
+  - strong active-task wording
+  - checklist rows with clear status icons
+- adapt them to the sidebar layout rather than the transcript bubble layout
+- keep the task section denser than chat content, because it is operational state, not prose
 
 ## Category B — Metadata Only In Chat
 

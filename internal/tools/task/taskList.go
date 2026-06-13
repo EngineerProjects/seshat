@@ -75,6 +75,10 @@ func (t *TaskListTool) Call(ctx context.Context, input tool.CallInput, permissio
 	}
 
 	result := make([]map[string]any, 0)
+	metadata := taskListRenderMetadata{
+		ListType:     listType,
+		StatusFilter: statusFilter,
+	}
 
 	// List background tasks
 	if listType == "background" || listType == "all" {
@@ -125,14 +129,29 @@ func (t *TaskListTool) Call(ctx context.Context, input tool.CallInput, permissio
 			}
 
 			result = append(result, taskInfo)
+			metadata.BackgroundTasks = append(metadata.BackgroundTasks, taskListBackgroundRenderItem{
+				ID:      task.ID,
+				Command: task.Command,
+				Status:  taskStatus,
+			})
 		}
 	}
 
 	// List todo-style tasks
 	if listType == "todo" || listType == "all" {
-		todoTasks := GlobalTaskStore().ListTasks()
+		sessionID, err := resolveTaskSessionID(input)
+		if err != nil {
+			return tool.CallResult{Error: err}, nil
+		}
+		todoTasks, err := GlobalTaskStore().ListTasks(ctx, sessionID)
+		if err != nil {
+			return tool.CallResult{Error: err}, nil
+		}
 
 		for _, task := range todoTasks {
+			if task.Status == TaskStatusDeleted {
+				metadata.DeletedCount++
+			}
 			// Apply filter
 			if statusFilter == "running" && task.Status != TaskStatusInProgress {
 				continue
@@ -156,6 +175,15 @@ func (t *TaskListTool) Call(ctx context.Context, input tool.CallInput, permissio
 			}
 
 			result = append(result, taskInfo)
+			if task.Status != TaskStatusDeleted {
+				metadata.TodoTasks = append(metadata.TodoTasks, taskListTodoRenderItem{
+					ID:         task.ID,
+					Subject:    task.Subject,
+					Status:     task.Status,
+					ActiveForm: task.ActiveForm,
+					Owner:      task.Owner,
+				})
+			}
 		}
 	}
 
@@ -164,8 +192,12 @@ func (t *TaskListTool) Call(ctx context.Context, input tool.CallInput, permissio
 		"count": len(result),
 	}
 
+	metadata.Count = len(result)
 	return tool.CallResult{
 		Data: output,
+		Metadata: &tool.ResultMetadata{Additional: map[string]any{
+			"task_list": metadata,
+		}},
 	}, nil
 }
 

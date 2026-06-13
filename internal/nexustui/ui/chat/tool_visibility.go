@@ -3,6 +3,7 @@ package chat
 import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
 	planTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/plan"
+	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 )
 
 // ShouldRenderToolCall reports whether a tool call should appear as a normal
@@ -16,7 +17,7 @@ func ShouldRenderToolCall(tc message.ToolCall) bool {
 // appear as a normal transcript item.
 func ShouldRenderToolName(name string) bool {
 	switch name {
-	case planTool.ToolNameEnterPlanMode, planTool.ToolNameExitPlanMode, planTool.ToolNameSubmitPlan:
+	case planTool.ToolNameEnterPlanMode, planTool.ToolNameExitPlanMode, planTool.ToolNameSubmitPlan, taskTool.ToolNameTaskCreate, taskTool.ToolNameTaskUpdate:
 		return false
 	default:
 		return true

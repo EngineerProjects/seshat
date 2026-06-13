@@ -69,6 +69,11 @@ func sqliteCoreMigrations() []schemaMigration {
 			Scope: migrationScopeCoreSQLite,
 			Run:   migrateSQLiteTranscriptFTS5Rebuild,
 		},
+		{
+			ID:    "20260612_011_session_tasks",
+			Scope: migrationScopeCoreSQLite,
+			Run:   migrateSQLiteSessionTasks,
+		},
 	}
 }
 
@@ -284,6 +289,37 @@ func migrateSQLiteTranscriptFTS5Rebuild(ctx context.Context, db *DB) error {
 		 AFTER DELETE ON session_transcript_entries BEGIN
 		     DELETE FROM session_transcript_fts WHERE rowid = old.rowid;
 		 END`,
+	}
+	for _, stmt := range statements {
+		if err := db.gormDB.WithContext(ctx).Exec(stmt).Error; err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func migrateSQLiteSessionTasks(ctx context.Context, db *DB) error {
+	statements := []string{
+		`CREATE TABLE IF NOT EXISTS session_tasks (
+			id               INTEGER PRIMARY KEY AUTOINCREMENT,
+			session_id       TEXT    NOT NULL,
+			task_id          TEXT    NOT NULL,
+			position         INTEGER NOT NULL,
+			subject          TEXT    NOT NULL,
+			description      TEXT    NOT NULL DEFAULT '',
+			status           TEXT    NOT NULL,
+			active_form      TEXT    NOT NULL DEFAULT '',
+			owner            TEXT    NOT NULL DEFAULT '',
+			blocks_json      TEXT    NOT NULL DEFAULT '[]',
+			blocked_by_json  TEXT    NOT NULL DEFAULT '[]',
+			metadata_json    TEXT    NOT NULL DEFAULT '{}',
+			created_at_unix  INTEGER NOT NULL,
+			updated_at_unix  INTEGER NOT NULL,
+			UNIQUE(session_id, task_id),
+			UNIQUE(session_id, position)
+		)`,
+		`CREATE INDEX IF NOT EXISTS idx_session_tasks_session_position
+			ON session_tasks(session_id, position ASC)`,
 	}
 	for _, stmt := range statements {
 		if err := db.gormDB.WithContext(ctx).Exec(stmt).Error; err != nil {

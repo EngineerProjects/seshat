@@ -60,7 +60,7 @@ func (m *UI) landingView() string {
 		orange.Bold(true).Render("ctrl+n") + " " + muted.Render("new session"),
 		orange.Bold(true).Render("ctrl+s") + " " + muted.Render("sessions"),
 		orange.Bold(true).Render("ctrl+p") + " " + muted.Render("settings"),
-		orange.Bold(true).Render("ctrl+q") + " " + muted.Render("quit"),
+		orange.Bold(true).Render("ctrl+c") + " " + muted.Render("quit"),
 	}, "  ")
 
 	block := lipgloss.JoinVertical(lipgloss.Center,

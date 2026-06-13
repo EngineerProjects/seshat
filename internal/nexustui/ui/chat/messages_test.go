@@ -6,6 +6,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
 	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
 	planTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/plan"
+	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 )
 
 func TestExtractMessageItemsSkipsHiddenPlanModeTools(t *testing.T) {
@@ -64,7 +65,38 @@ func TestShouldRenderToolNameHidesPlanReviewSystemTools(t *testing.T) {
 	if ShouldRenderToolName(planTool.ToolNameSubmitPlan) {
 		t.Fatalf("expected submit_plan to be hidden from chat")
 	}
+	if ShouldRenderToolName(taskTool.ToolNameTaskCreate) {
+		t.Fatalf("expected task_create to be hidden from chat")
+	}
+	if ShouldRenderToolName(taskTool.ToolNameTaskUpdate) {
+		t.Fatalf("expected task_update to be hidden from chat")
+	}
 	if !ShouldRenderToolName("bash") {
 		t.Fatalf("expected bash to remain visible in chat")
+	}
+}
+
+func TestShouldRenderToolNameKeepsTaskInspectionToolsVisible(t *testing.T) {
+	if !ShouldRenderToolName(taskTool.ToolNameTaskList) {
+		t.Fatalf("expected task_list to remain visible in chat")
+	}
+	if !ShouldRenderToolName(taskTool.ToolNameTaskGet) {
+		t.Fatalf("expected task_get to remain visible in chat")
+	}
+	if !ShouldRenderToolName(taskTool.ToolNameTaskStop) {
+		t.Fatalf("expected task_stop to remain visible in chat")
+	}
+}
+
+func TestNewToolMessageItemUsesTaskRenderers(t *testing.T) {
+	sty := &styles.Styles{}
+	if _, ok := NewToolMessageItem(sty, "assistant-1", message.ToolCall{ID: "task-list", Name: taskTool.ToolNameTaskList}, nil, false).(*TaskListToolMessageItem); !ok {
+		t.Fatalf("expected task_list renderer")
+	}
+	if _, ok := NewToolMessageItem(sty, "assistant-1", message.ToolCall{ID: "task-get", Name: taskTool.ToolNameTaskGet}, nil, false).(*TaskGetToolMessageItem); !ok {
+		t.Fatalf("expected task_get renderer")
+	}
+	if _, ok := NewToolMessageItem(sty, "assistant-1", message.ToolCall{ID: "task-stop", Name: taskTool.ToolNameTaskStop}, nil, false).(*TaskStopToolMessageItem); !ok {
+		t.Fatalf("expected task_stop renderer")
 	}
 }

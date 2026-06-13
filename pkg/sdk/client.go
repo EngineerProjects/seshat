@@ -23,6 +23,7 @@ import (
 	"github.com/EngineerProjects/nexus-engine/internal/tools/registry"
 	agentTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/agents"
 	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
+	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
 	"github.com/EngineerProjects/nexus-engine/internal/types"
 	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
 )
@@ -134,6 +135,12 @@ func NewClient(config *ClientConfig) (*Client, error) {
 	}
 
 	monitoringSys := initMonitoringSystem(config)
+
+	if config.SessionSQLitePath != "" {
+		if err := taskTool.InitializeGlobalTaskStore(config.SessionSQLitePath); err != nil {
+			return nil, fmt.Errorf("initialize task store: %w", err)
+		}
+	}
 
 	queryEngine := engine.NewEngine(
 		apiClient, orchestrator, compactor, promptAssembler,
