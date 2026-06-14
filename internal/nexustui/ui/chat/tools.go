@@ -55,6 +55,9 @@ type ToolMessageItem interface {
 	SetMessageID(id string)
 	SetStatus(status ToolStatus)
 	Status() ToolStatus
+	// RenderPreview renders the tool non-compact without cache or prefix.
+	// Used by agent renderers to embed a live output section.
+	RenderPreview(width int) string
 }
 
 // Compactable is an interface for tool items that can render in a compacted mode.
@@ -284,8 +287,12 @@ func NewToolMessageItem(
 		item = NewListAgentsToolMessageItem(sty, toolCall, result, canceled)
 	case "resume_agent":
 		item = NewResumeAgentToolMessageItem(sty, toolCall, result, canceled)
-	case "notebook_edit":
+	case tools.NotebookEditToolName:
 		item = NewNotebookEditToolMessageItem(sty, toolCall, result, canceled)
+	case tools.NotebookCreateToolName:
+		item = NewNotebookCreateToolMessageItem(sty, toolCall, result, canceled)
+	case tools.NotebookWriteToolName:
+		item = NewNotebookWriteToolMessageItem(sty, toolCall, result, canceled)
 	case "mcp_list_resources":
 		item = NewMCPListResourcesToolMessageItem(sty, toolCall, result, canceled)
 	case "mcp_read_resource":
@@ -474,6 +481,23 @@ func (t *baseToolMessageItem) SetStatus(status ToolStatus) {
 // Status returns the current tool status.
 func (t *baseToolMessageItem) Status() ToolStatus {
 	return t.status
+}
+
+// RenderPreview renders the tool non-compact without cache or prefix.
+// Bypasses isCompact so the caller gets the full content view regardless
+// of the tool's stored compact state. Width is capped but MessageLeftPaddingTotal
+// is NOT subtracted — the caller is responsible for passing available width.
+func (t *baseToolMessageItem) RenderPreview(width int) string {
+	toolItemWidth := cappedToolWidth(width)
+	return t.toolRenderer.RenderTool(t.sty, toolItemWidth, &ToolRenderOpts{
+		ToolCall:        t.toolCall,
+		Result:          t.result,
+		Anim:            t.anim,
+		Status:          t.computeStatus(),
+		Compact:         false,
+		IsSpinning:      t.isSpinning(),
+		ExpandedContent: t.expandedContent,
+	})
 }
 
 // computeStatus computes the effective status considering the result.

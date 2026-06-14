@@ -1436,6 +1436,11 @@ func (w *NexusWorkspace) OnProgress(p sdk.ToolProgress) {
 // OnRuntimeEvent forwards structured runtime events that need dedicated TUI
 // surfaces outside the normal transcript.
 func (w *NexusWorkspace) OnRuntimeEvent(ev sdk.RuntimeEvent) {
+	// Sub-agent tool progress: forward nested tool calls to the live tail.
+	if ev.AgentToolUseID != "" && ev.ToolProgress != nil {
+		w.handleSubAgentToolProgress(ev.AgentToolUseID, ev.ToolProgress)
+	}
+
 	switch ev.Type {
 	case sdk.RuntimeEventTypeTaskChanged:
 		sessionID := string(ev.SessionID)
@@ -1468,6 +1473,88 @@ func (w *NexusWorkspace) OnRuntimeEvent(ev sdk.RuntimeEvent) {
 		}
 		w.planBroker.PublishMustDeliver(context.Background(), pubsub.CreatedEvent, submission)
 	}
+}
+
+// handleSubAgentToolProgress synthesises a child-session message from a
+// sub-agent ToolProgress event and publishes it to msgBroker so that
+// handleChildSessionMessage in ui.go can update the agent's live-tail tree.
+func (w *NexusWorkspace) handleSubAgentToolProgress(agentToolUseID string, tp *sdk.ToolProgress) {
+	if tp.ToolUseID == "" || tp.ToolName == "" {
+		return
+	}
+
+	// ":<agentToolUseID>" passes ParseAgentToolSessionID (splits on ":") and
+	// yields toolCallID = agentToolUseID so the agent item can be looked up.
+	childSessionID := ":" + agentToolUseID
+
+	var parts []message.ContentPart
+
+	switch tp.Stage {
+	case sdk.ToolProgressStageRunning:
+		var inputStr string
+		if inp, ok := tp.Metadata["tool_input"]; ok {
+			if data, err := json.Marshal(inp); err == nil {
+				inputStr = string(data)
+			}
+		}
+		parts = []message.ContentPart{
+			message.ToolCall{
+				ID:       tp.ToolUseID,
+				Name:     tp.ToolName,
+				Input:    inputStr,
+				Finished: false,
+			},
+		}
+
+	case sdk.ToolProgressStageCompleted:
+		var content string
+		if c, ok := tp.Metadata["content"]; ok {
+			content, _ = c.(string)
+		}
+		parts = []message.ContentPart{
+			message.ToolCall{
+				ID:       tp.ToolUseID,
+				Name:     tp.ToolName,
+				Finished: true,
+			},
+			message.ToolResult{
+				ToolCallID: tp.ToolUseID,
+				Name:       tp.ToolName,
+				Content:    content,
+			},
+		}
+
+	case sdk.ToolProgressStageFailed:
+		content := tp.Message
+		if c, ok := tp.Metadata["content"]; ok {
+			if s, _ := c.(string); s != "" {
+				content = s
+			}
+		}
+		parts = []message.ContentPart{
+			message.ToolCall{
+				ID:       tp.ToolUseID,
+				Name:     tp.ToolName,
+				Finished: true,
+			},
+			message.ToolResult{
+				ToolCallID: tp.ToolUseID,
+				Name:       tp.ToolName,
+				Content:    content,
+				IsError:    true,
+			},
+		}
+
+	default:
+		return
+	}
+
+	msg := message.Message{
+		ID:        "sub-" + tp.ToolUseID,
+		SessionID: childSessionID,
+		Parts:     parts,
+	}
+	w.msgBroker.Publish(pubsub.UpdatedEvent, msg)
 }
 
 // OnSessionTitled updates the session title in our local store.
@@ -1554,6 +1641,28 @@ func buildToolPermissionParams(toolName string, input map[string]any) any {
 		}
 		return 0
 	}
+	notebookCells := func() []tuiTools.NotebookCellPreview {
+		rawCells, ok := input["cells"].([]any)
+		if !ok || len(rawCells) == 0 {
+			return nil
+		}
+		cells := make([]tuiTools.NotebookCellPreview, 0, len(rawCells))
+		for _, raw := range rawCells {
+			cellMap, ok := raw.(map[string]any)
+			if !ok {
+				continue
+			}
+			cell := tuiTools.NotebookCellPreview{}
+			if cellType, ok := cellMap["cell_type"].(string); ok {
+				cell.CellType = cellType
+			}
+			if source, ok := cellMap["source"].(string); ok {
+				cell.Source = source
+			}
+			cells = append(cells, cell)
+		}
+		return cells
+	}
 
 	switch toolName {
 	case tuiTools.WriteToolName:
@@ -1609,7 +1718,7 @@ func buildToolPermissionParams(toolName string, input map[string]any) any {
 			URL:    str("url"),
 			Prompt: str("prompt"),
 		}
-	case "notebook_edit":
+	case tuiTools.NotebookEditToolName:
 		notebookPath := str("notebook_path")
 		var oldContent string
 		if notebookPath != "" {
@@ -1624,6 +1733,48 @@ func buildToolPermissionParams(toolName string, input map[string]any) any {
 			EditMode:     str("edit_mode"),
 			OldContent:   oldContent,
 			NewSource:    str("new_source"),
+		}
+	case tuiTools.NotebookCreateToolName:
+		kernel := str("kernel")
+		if kernel == "" {
+			kernel = "python3"
+		}
+		language := str("language")
+		if language == "" {
+			language = "python"
+		}
+		cells := notebookCells()
+		return tuiTools.NotebookCreatePermissionsParams{
+			NotebookPath: str("notebook_path"),
+			Kernel:       kernel,
+			Language:     language,
+			CellCount:    len(cells),
+			Cells:        cells,
+		}
+	case tuiTools.NotebookWriteToolName:
+		notebookPath := str("notebook_path")
+		var oldContent string
+		if notebookPath != "" {
+			if data, err := os.ReadFile(notebookPath); err == nil {
+				oldContent = string(data)
+			}
+		}
+		kernel := str("kernel")
+		if kernel == "" {
+			kernel = "python3"
+		}
+		language := str("language")
+		if language == "" {
+			language = "python"
+		}
+		cells := notebookCells()
+		return tuiTools.NotebookWritePermissionsParams{
+			NotebookPath: notebookPath,
+			Kernel:       kernel,
+			Language:     language,
+			CellCount:    len(cells),
+			Cells:        cells,
+			OldContent:   oldContent,
 		}
 	}
 	return nil

@@ -57,6 +57,7 @@ The canonical runtime sources are:
 - [x] `write_file` permission dialog now shows a real diff: old content is read from disk before the write, new content is the incoming `content` param. `edit_file` permission dialog shows a diff of `old_string` → `new_string`.
 - [x] `edit_file` chat diff now renders correctly. The edit tool stores the original file under `"original_file"` (not `"old_content"`); `extractEditDiffContent()` reads the correct key and computes `newContent` via string replacement, producing the full red/green diff.
 - [x] Permission panel `renderBashContent` now syntax-highlights the bash command via `SyntaxHighlight("command.sh")` before wrapping it in the content panel.
+- [x] Notebook permission panels now have dedicated typed previews. `notebook_write` and `notebook_create` render notebook cells visually in the modal, using the same wide layout as file write/edit diffs when cells are present. `notebook_edit` renders markdown/code previews for non-delete edits and shows a full notebook diff for cell deletions in both the permission panel and the chat transcript.
 
 ## Cross-Cutting Product Rules
 
@@ -246,7 +247,7 @@ These tools are meaningful execution steps and should stay visibly represented a
 | `write_stdin` | `chat` | Planned | Treat as a compact or rich shell continuation event under the shell family. |
 | `job_output` | `chat` | Done | Shell output renderer via `renderJobTool`: line numbers + JSON auto-detection (same `bashOutputLang` path as bash). `(no output)` indicator when the job produced nothing. |
 | `job_kill` | `chat` | Done | Quiet pattern: header-only on success (✓ icon communicates the result); error body on failure. No longer routes through `renderJobTool`. |
-| `write_file`, `edit_file`, `apply_patch`, `notebook_edit` | `chat` | Done (write/edit/patch) | `write_file`: renders new content (markdown-interpreted for `.md`, syntax-highlighted otherwise). `edit_file`: full red/green diff via `extractEditDiffContent`. `apply_patch`: file list with semantic color per operation (+ green / ~ grey / - red / → teal). `notebook_edit` still generic. |
+| `write_file`, `edit_file`, `apply_patch`, `notebook_edit`, `notebook_create`, `notebook_write` | `chat` | Done | `write_file`: renders new content (markdown-interpreted for `.md`, syntax-highlighted otherwise). `edit_file`: full red/green diff via `extractEditDiffContent`. `apply_patch`: file list with semantic color per operation (+ green / ~ grey / - red / → teal). `notebook_edit`: code/markdown preview for non-delete edits and full notebook diff for deletes. `notebook_create`: header-only success, error body when creation fails. `notebook_write`: action + cell count in header with first-cell preview in the body. |
 | `create_directory`, `remove_file` | `chat` | Done | Header-only on success (path in header param); error body on failure. Raw result text (`"Directory created: …"`, `"Removed: …"`) is suppressed. |
 | `docx` | `chat` | Planned | File-generation style tool; visible result is useful. |
 | `agent`, `spawn_agent`, `resume_agent` | `chat` | Planned | Multi-agent orchestration deserves dedicated rendering, not generic JSON blobs. |
@@ -293,7 +294,7 @@ This is the complete canonical inventory to categorize future work against.
 - `write_file`
 - `edit_file`
 - `apply_patch`
-- `notebook_edit`
+- notebook tool family (`notebook_edit`, `notebook_create`, `notebook_write`)
 - `docx`
 
 ### Web and browser

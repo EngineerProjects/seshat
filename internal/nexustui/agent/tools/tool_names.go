@@ -25,6 +25,9 @@ const (
 	WebSearchToolName       = "web_search"
 	AgentToolName           = "agent"
 	AskUserToolName         = "ask_user_question"
+	NotebookEditToolName    = "notebook_edit"
+	NotebookCreateToolName  = "notebook_create"
+	NotebookWriteToolName   = "notebook_write"
 
 	BashNoOutput = "<no output>"
 )
@@ -120,6 +123,31 @@ type NotebookEditPermissionsParams struct {
 	EditMode     string
 	OldContent   string // full notebook JSON before edit (may be empty if file is new)
 	NewSource    string // the new_source being written into the cell
+}
+
+// NotebookCreatePermissionsParams holds the params for a notebook_create permission request.
+type NotebookCreatePermissionsParams struct {
+	NotebookPath string
+	Kernel       string
+	Language     string
+	CellCount    int
+	Cells        []NotebookCellPreview
+}
+
+// NotebookCellPreview is a lightweight notebook cell payload for permission previews.
+type NotebookCellPreview struct {
+	CellType string
+	Source   string
+}
+
+// NotebookWritePermissionsParams holds the params for a notebook_write permission request.
+type NotebookWritePermissionsParams struct {
+	NotebookPath string
+	Kernel       string
+	Language     string
+	CellCount    int
+	Cells        []NotebookCellPreview
+	OldContent   string // existing file content when overwriting
 }
 
 // --- Tool input param structs (used by chat UI to deserialise tool call JSON) ---
