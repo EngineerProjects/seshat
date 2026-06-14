@@ -244,7 +244,8 @@ These tools are meaningful execution steps and should stay visibly represented a
 |---|---|---|---|
 | `bash` | `chat` | Done | Rich renderer. Header shows first line of command + `(+N lines)` for multi-line scripts. Output body uses `toolOutputCodeContent` (line numbers, JSON auto-detection via `bashOutputLang`). Empty output shows a styled `(no output)` indicator instead of a bare header. |
 | `write_stdin` | `chat` | Planned | Treat as a compact or rich shell continuation event under the shell family. |
-| `job_output`, `job_kill` | `chat` | Planned | Already shell-adjacent; keep visible. |
+| `job_output` | `chat` | Done | Shell output renderer via `renderJobTool`: line numbers + JSON auto-detection (same `bashOutputLang` path as bash). `(no output)` indicator when the job produced nothing. |
+| `job_kill` | `chat` | Done | Quiet pattern: header-only on success (✓ icon communicates the result); error body on failure. No longer routes through `renderJobTool`. |
 | `write_file`, `edit_file`, `apply_patch`, `notebook_edit` | `chat` | Done (write/edit/patch) | `write_file`: renders new content (markdown-interpreted for `.md`, syntax-highlighted otherwise). `edit_file`: full red/green diff via `extractEditDiffContent`. `apply_patch`: file list with semantic color per operation (+ green / ~ grey / - red / → teal). `notebook_edit` still generic. |
 | `create_directory`, `remove_file` | `chat` | Done | Header-only on success (path in header param); error body on failure. Raw result text (`"Directory created: …"`, `"Removed: …"`) is suppressed. |
 | `docx` | `chat` | Planned | File-generation style tool; visible result is useful. |

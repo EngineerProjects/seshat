@@ -212,15 +212,20 @@ func (j *JobKillToolRenderContext) RenderTool(sty *styles.Styles, width int, opt
 		}
 	}
 
-	content := ""
-	if opts.HasResult() {
-		content = opts.Result.Content
+	header := jobHeader(sty, opts.Status, "Kill", params.ShellID, description, cappedWidth)
+	if opts.Compact {
+		return header
 	}
-	return renderJobTool(sty, opts, cappedWidth, "Kill", params.ShellID, description, content)
+
+	// Errors surface a body; success is silent — the ✓ icon communicates it.
+	if earlyState, ok := toolEarlyStateContent(sty, opts, cappedWidth); ok {
+		return joinToolParts(header, earlyState)
+	}
+	return header
 }
 
 // renderJobTool renders a job-related tool with the common pattern:
-// header → nested check → early state → body.
+// header → early state → body (line numbers + JSON detection).
 func renderJobTool(sty *styles.Styles, opts *ToolRenderOpts, width int, action, shellID, description, content string) string {
 	header := jobHeader(sty, opts.Status, action, shellID, description, width)
 	if opts.Compact {
@@ -232,11 +237,11 @@ func renderJobTool(sty *styles.Styles, opts *ToolRenderOpts, width int, action, 
 	}
 
 	if content == "" {
-		return header
+		noOut := sty.Tool.StateCancelled.Render("(no output)")
+		return joinToolParts(header, sty.Tool.Body.Render(noOut))
 	}
 
-	bodyWidth := width - toolBodyLeftPaddingTotal
-	body := sty.Tool.Body.Render(toolOutputPlainContent(sty, content, bodyWidth, opts.ExpandedContent))
+	body := toolOutputCodeContent(sty, bashOutputLang(content), content, 0, width, opts.ExpandedContent)
 	return joinToolParts(header, body)
 }
 
