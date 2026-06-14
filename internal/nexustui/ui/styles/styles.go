@@ -378,6 +378,12 @@ type Styles struct {
 		// Web search / web fetch
 		WebSearchURL   lipgloss.Style // Search result URL (info blue)
 		WebFetchPrompt lipgloss.Style // Fetch prompt context line (subtle)
+
+		// Ask user question
+		AskUserCursor        lipgloss.Style // ▶ focused option cursor (accent)
+		AskUserOptionFocused lipgloss.Style // focused option label (bright)
+		AskUserFooter        lipgloss.Style // keyboard hint line (most subtle)
+		AskUserHistory       lipgloss.Style // answered Q→A history lines (subtle)
 	}
 
 	// Dialog styles

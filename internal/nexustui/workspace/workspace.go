@@ -130,6 +130,10 @@ type Workspace interface {
 	PermissionSkipRequests() bool
 	PermissionSetSkipRequests(skip bool)
 
+	// AnswerAskUser resolves a pending ask_user_question prompt.
+	// Returns true if the ID was found and the response delivered.
+	AnswerAskUser(id, value string) bool
+
 	// FileTracker
 	FileTrackerRecordRead(ctx context.Context, sessionID, path string)
 	FileTrackerLastReadTime(ctx context.Context, sessionID, path string) time.Time

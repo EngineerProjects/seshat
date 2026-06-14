@@ -253,7 +253,7 @@ These tools are meaningful execution steps and should stay visibly represented a
 | `generate_image`, `tts`, `stt`, `code_complete` | `chat` | Planned | Result is user-visible and worth a richer item, even if renderer stays simple at first. |
 | `lsp` | `chat` | Planned | The generic LSP payload is too vague today; needs a proper status/result renderer. |
 | `monitor` | `chat` | Planned | Should read as a tracked background-execution item, close to shell/task UX. |
-| `ask_user_question` | `chat` | Planned | User-facing question flow deserves dedicated rich UX: explicit prompt, choice list, and free-form answer path. |
+| `ask_user_question` | `chat` | Done | Inline interactive bubble with ↑↓ navigation, Space multi-select, Enter confirm; history shows past Q→As; "Other" routes to editor for free-text; `askUserBroker` in workspace wires the full flow. |
 
 ## Category E — Generic For Now, Revisit Later
 

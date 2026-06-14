@@ -70,12 +70,13 @@ type NexusWorkspace struct {
 	msgMu    sync.RWMutex
 	msgStore map[string][]message.Message // complete message list per session
 
-	sessBroker *pubsub.Broker[session.Session]
-	msgBroker  *pubsub.Broker[message.Message]
-	permBroker *pubsub.Broker[permission.PermissionRequest]
-	planBroker *pubsub.Broker[planreview.Submission]
-	sessStore  map[string]session.Session
-	sessionsMu sync.RWMutex
+	sessBroker    *pubsub.Broker[session.Session]
+	msgBroker     *pubsub.Broker[message.Message]
+	permBroker    *pubsub.Broker[permission.PermissionRequest]
+	planBroker    *pubsub.Broker[planreview.Submission]
+	askUserBroker *pubsub.Broker[tuiTools.AskUserRequest]
+	sessStore     map[string]session.Session
+	sessionsMu    sync.RWMutex
 
 	// tea.Program for Subscribe
 	programMu sync.Mutex
@@ -111,6 +112,10 @@ type NexusWorkspace struct {
 	// PromptFn blocks on the channel; Grant/Deny send the response.
 	pendingPerms sync.Map // map[string]chan sdk.PromptResponse
 
+	// pendingAskUser maps AskUserRequest.ID → resolution channel.
+	// PromptFn (ask_user path) blocks on the channel; AnswerAskUser sends the response.
+	pendingAskUser sync.Map // map[string]chan types.PromptResponse
+
 	// Provider registry — populated by DetectProviders() at startup.
 	providerKeys     sync.Map // providerID → apiKey string (empty string = no key needed)
 	providerBaseURLs sync.Map // providerID → editable/test base URL override
@@ -139,6 +144,7 @@ func NewNexusWorkspace(client *sdk.Client, workDir, modelStr string) *NexusWorks
 		msgBroker:     pubsub.NewBroker[message.Message](),
 		permBroker:    pubsub.NewBroker[permission.PermissionRequest](),
 		planBroker:    pubsub.NewBroker[planreview.Submission](),
+		askUserBroker: pubsub.NewBroker[tuiTools.AskUserRequest](),
 	}
 	w.debounce = newMsgDebounce(33*time.Millisecond, func(msg message.Message, sessID string) {
 		w.publishMsg(pubsub.UpdatedEvent, sessID, msg)
@@ -186,6 +192,14 @@ func (w *NexusWorkspace) Subscribe(p *tea.Program) {
 			p.Send(ev)
 		}
 	}()
+
+	// Fan out ask_user_question events.
+	go func() {
+		ch := w.askUserBroker.Subscribe(ctx)
+		for ev := range ch {
+			p.Send(ev)
+		}
+	}()
 }
 
 func (w *NexusWorkspace) Shutdown() {
@@ -193,6 +207,7 @@ func (w *NexusWorkspace) Shutdown() {
 	w.msgBroker.Shutdown()
 	w.permBroker.Shutdown()
 	w.planBroker.Shutdown()
+	w.askUserBroker.Shutdown()
 	if w.client != nil {
 		_ = w.client.Close()
 	}
@@ -1588,16 +1603,21 @@ func buildToolPermissionParams(toolName string, input map[string]any) any {
 	return nil
 }
 
-// PromptFn blocks the SDK agent goroutine until the UI resolves the permission dialog.
-// The UI calls PermissionGrant/PermissionDeny which unblock this via pendingPerms.
+// PromptFn blocks the SDK agent goroutine until the UI resolves the prompt.
+// ask_user_question prompts route to askUserBroker; all others go to permBroker.
 func (w *NexusWorkspace) PromptFn(ctx context.Context, req sdk.PromptRequest) (sdk.PromptResponse, error) {
-	// Yolo mode: auto-allow without showing the dialog.
+	toolName, _ := req.Metadata["tool_name"].(string)
+	toolUseID, _ := req.Metadata["tool_use_id"].(string)
+
+	if toolName == tuiTools.AskUserToolName {
+		return w.promptAskUser(ctx, req, toolUseID)
+	}
+
+	// Yolo mode: auto-allow permission dialogs without showing them.
 	if w.permSkip.Load() {
 		return sdk.PromptResponse{Value: true}, nil
 	}
 
-	toolName, _ := req.Metadata["tool_name"].(string)
-	toolUseID, _ := req.Metadata["tool_use_id"].(string)
 	workDir, _ := req.Metadata["working_directory"].(string)
 	if workDir == "" {
 		workDir = w.workDir
@@ -1632,6 +1652,59 @@ func (w *NexusWorkspace) PromptFn(ctx context.Context, req sdk.PromptRequest) (s
 		w.pendingPerms.Delete(permID)
 		return sdk.PromptResponse{Cancelled: true}, ctx.Err()
 	}
+}
+
+// promptAskUser handles ask_user_question prompts by publishing to askUserBroker
+// and blocking until the user answers (or context is cancelled).
+func (w *NexusWorkspace) promptAskUser(ctx context.Context, req sdk.PromptRequest, toolUseID string) (sdk.PromptResponse, error) {
+	header, _ := req.Metadata["header"].(string)
+	multiSelect, _ := req.Metadata["multiSelect"].(bool)
+	isCustomText := req.Type == types.PromptTypeText
+
+	id := uuid.New().String()
+
+	askReq := tuiTools.AskUserRequest{
+		ID:           id,
+		ToolCallID:   toolUseID,
+		Question:     req.Message,
+		Header:       header,
+		MultiSelect:  multiSelect,
+		IsCustomText: isCustomText,
+	}
+
+	if !isCustomText {
+		for _, opt := range req.Options {
+			askReq.Options = append(askReq.Options, tuiTools.AskUserOption{
+				Label:       opt.Label,
+				Value:       fmt.Sprintf("%v", opt.Value),
+				Description: opt.Description,
+			})
+		}
+	}
+
+	ch := make(chan sdk.PromptResponse, 1)
+	w.pendingAskUser.Store(id, ch)
+
+	w.askUserBroker.Publish(pubsub.CreatedEvent, askReq)
+
+	select {
+	case resp := <-ch:
+		return resp, nil
+	case <-ctx.Done():
+		w.pendingAskUser.Delete(id)
+		return sdk.PromptResponse{Cancelled: true}, ctx.Err()
+	}
+}
+
+// AnswerAskUser resolves a pending ask_user_question prompt.
+func (w *NexusWorkspace) AnswerAskUser(id, value string) bool {
+	v, ok := w.pendingAskUser.LoadAndDelete(id)
+	if !ok {
+		return false
+	}
+	ch := v.(chan sdk.PromptResponse)
+	ch <- sdk.PromptResponse{Value: value}
+	return true
 }
 
 // ─── Internal helpers ─────────────────────────────────────────────────────────

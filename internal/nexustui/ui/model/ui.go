@@ -254,6 +254,11 @@ type UI struct {
 	skillCommands  []commands.CustomCommand
 	mcpPrompts     []commands.MCPPrompt
 
+	// askUserCustomTextID is set when an ask_user_question "Other" (free-text) prompt
+	// is pending. The next textarea submit is routed to AnswerAskUser instead of
+	// the agent, then cleared.
+	askUserCustomTextID string
+
 	// forceCompactMode tracks whether compact mode is forced by user toggle
 	forceCompactMode bool
 
@@ -771,6 +776,31 @@ func (m *UI) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				cmds = append(cmds, cmd)
 			}
 		}
+
+	case pubsub.Event[agenttools.AskUserRequest]:
+		if msg.Type == pubsub.CreatedEvent {
+			req := msg.Payload
+			if req.IsCustomText {
+				// "Other" follow-up: redirect the next textarea submit.
+				m.askUserCustomTextID = req.ID
+				m.setState(m.state, uiFocusEditor)
+				m.textarea.Placeholder = "Type your answer and press Enter…"
+				if cmd := m.textarea.Focus(); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
+			} else {
+				if m.chat.ActivateAskUserQuestion(req) {
+					m.setState(m.state, uiFocusMain)
+					if cmd := m.chat.ScrollToSelectedAndAnimate(); cmd != nil {
+						cmds = append(cmds, cmd)
+					}
+				}
+			}
+		}
+
+	case chat.AnswerAskUserMsg:
+		m.com.Workspace.AnswerAskUser(msg.ID, msg.Value)
+
 	case cancelTimerExpiredMsg:
 		m.isCanceling = false
 	case tea.TerminalVersionMsg:
@@ -2169,6 +2199,16 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				value = strings.TrimSpace(value)
 				if value == "exit" || value == "quit" {
 					return m.openQuitDialog()
+				}
+
+				// If an ask_user_question "Other" prompt is pending, deliver the
+				// custom text as the answer instead of submitting to the agent.
+				if m.askUserCustomTextID != "" && value != "" {
+					pendingID := m.askUserCustomTextID
+					m.askUserCustomTextID = ""
+					m.textarea.Placeholder = m.readyPlaceholder
+					m.com.Workspace.AnswerAskUser(pendingID, value)
+					return tea.Batch(cmds...)
 				}
 
 				attachments := m.attachments.List()

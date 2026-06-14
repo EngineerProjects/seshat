@@ -264,6 +264,8 @@ func NewToolMessageItem(
 		item = NewWebFetchToolMessageItem(sty, toolCall, result, canceled)
 	case tools.WebSearchToolName:
 		item = NewWebSearchToolMessageItem(sty, toolCall, result, canceled)
+	case tools.AskUserToolName:
+		item = NewAskUserToolMessageItem(sty, toolCall, result, canceled)
 	case taskTool.ToolNameTaskList:
 		item = NewTaskListToolMessageItem(sty, toolCall, result, canceled)
 	case taskTool.ToolNameTaskGet:
