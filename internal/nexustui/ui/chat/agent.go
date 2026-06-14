@@ -434,6 +434,288 @@ func (l *ListAgentsToolRenderContext) RenderTool(sty *styles.Styles, width int, 
 }
 
 // -----------------------------------------------------------------------------
+// Spawn Agent Tool
+// -----------------------------------------------------------------------------
+
+// SpawnAgentToolMessageItem represents a spawn_agent tool call.
+type SpawnAgentToolMessageItem struct {
+	*baseToolMessageItem
+}
+
+var _ ToolMessageItem = (*SpawnAgentToolMessageItem)(nil)
+
+// NewSpawnAgentToolMessageItem creates a new [SpawnAgentToolMessageItem].
+func NewSpawnAgentToolMessageItem(
+	sty *styles.Styles,
+	toolCall message.ToolCall,
+	result *message.ToolResult,
+	canceled bool,
+) ToolMessageItem {
+	return newBaseToolMessageItem(sty, toolCall, result, &SpawnAgentToolRenderContext{}, canceled)
+}
+
+// SpawnAgentToolRenderContext renders spawn_agent tool messages.
+type SpawnAgentToolRenderContext struct{}
+
+type spawnAgentInput struct {
+	Prompt    string `json:"prompt"`
+	AgentType string `json:"agent_type,omitempty"`
+	Role      string `json:"role,omitempty"`
+	Nickname  string `json:"nickname,omitempty"`
+	MaxTurns  int    `json:"max_turns,omitempty"`
+}
+
+type spawnAgentOutput struct {
+	AgentID  string `json:"agent_id"`
+	Status   string `json:"status"`
+	Nickname string `json:"nickname,omitempty"`
+	Role     string `json:"role,omitempty"`
+}
+
+// RenderTool implements the [ToolRenderer] interface.
+func (s *SpawnAgentToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
+	cappedWidth := cappedToolWidth(width)
+	if opts.IsPending() {
+		return pendingTool(sty, "Spawn Agent", opts.Anim, opts.Compact)
+	}
+
+	var params spawnAgentInput
+	_ = json.Unmarshal([]byte(opts.ToolCall.Input), &params)
+
+	agentType := params.AgentType
+	if agentType == "" {
+		agentType = "general-purpose"
+	}
+
+	var headerParams []string
+	if params.Nickname != "" {
+		headerParams = append(headerParams, params.Nickname+" · "+agentType)
+	} else {
+		headerParams = append(headerParams, agentType)
+	}
+
+	header := toolHeader(sty, opts.Status, "Spawn Agent", cappedWidth, opts.Compact, headerParams...)
+	if opts.Compact {
+		return header
+	}
+
+	if earlyState, ok := toolEarlyStateContent(sty, opts, cappedWidth); ok {
+		return joinToolParts(header, earlyState)
+	}
+
+	prompt := strings.ReplaceAll(params.Prompt, "\n", " ")
+	taskTag := sty.Tool.AgentTaskTag.Render("Task")
+	taskTagWidth := lipgloss.Width(taskTag)
+	remainingWidth := min(cappedWidth-taskTagWidth-3, maxTextWidth-taskTagWidth-3)
+	promptText := sty.Tool.AgentPrompt.Width(remainingWidth).Render(prompt)
+
+	taskLine := lipgloss.JoinHorizontal(lipgloss.Left, taskTag, " ", promptText)
+
+	var parts []string
+	parts = append(parts, header, "", taskLine)
+
+	// When done, show agent_id + status.
+	if opts.HasResult() {
+		var out spawnAgentOutput
+		_ = json.Unmarshal([]byte(opts.Result.Content), &out)
+		if out.AgentID == "" {
+			// fallback: parse from plain content "Agent spawned: ID (status: S)"
+			content := opts.Result.Content
+			if idx := strings.Index(content, "Agent spawned: "); idx >= 0 {
+				rest := content[idx+len("Agent spawned: "):]
+				if spaceIdx := strings.Index(rest, " "); spaceIdx > 0 {
+					out.AgentID = rest[:spaceIdx]
+				}
+			}
+		}
+		if out.AgentID != "" {
+			idLine := sty.Tool.AgentPrompt.Render("→ " + out.AgentID)
+			if out.Status != "" {
+				idLine += "  " + sty.Tool.StateWaiting.Render("("+out.Status+")")
+			}
+			parts = append(parts, "", idLine)
+		}
+	}
+
+	return lipgloss.JoinVertical(lipgloss.Left, parts...)
+}
+
+// -----------------------------------------------------------------------------
+// Send Agent Message Tool
+// -----------------------------------------------------------------------------
+
+// SendAgentMessageToolMessageItem represents a send_agent_message tool call.
+type SendAgentMessageToolMessageItem struct {
+	*baseToolMessageItem
+}
+
+var _ ToolMessageItem = (*SendAgentMessageToolMessageItem)(nil)
+
+// NewSendAgentMessageToolMessageItem creates a new [SendAgentMessageToolMessageItem].
+func NewSendAgentMessageToolMessageItem(
+	sty *styles.Styles,
+	toolCall message.ToolCall,
+	result *message.ToolResult,
+	canceled bool,
+) ToolMessageItem {
+	return newBaseToolMessageItem(sty, toolCall, result, &SendAgentMessageToolRenderContext{}, canceled)
+}
+
+// SendAgentMessageToolRenderContext renders send_agent_message tool messages.
+type SendAgentMessageToolRenderContext struct{}
+
+type sendAgentMessageInput struct {
+	AgentID string `json:"agent_id"`
+	Message string `json:"message"`
+}
+
+// RenderTool implements the [ToolRenderer] interface.
+func (s *SendAgentMessageToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
+	cappedWidth := cappedToolWidth(width)
+	if opts.IsPending() {
+		return pendingTool(sty, "Send Message", opts.Anim, opts.Compact)
+	}
+
+	var params sendAgentMessageInput
+	_ = json.Unmarshal([]byte(opts.ToolCall.Input), &params)
+
+	var headerParams []string
+	if params.AgentID != "" {
+		headerParams = append(headerParams, "→ "+params.AgentID)
+	}
+
+	header := toolHeader(sty, opts.Status, "Send Message", cappedWidth, opts.Compact, headerParams...)
+	if opts.Compact {
+		return header
+	}
+
+	if earlyState, ok := toolEarlyStateContent(sty, opts, cappedWidth); ok {
+		return joinToolParts(header, earlyState)
+	}
+
+	if params.Message == "" {
+		return header
+	}
+
+	bodyWidth := cappedWidth - toolBodyLeftPaddingTotal
+	msg := strings.ReplaceAll(params.Message, "\n", " ")
+	msgLine := sty.Tool.AgentPrompt.Render("↳ " + msg)
+	body := sty.Tool.Body.Render(toolOutputPlainContent(sty, msgLine, bodyWidth, opts.ExpandedContent))
+	return joinToolParts(header, body)
+}
+
+// -----------------------------------------------------------------------------
+// Wait Agent Tool
+// -----------------------------------------------------------------------------
+
+// WaitAgentToolMessageItem represents a wait_agent tool call.
+type WaitAgentToolMessageItem struct {
+	*baseToolMessageItem
+}
+
+var _ ToolMessageItem = (*WaitAgentToolMessageItem)(nil)
+
+// NewWaitAgentToolMessageItem creates a new [WaitAgentToolMessageItem].
+func NewWaitAgentToolMessageItem(
+	sty *styles.Styles,
+	toolCall message.ToolCall,
+	result *message.ToolResult,
+	canceled bool,
+) ToolMessageItem {
+	t := &WaitAgentToolMessageItem{}
+	t.baseToolMessageItem = newBaseToolMessageItem(sty, toolCall, result, &WaitAgentToolRenderContext{}, canceled)
+	// Keep spinning until a result arrives (blocking call that can take minutes).
+	t.spinningFunc = func(state SpinningState) bool {
+		return !state.HasResult() && !state.IsCanceled()
+	}
+	return t
+}
+
+// WaitAgentToolRenderContext renders wait_agent tool messages.
+type WaitAgentToolRenderContext struct{}
+
+type waitAgentInput struct {
+	AgentID        string `json:"agent_id"`
+	TimeoutSeconds int    `json:"timeout_seconds,omitempty"`
+}
+
+// RenderTool implements the [ToolRenderer] interface.
+func (w *WaitAgentToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
+	cappedWidth := cappedToolWidth(width)
+	if opts.IsPending() {
+		return pendingTool(sty, "Wait Agent", opts.Anim, opts.Compact)
+	}
+
+	var params waitAgentInput
+	_ = json.Unmarshal([]byte(opts.ToolCall.Input), &params)
+
+	var headerParams []string
+	if params.AgentID != "" {
+		headerParams = append(headerParams, params.AgentID)
+	}
+
+	header := toolHeader(sty, opts.Status, "Wait Agent", cappedWidth, opts.Compact, headerParams...)
+	if opts.Compact {
+		return header
+	}
+
+	if earlyState, ok := toolEarlyStateContent(sty, opts, cappedWidth); ok {
+		return joinToolParts(header, earlyState)
+	}
+
+	if opts.HasEmptyResult() {
+		return header
+	}
+
+	body := toolOutputMarkdownContent(sty, opts.Result.Content, cappedWidth, opts.ExpandedContent)
+	return joinToolParts(header, body)
+}
+
+// -----------------------------------------------------------------------------
+// Close Agent Tool
+// -----------------------------------------------------------------------------
+
+// CloseAgentToolMessageItem represents a close_agent tool call.
+type CloseAgentToolMessageItem struct {
+	*baseToolMessageItem
+}
+
+var _ ToolMessageItem = (*CloseAgentToolMessageItem)(nil)
+
+// NewCloseAgentToolMessageItem creates a new [CloseAgentToolMessageItem].
+func NewCloseAgentToolMessageItem(
+	sty *styles.Styles,
+	toolCall message.ToolCall,
+	result *message.ToolResult,
+	canceled bool,
+) ToolMessageItem {
+	return newBaseToolMessageItem(sty, toolCall, result, &CloseAgentToolRenderContext{}, canceled)
+}
+
+// CloseAgentToolRenderContext renders close_agent tool messages.
+type CloseAgentToolRenderContext struct{}
+
+// RenderTool implements the [ToolRenderer] interface.
+func (c *CloseAgentToolRenderContext) RenderTool(sty *styles.Styles, width int, opts *ToolRenderOpts) string {
+	cappedWidth := cappedToolWidth(width)
+	if opts.IsPending() {
+		return pendingTool(sty, "Close Agent", opts.Anim, opts.Compact)
+	}
+
+	var params struct {
+		AgentID string `json:"agent_id"`
+	}
+	_ = json.Unmarshal([]byte(opts.ToolCall.Input), &params)
+
+	var headerParams []string
+	if params.AgentID != "" {
+		headerParams = append(headerParams, params.AgentID)
+	}
+
+	return toolHeader(sty, opts.Status, "Close Agent", cappedWidth, opts.Compact, headerParams...)
+}
+
+// -----------------------------------------------------------------------------
 // Resume Agent Tool
 // -----------------------------------------------------------------------------
 

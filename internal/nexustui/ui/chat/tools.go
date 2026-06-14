@@ -290,11 +290,21 @@ func NewToolMessageItem(
 		item = NewMCPListResourcesToolMessageItem(sty, toolCall, result, canceled)
 	case "mcp_read_resource":
 		item = NewMCPReadResourceToolMessageItem(sty, toolCall, result, canceled)
+	case "spawn_agent":
+		item = NewSpawnAgentToolMessageItem(sty, toolCall, result, canceled)
+	case "send_agent_message":
+		item = NewSendAgentMessageToolMessageItem(sty, toolCall, result, canceled)
+	case "wait_agent":
+		item = NewWaitAgentToolMessageItem(sty, toolCall, result, canceled)
+	case "close_agent":
+		item = NewCloseAgentToolMessageItem(sty, toolCall, result, canceled)
 	default:
 		if IsDockerMCPTool(toolCall.Name) {
 			item = NewDockerMCPToolMessageItem(sty, toolCall, result, canceled)
 		} else if strings.HasPrefix(toolCall.Name, "mcp_") {
 			item = NewMCPToolMessageItem(sty, toolCall, result, canceled)
+		} else if strings.HasPrefix(toolCall.Name, "browser_") {
+			item = NewBrowserToolMessageItem(sty, toolCall, result, canceled)
 		} else {
 			item = NewGenericToolMessageItem(sty, toolCall, result, canceled)
 		}
