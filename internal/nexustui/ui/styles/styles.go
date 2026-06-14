@@ -374,6 +374,10 @@ type Styles struct {
 		ResultAdded   lipgloss.Style // Added file (green)
 		ResultDeleted lipgloss.Style // Deleted file (red/destructive)
 		ResultMoved   lipgloss.Style // Moved/renamed file (accent)
+
+		// Web search / web fetch
+		WebSearchURL   lipgloss.Style // Search result URL (info blue)
+		WebFetchPrompt lipgloss.Style // Fetch prompt context line (subtle)
 	}
 
 	// Dialog styles

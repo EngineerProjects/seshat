@@ -690,6 +690,8 @@ func quickStyle(o quickStyleOpts) Styles {
 	s.Tool.ResultAdded = lipgloss.NewStyle().Foreground(o.success)
 	s.Tool.ResultDeleted = lipgloss.NewStyle().Foreground(o.destructive)
 	s.Tool.ResultMoved = lipgloss.NewStyle().Foreground(o.accent)
+	s.Tool.WebSearchURL = lipgloss.NewStyle().Foreground(o.info)
+	s.Tool.WebFetchPrompt = lipgloss.NewStyle().Foreground(o.fgMostSubtle)
 
 	// Buttons
 	s.Button.Focused = lipgloss.NewStyle().Foreground(o.onPrimary).Background(o.secondary)

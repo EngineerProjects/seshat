@@ -225,8 +225,8 @@ These tools should stay visible in chat, but the transcript item should be inten
 | `list_directory` | `chat` | Done | Compact renderer: path + item count in header; dir/file list with right-aligned sizes, `+N more` truncation, expand/collapse. Entries use muted grey (`ContentText`) to match bash output style. |
 | `glob` | `chat` | Done | Compact renderer: pattern + file count in header; file path list (max 8, then `+N more`), expand/collapse. File paths use muted grey (`ContentText`). |
 | `grep` | `chat` | Done | Compact renderer: pattern (+ include filter) + file count + match count in header; `file:match` lines (max 6, then `+N more`), expand/collapse. File part uses `ContentText`, match body uses `ResultItemDesc`. |
-| `web_search` | `chat` | Planned | Keep the search visible, but prefer query + result count + top hits over raw payload. |
-| `web_fetch` | `chat` | Planned | Show URL, status, content type, and maybe short snippet; do not flood transcript. |
+| `web_search` | `chat` | Done | Header: query + `N results` count (from `additional.result_count` metadata). Body: structured hit list — number (dim) + title (`ResultItemName`) + URL (`WebSearchURL` info-blue) + description (`ResultItemDesc` dim). Max 5 hits visible; `+N more` truncation, expand/collapse. |
+| `web_fetch` | `chat` | Done | Header: URL. Body: prompt shown as a subtle `↳ …` context line (`WebFetchPrompt`), then fetched content as rendered markdown with normal truncation/expand. `WebFetchParams` now includes `Prompt` and `RenderMode` fields. |
 | `browser_open`, `browser_navigate`, `browser_select_page`, `browser_close_page` | `chat` | Planned | Navigation state changes are useful, but should be one-line or near one-line items. |
 | `browser_click`, `browser_type`, `browser_press`, `browser_scroll`, `browser_wait` | `chat` | Planned | Compact action log, not full dumps. |
 | `close_agent`, `wait_agent`, `send_agent_message` | `chat` | Planned | Compact event-style rendering unless a richer multi-agent panel supersedes it. |

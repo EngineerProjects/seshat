@@ -140,7 +140,9 @@ type FetchParams struct {
 
 // WebFetchParams holds the input for a web_fetch tool call.
 type WebFetchParams struct {
-	URL string `json:"url"`
+	URL        string `json:"url"`
+	Prompt     string `json:"prompt,omitempty"`
+	RenderMode string `json:"render_mode,omitempty"`
 }
 
 // WebSearchParams holds the input for a web_search tool call.
