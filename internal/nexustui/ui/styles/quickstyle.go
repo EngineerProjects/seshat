@@ -605,8 +605,8 @@ func quickStyle(o quickStyleOpts) Styles {
 
 	// Content rendering — explicit bgBase background prevents terminal escape-code
 	// bleeding from previously styled content while matching the page background.
-	s.Tool.ContentLine = muted.Background(o.bgBase)
-	s.Tool.ContentTruncation = muted.Background(o.bgBase)
+	s.Tool.ContentLine = subtle.Background(o.bgBase)
+	s.Tool.ContentTruncation = subtle.Background(o.bgBase)
 	s.Tool.ContentCodeLine = base.Background(o.bgBase).PaddingLeft(2)
 	s.Tool.ContentCodeTruncation = muted.Background(o.bgBase).PaddingLeft(2)
 	s.Tool.ContentCodeBg = o.bgBase

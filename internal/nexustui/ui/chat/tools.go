@@ -27,8 +27,10 @@ import (
 // responseContextHeight limits the number of lines displayed in tool output.
 const responseContextHeight = 10
 
-// toolBodyLeftPaddingTotal represents the padding that should be applied to each tool body
-const toolBodyLeftPaddingTotal = 2
+// toolBodyLeftPaddingTotal must equal sty.Tool.Body.GetPaddingLeft() so that
+// content widths passed to body renderers stay within cappedWidth after the
+// Body style adds its left padding.
+const toolBodyLeftPaddingTotal = 4
 
 // assistantMessageTruncateFormat is used in tool output and diff truncation hints.
 const assistantMessageTruncateFormat = "… (%d lines hidden) [click or space to expand]"
@@ -858,7 +860,6 @@ func toolOutputPlainContent(sty *styles.Styles, content string, width int, expan
 		if i >= maxLines {
 			break
 		}
-		ln = " " + ln
 		if lipgloss.Width(ln) > width {
 			ln = ansi.Truncate(ln, width, "…")
 		}
