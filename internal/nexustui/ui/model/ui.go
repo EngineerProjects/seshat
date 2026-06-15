@@ -2260,7 +2260,12 @@ func (m *UI) handleKeyPressMsg(msg tea.KeyPressMsg) tea.Cmd {
 				prevHeight := m.textarea.Height()
 				m.textarea.InsertRune('\n')
 				m.closeCompletions()
-				cmds = append(cmds, m.updateTextareaWithPrevHeight(msg, prevHeight))
+				// Don't pass the key msg to textarea.Update here: InsertRune already
+				// inserted the newline, and for ctrl+j the msg.Text="\n" would cause
+				// textarea.Update's default branch to insert a second newline.
+				if cmd := m.handleTextareaHeightChange(prevHeight); cmd != nil {
+					cmds = append(cmds, cmd)
+				}
 			case key.Matches(msg, m.keyMap.Editor.HistoryPrev):
 				cmd := m.handleHistoryUp(msg)
 				if cmd != nil {
@@ -2497,7 +2502,14 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 
 	if m.layout != layout {
 		m.layout = layout
+		prevHeight := m.textarea.Height()
 		m.updateSize()
+		// SetWidth can trigger recalculateHeight which may change textarea.Height.
+		// If so, regenerate the layout once with the correct height.
+		if m.textarea.Height() != prevHeight {
+			m.layout = m.generateLayout(area.Dx(), area.Dy())
+			m.updateSize()
+		}
 	}
 
 	// Clear the screen first
@@ -3357,13 +3369,13 @@ func (m *UI) completionsPosition() image.Point {
 	cur := m.textarea.Cursor()
 	if cur == nil {
 		return image.Point{
-			X: m.layout.editor.Min.X,
-			Y: m.layout.editor.Min.Y,
+			X: m.layout.editor.Min.X + 1,
+			Y: m.layout.editor.Min.Y + m.editorAttachmentsHeight(m.layout.editor.Dx()) + 1,
 		}
 	}
 	return image.Point{
-		X: cur.X + m.layout.editor.Min.X,
-		Y: m.layout.editor.Min.Y + cur.Y,
+		X: cur.X + m.layout.editor.Min.X + 1,
+		Y: cur.Y + m.layout.editor.Min.Y + m.editorAttachmentsHeight(m.layout.editor.Dx()) + 1,
 	}
 }
 
