@@ -314,6 +314,12 @@ func NewToolMessageItem(
 		item = NewMemorySearchNodesToolMessageItem(sty, toolCall, result, canceled)
 	case "memory_open_nodes":
 		item = NewMemoryOpenNodesToolMessageItem(sty, toolCall, result, canceled)
+	case "create_goal":
+		item = NewCreateGoalToolMessageItem(sty, toolCall, result, canceled)
+	case "get_goal":
+		item = NewGetGoalToolMessageItem(sty, toolCall, result, canceled)
+	case "update_goal":
+		item = NewUpdateGoalToolMessageItem(sty, toolCall, result, canceled)
 	default:
 		if IsDockerMCPTool(toolCall.Name) {
 			item = NewDockerMCPToolMessageItem(sty, toolCall, result, canceled)
