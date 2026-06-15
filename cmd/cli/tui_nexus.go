@@ -9,6 +9,7 @@ import (
 	"strings"
 
 	tea "charm.land/bubbletea/v2"
+	"github.com/EngineerProjects/nexus-engine/cmd/cli/appdir"
 	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
 	crushcommon "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
 	uimodel "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/model"
@@ -25,6 +26,9 @@ import (
 // all rendering to the copied Crush UI layer.
 func runNexusTUI(ctx context.Context, options runtimeOptions, initialSessionID string, continueLast bool) error {
 	ensureNexusTUIRuntimeRoot()
+	// Create top-level dirs and seed nexus.json skeleton on first run.
+	// Non-fatal: a missing logs/ or sessions/ dir is annoying but not fatal.
+	_ = appdir.EnsureAppDirs()
 	if err := validateProviderSetup(options); err != nil {
 		return err
 	}

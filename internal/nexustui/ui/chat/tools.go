@@ -306,6 +306,14 @@ func NewToolMessageItem(
 		item = NewWaitAgentToolMessageItem(sty, toolCall, result, canceled)
 	case "close_agent":
 		item = NewCloseAgentToolMessageItem(sty, toolCall, result, canceled)
+	case "memory_create_entities":
+		item = NewMemoryCreateEntitiesToolMessageItem(sty, toolCall, result, canceled)
+	case "memory_add_observations":
+		item = NewMemoryAddObservationsToolMessageItem(sty, toolCall, result, canceled)
+	case "memory_search_nodes":
+		item = NewMemorySearchNodesToolMessageItem(sty, toolCall, result, canceled)
+	case "memory_open_nodes":
+		item = NewMemoryOpenNodesToolMessageItem(sty, toolCall, result, canceled)
 	default:
 		if IsDockerMCPTool(toolCall.Name) {
 			item = NewDockerMCPToolMessageItem(sty, toolCall, result, canceled)

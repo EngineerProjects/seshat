@@ -331,29 +331,6 @@ Exécute ces tools dans cet ordre exact :
 Ne fais rien d'autre après l'étape 5.
 ```
 
-### 6c. Agentic Fetch — live tail avec nested tools web
-
-```
-Utilise explicitement le tool "agentic_fetch" pour cette tâche :
-
-  url: "https://go.dev/doc/effective_go"
-  prompt: "Extrais uniquement les 5 règles de nommage les plus importantes mentionnées dans ce document."
-
-→ attendu pendant l'exécution :
-  - Header "● Agentic Fetch  https://go.dev/doc/effective_go"
-  - Tag "Prompt" + texte de la requête sous le header
-  - Arbre compact des nested tools (fetch, éventuellement web_search)
-  - Section live = dernier tool complété en plein rendu
-  - Spinner ⠋
-
-→ attendu à la fin :
-  - Header avec icône ✓
-  - Arbre compact uniquement
-  - Body = les 5 règles en markdown
-
-Ne fais rien d'autre après.
-```
-
 ---
 
 ## 7. TASK TOOLS
@@ -632,4 +609,69 @@ Exécute les tools ci-dessous dans l'ordre exact, sans commenter entre les étap
     → header seul, aucun texte
 
 Ne fais rien d'autre après l'étape 11.
+```
+
+---
+
+## 14. MEMORY TOOLS
+
+Valide : `memory_create_entities`, `memory_add_observations`, `memory_search_nodes`, `memory_open_nodes`.
+
+```
+Exécute ces appels dans cet ordre exact, sans commenter entre les étapes.
+
+1. memory_create_entities — crée 3 entités :
+     entities:
+       - name: "nexus-engine"
+         entity_type: "project"
+         observations:
+           - "TUI terminal écrit en Go avec bubbletea"
+           - "Supporte les agents multi-modaux"
+       - name: "Alice"
+         entity_type: "person"
+         observations:
+           - "Développeuse principale du projet"
+       - name: "bubbletea"
+         entity_type: "library"
+   → attendu : header "✓ Create Memory  3 entities"
+   → attendu : body = liste 3 lignes :
+       nexus-engine (project) · 2 obs
+       Alice (person) · 1 ob
+       bubbletea (library)
+
+2. memory_add_observations — ajoute des observations :
+     observations:
+       - entity_name: "bubbletea"
+         contents:
+           - "Framework TUI de Charmbracelet"
+           - "Utilisé par nexus-engine pour le rendu terminal"
+       - entity_name: "Alice"
+         contents:
+           - "Préfère les interfaces en ligne de commande"
+   → attendu : header "✓ Memory Observe  2 entities"
+   → attendu : body = liste 2 lignes :
+       bubbletea · +2 observations
+       Alice · +1 observation
+
+3. memory_search_nodes — recherche par mot-clé :
+     query: "Go"
+   → attendu : header "✓ Memory Search  Go  N results" (N ≥ 1)
+   → attendu : body = liste des entités correspondantes avec leur type
+
+4. memory_search_nodes — recherche sans résultats :
+     query: "rust programming language"
+   → attendu : header "✓ Memory Search  rust programming language  no results"
+   → attendu : aucun body
+
+5. memory_open_nodes — ouvre des nœuds par nom exact :
+     names: ["nexus-engine", "Alice"]
+   → attendu : header "✓ Memory Open  2 nodes" (+ relations si présentes)
+   → attendu : body = liste 2 lignes avec nom + type + obs count
+
+6. memory_open_nodes — nom inexistant :
+     names: ["entite-inconnue-xyz"]
+   → attendu : header "✓ Memory Open  1 node  not found"
+   → attendu : aucun body
+
+Ne fais rien d'autre après l'étape 6.
 ```

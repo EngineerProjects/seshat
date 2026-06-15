@@ -260,12 +260,33 @@ func (w *NexusWorkspace) WorktreePath() string {
 
 // ─── Sessions ─────────────────────────────────────────────────────────────────
 
+// ensureSessionDirs creates sessions/{id}/ and all standard subdirectories.
+// Idempotent; errors are intentionally swallowed — the DB is the authoritative
+// store and a missing subdirectory only causes a deferred tool-level error.
+func ensureSessionDirs(sessionID string) {
+	dirs := []string{
+		runtimepath.SessionScreenshotsDir("", sessionID),
+		runtimepath.SessionArtifactsImagesDir("", sessionID),
+		runtimepath.SessionArtifactsWebDir("", sessionID),
+		runtimepath.SessionArtifactsAudioDir("", sessionID),
+		runtimepath.SessionPastesTextDir("", sessionID),
+		runtimepath.SessionPastesImagesDir("", sessionID),
+		runtimepath.SessionPastesOtherDir("", sessionID),
+		runtimepath.SessionPlansDir("", sessionID),
+		runtimepath.SessionToolsDir("", sessionID),
+	}
+	for _, d := range dirs {
+		_ = os.MkdirAll(d, 0o700)
+	}
+}
+
 func (w *NexusWorkspace) CreateSession(ctx context.Context, title string) (session.Session, error) {
 	sess, err := w.client.CreateSession(ctx)
 	if err != nil {
 		return session.Session{}, fmt.Errorf("create session: %w", err)
 	}
 	id := string(sess.GetID())
+	ensureSessionDirs(id)
 	now := time.Now().UnixMilli()
 	s := session.Session{
 		ID:        id,
@@ -364,6 +385,8 @@ func (w *NexusWorkspace) DeleteSession(_ context.Context, sessionID string) erro
 	w.msgMu.Unlock()
 
 	w.sessBroker.Publish(pubsub.DeletedEvent, s)
+	// Remove sessions/{id}/ from disk; DB cascade already cleaned up all records.
+	_ = os.RemoveAll(runtimepath.SessionDir("", sessionID))
 	return nil
 }
 
@@ -385,6 +408,7 @@ func (w *NexusWorkspace) SetCurrentSession(ctx context.Context, sessionID string
 	}
 	w.LoadSessionMessages(sessionID, sess.GetMessages())
 	w.syncSessionTodos(sessionID)
+	ensureSessionDirs(sessionID)
 	w.sessMu.Lock()
 	w.session = sess
 	w.sessMu.Unlock()
