@@ -112,9 +112,10 @@ type NexusWorkspace struct {
 	submitCancel context.CancelFunc
 
 	// Config (lazily built, mutex-guarded)
-	cfgMu  sync.Mutex
-	cfg    *config.Config
-	mcpCfg config.MCPs
+	cfgMu    sync.Mutex
+	cfg      *config.Config
+	mcpCfg   config.MCPs
+	mcpStore *config.ConfigStore
 
 	// Permission: allow-all skip flag
 	permSkip atomic.Bool
@@ -988,6 +989,14 @@ func (w *NexusWorkspace) SetMCPConfig(mcps config.MCPs) {
 	w.cfgMu.Unlock()
 }
 
+// SetMCPStore stores the full config store used for MCP operations (resource
+// reads, prompt fetches, tool refresh, Docker MCP, enable/disable).
+func (w *NexusWorkspace) SetMCPStore(store *config.ConfigStore) {
+	w.cfgMu.Lock()
+	w.mcpStore = store
+	w.cfgMu.Unlock()
+}
+
 func (w *NexusWorkspace) WorkingDir() string { return w.workDir }
 
 func (w *NexusWorkspace) Resolver() config.VariableResolver {
@@ -1145,20 +1154,112 @@ func (w *NexusWorkspace) ReadSkill(_ context.Context, _ string) ([]byte, skills.
 	return nil, skills.SkillReadResult{}, nil
 }
 
-// ─── MCP (stubs) ──────────────────────────────────────────────────────────────
+// ─── MCP ──────────────────────────────────────────────────────────────────────
 
-func (w *NexusWorkspace) MCPGetStates() map[string]mcptools.ClientInfo    { return mcptools.GetStates() }
-func (w *NexusWorkspace) MCPRefreshPrompts(_ context.Context, _ string)   {}
-func (w *NexusWorkspace) MCPRefreshResources(_ context.Context, _ string) {}
-func (w *NexusWorkspace) RefreshMCPTools(_ context.Context, _ string)     {}
-func (w *NexusWorkspace) ReadMCPResource(_ context.Context, _, _ string) ([]MCPResourceContents, error) {
-	return nil, nil
+func (w *NexusWorkspace) MCPGetStates() map[string]mcptools.ClientInfo {
+	return mcptools.GetStates()
 }
-func (w *NexusWorkspace) GetMCPPrompt(_, _ string, _ map[string]string) (string, error) {
-	return "", nil
+
+func (w *NexusWorkspace) MCPRefreshPrompts(ctx context.Context, name string) {
+	mcptools.RefreshPrompts(ctx, name)
 }
-func (w *NexusWorkspace) EnableDockerMCP(_ context.Context) error { return nil }
-func (w *NexusWorkspace) DisableDockerMCP() error                 { return nil }
+
+func (w *NexusWorkspace) MCPRefreshResources(ctx context.Context, name string) {
+	mcptools.RefreshResources(ctx, name)
+}
+
+func (w *NexusWorkspace) RefreshMCPTools(ctx context.Context, name string) {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return
+	}
+	mcptools.RefreshTools(ctx, store, name)
+}
+
+func (w *NexusWorkspace) ReadMCPResource(ctx context.Context, name, uri string) ([]MCPResourceContents, error) {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return nil, nil
+	}
+	raw, err := mcptools.ReadResource(ctx, store, name, uri)
+	if err != nil {
+		return nil, err
+	}
+	out := make([]MCPResourceContents, 0, len(raw))
+	for _, c := range raw {
+		out = append(out, MCPResourceContents{
+			URI:      c.URI,
+			MIMEType: c.MIMEType,
+			Text:     c.Text,
+			Blob:     c.Blob,
+		})
+	}
+	return out, nil
+}
+
+func (w *NexusWorkspace) GetMCPPrompt(clientID, promptID string, args map[string]string) (string, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return "", nil
+	}
+	messages, err := mcptools.GetPromptMessages(ctx, store, clientID, promptID, args)
+	if err != nil {
+		return "", err
+	}
+	return strings.Join(messages, " "), nil
+}
+
+func (w *NexusWorkspace) EnableDockerMCP(ctx context.Context) error {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return fmt.Errorf("MCP config store not initialized")
+	}
+	if err := store.EnableDockerMCP(); err != nil {
+		return err
+	}
+	return mcptools.InitializeSingle(ctx, config.DockerMCPName, store)
+}
+
+func (w *NexusWorkspace) DisableDockerMCP() error {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return nil
+	}
+	_ = mcptools.DisableSingle(store, config.DockerMCPName)
+	return store.DisableDockerMCP()
+}
+
+func (w *NexusWorkspace) EnableMCPServer(ctx context.Context, name string) error {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return fmt.Errorf("MCP config store not initialized")
+	}
+	return mcptools.InitializeSingle(ctx, name, store)
+}
+
+func (w *NexusWorkspace) DisableMCPServer(name string) error {
+	w.cfgMu.Lock()
+	store := w.mcpStore
+	w.cfgMu.Unlock()
+	if store == nil {
+		return nil
+	}
+	return mcptools.DisableSingle(store, name)
+}
 
 // ─── SDK callback receivers (called from SDK event callbacks) ─────────────────
 

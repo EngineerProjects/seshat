@@ -115,6 +115,10 @@ type (
 	ActionEnableDockerMCP struct{}
 	// ActionDisableDockerMCP is a message to disable Docker MCP.
 	ActionDisableDockerMCP struct{}
+	// ActionEnableMCPServer reconnects/enables a named MCP server from Settings.
+	ActionEnableMCPServer struct{ Name string }
+	// ActionDisableMCPServer disconnects/disables a named MCP server from Settings.
+	ActionDisableMCPServer struct{ Name string }
 	// ActionCopyLastMessage copies the user's last sent message to the clipboard.
 	ActionCopyLastMessage struct{}
 	// ActionToggleVerboseSteps toggles verbose agent step narration.

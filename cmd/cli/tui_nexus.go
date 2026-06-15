@@ -65,6 +65,7 @@ func runNexusTUI(ctx context.Context, options runtimeOptions, initialSessionID s
 	ws.SetStartupConfig(options.SQLitePath, options.PermissionMode, options.Monitoring)
 	if mcpStore, err := tuiconfig.LoadForMCP(options.WorkingDir); err == nil {
 		ws.SetMCPConfig(mcpStore.Config().MCP)
+		ws.SetMCPStore(mcpStore)
 		options.MCPServers = nexusMCPToSDK(mcpStore)
 		go mcptools.Initialize(ctx, nil, mcpStore)
 	} else if mcps := tuiconfig.LoadMCPConfig(options.WorkingDir); len(mcps) > 0 {

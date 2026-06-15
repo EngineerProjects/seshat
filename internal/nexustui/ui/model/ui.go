@@ -1711,6 +1711,10 @@ func (m *UI) handleDialogMsg(msg tea.Msg) tea.Cmd {
 	case dialog.ActionDisableDockerMCP:
 		m.dialog.CloseDialog(dialog.CommandsID)
 		cmds = append(cmds, m.disableDockerMCP)
+	case dialog.ActionEnableMCPServer:
+		cmds = append(cmds, m.enableMCPServer(msg.Name))
+	case dialog.ActionDisableMCPServer:
+		cmds = append(cmds, m.disableMCPServer(msg.Name))
 	case dialog.ActionOpenProviderConfig:
 		providerID := string(msg.Provider.ID)
 		if providerID == "bedrock" || providerID == "vertex" {
@@ -4332,6 +4336,24 @@ func (m *UI) disableDockerMCP() tea.Msg {
 	}
 
 	return util.NewInfoMsg("Docker MCP disabled successfully")
+}
+
+func (m *UI) enableMCPServer(name string) tea.Cmd {
+	return func() tea.Msg {
+		if err := m.com.Workspace.EnableMCPServer(context.Background(), name); err != nil {
+			return util.ReportError(err)()
+		}
+		return util.NewInfoMsg(fmt.Sprintf("MCP server %q reconnected", name))
+	}
+}
+
+func (m *UI) disableMCPServer(name string) tea.Cmd {
+	return func() tea.Msg {
+		if err := m.com.Workspace.DisableMCPServer(name); err != nil {
+			return util.ReportError(err)()
+		}
+		return util.NewInfoMsg(fmt.Sprintf("MCP server %q disabled", name))
+	}
 }
 
 // copyLastUserMessage copies the user's last sent message to the clipboard.

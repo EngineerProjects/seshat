@@ -488,6 +488,10 @@ func (s *Settings) handleMCPDetailKey(msg tea.KeyPressMsg) Action {
 		s.mcpDetailViewport.ScrollDown(1)
 	case key.Matches(msg, s.keyMap.Previous):
 		s.mcpDetailViewport.ScrollUp(1)
+	case msg.String() == "r":
+		return ActionEnableMCPServer{Name: s.selectedMCPName}
+	case msg.String() == "d":
+		return ActionDisableMCPServer{Name: s.selectedMCPName}
 	}
 	return nil
 }
@@ -646,7 +650,21 @@ func (s *Settings) buildMCPDetail(serverName string, width int) string {
 	}
 
 	lines = append(lines, "")
-	lines = append(lines, muted.Render("  esc or ← to go back"))
+	var hints []string
+	if hasInfo {
+		switch info.State {
+		case mcp.StateConnected:
+			hints = append(hints, "d disable")
+		case mcp.StateDisabled:
+			hints = append(hints, "r reconnect")
+		case mcp.StateError, mcp.StateStarting:
+			hints = append(hints, "r reconnect", "d disable")
+		}
+	} else {
+		hints = append(hints, "r reconnect")
+	}
+	hints = append(hints, "esc or ← back")
+	lines = append(lines, muted.Render("  "+strings.Join(hints, "  ·  ")))
 	return strings.Join(lines, "\n")
 }
 
