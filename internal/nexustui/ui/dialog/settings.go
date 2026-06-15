@@ -621,7 +621,7 @@ func (s *Settings) buildMCPDetail(serverName string, width int) string {
 
 	const namePrefix = "  › "
 	const descIndent = "    "
-	const descIndentW = 4
+	const descIndentW = 5 // 4 left + 1 right margin
 	descWrapW := width - descIndentW
 	if descWrapW < 20 {
 		descWrapW = 0
@@ -1275,9 +1275,7 @@ func (s *Settings) ShortHelp() []key.Binding {
 		bindings := []key.Binding{s.keyMap.Next}
 		states := s.com.Workspace.MCPGetStates()
 		info, hasInfo := states[s.selectedMCPName]
-		if !hasInfo || info.State != mcp.StateConnected {
-			bindings = append(bindings, s.keyMap.MCPReconnect)
-		}
+		bindings = append(bindings, s.keyMap.MCPReconnect)
 		if !hasInfo || info.State != mcp.StateDisabled {
 			bindings = append(bindings, s.keyMap.MCPDisable)
 		}
@@ -1294,10 +1292,7 @@ func (s *Settings) FullHelp() [][]key.Binding {
 	case settingsViewMCPDetail:
 		states := s.com.Workspace.MCPGetStates()
 		info, hasInfo := states[s.selectedMCPName]
-		var actions []key.Binding
-		if !hasInfo || info.State != mcp.StateConnected {
-			actions = append(actions, s.keyMap.MCPReconnect)
-		}
+		actions := []key.Binding{s.keyMap.MCPReconnect}
 		if !hasInfo || info.State != mcp.StateDisabled {
 			actions = append(actions, s.keyMap.MCPDisable)
 		}
