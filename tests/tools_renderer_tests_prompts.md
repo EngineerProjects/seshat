@@ -675,3 +675,50 @@ Exécute ces appels dans cet ordre exact, sans commenter entre les étapes.
 
 Ne fais rien d'autre après l'étape 6.
 ```
+
+---
+
+## 15. GOAL TOOLS
+
+Valide : `create_goal`, `get_goal`, `update_goal`.
+
+```
+Exécute ces appels dans cet ordre exact, sans commenter entre les étapes.
+
+1. get_goal — avant toute création (aucun goal actif)
+   → attendu : header "Goal · not set"
+   → attendu : aucun body
+
+2. create_goal — avec objectif et budget de tokens :
+     objective: "Refactoriser le système de rendu TUI pour supporter les nouveaux tools de goal, memory et agent"
+     token_budget: 8000
+   → attendu : header "Create Goal · Refactoriser le système de rendu TUI… · active"
+   → attendu : header mentionne "8000 token budget"
+   → attendu : body = "Objective: Refactoriser le système de rendu TUI…" + ligne budget
+
+3. get_goal — après création
+   → attendu : header "Goal · active · Refactoriser le système de rendu TUI…"
+   → attendu : body = lignes Objective + Budget restant
+
+4. update_goal — change le statut en paused :
+     status: "paused"
+   → attendu : header "Update Goal · paused"
+   → attendu : body = nouvelle ligne statut + budget mis à jour
+
+5. update_goal — reprend et modifie l'objectif :
+     status: "active"
+     objective: "Refactoriser le rendu TUI — phase 2 : tools de goal et memory"
+   → attendu : header "Update Goal · active"
+   → attendu : body = nouveau résumé goal
+
+6. get_goal — état final
+   → attendu : header "Goal · active · Refactoriser le rendu TUI — phase 2…"
+   → attendu : body = objective complet + ligne tokens
+
+7. update_goal — marque comme complete :
+     status: "complete"
+   → attendu : header "Update Goal · complete"
+   → attendu : body = "Goal marked complete (status: complete)…"
+
+Ne fais rien d'autre après l'étape 7.
+```

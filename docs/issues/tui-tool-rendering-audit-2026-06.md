@@ -23,9 +23,9 @@ Show a summary; hide the raw payload.
 
 | Tool(s) | State | Notes |
 |---|---|---|
-| `get_goal` | Planned | Concise status card; no raw structure. |
 | `nexus_read_skill` | Planned | Skill name + summary; not full body. |
-Done: `read_file`, `get_file_metadata`, `read_document_url`, `list_agents`, `memory_search_nodes`, `memory_open_nodes`, all `browser_*` list/capture tools (`browser_snapshot`, `browser_extract`, `browser_network_list`, `browser_list_downloads`, `browser_list_pages`, `browser_search_content`).
+
+Done: `read_file`, `get_file_metadata`, `read_document_url`, `list_agents`, `memory_search_nodes`, `memory_open_nodes`, `get_goal`, all `browser_*` list/capture tools (`browser_snapshot`, `browser_extract`, `browser_network_list`, `browser_list_downloads`, `browser_list_pages`, `browser_search_content`).
 
 ---
 
@@ -33,13 +33,12 @@ Done: `read_file`, `get_file_metadata`, `read_document_url`, `list_agents`, `mem
 
 | Tool(s) | State | Notes |
 |---|---|---|
-| `create_goal`, `update_goal` | Planned | Compact state transition cards. |
 | `nexus_list_skills`, `nexus_validate_skill` | Planned | Count/result rendering. |
 | `tool_search` | Impl | Renderer implemented; validation pending (test 11). |
 | `mcp_list_resources`, `mcp_read_resource`, `mcp_*` | Impl | Renderers implemented; validation pending (test 11). |
 | `rag_search`, `rag_ingest` | Planned | Counts and identifiers. See **Special Tools**. |
 
-Done: `list_directory`, `glob`, `grep`, `web_search`, `web_fetch`, `send_agent_message`, `wait_agent`, `close_agent`, `memory_create_entities`, `memory_add_observations`, all `browser_*` action/navigation tools.
+Done: `list_directory`, `glob`, `grep`, `web_search`, `web_fetch`, `send_agent_message`, `wait_agent`, `close_agent`, `memory_create_entities`, `memory_add_observations`, `create_goal`, `update_goal`, all `browser_*` action/navigation tools.
 
 ---
 
@@ -113,6 +112,7 @@ All tools below currently fall through to `GenericToolMessageItem`. Listed in im
 |---|---|---|
 | Test 11 — MCP & Tool Search | `tool_search`, `mcp_list_resources`, `mcp_read_resource`, `mcp_*` | Renderers implemented; test not run yet. |
 | Test 13 — Global Audit | Full renderer regression | Not run yet. |
+| Test 15 — Goal Tools | `create_goal`, `get_goal`, `update_goal` | Renderers implemented; test not run yet. |
 
 ---
 
