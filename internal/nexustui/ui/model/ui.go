@@ -3567,9 +3567,6 @@ func (m *UI) renderEditorView(width int) string {
 	}
 
 	borderColor := t.Section.Line.GetForeground()
-	if m.focus == uiFocusEditor {
-		borderColor = t.Logo.FieldColor
-	}
 	// lipgloss.Width is the total box width, including borders. The textarea
 	// itself is already sized to the inner content width in updateSize, so
 	// subtracting the border again here makes lipgloss re-wrap the textarea's
