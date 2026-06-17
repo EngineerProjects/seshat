@@ -2518,6 +2518,26 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 			m.updateSize()
 		}
 	}
+	// Always draw with the final, stable layout so the box position and the
+	// cursor offset both reference the same rect (m.layout is updated by the
+	// double-pass above; the local var may be one pass behind).
+	layout = m.layout
+
+	if os.Getenv("NEXUS_LAYOUT_DEBUG") != "" {
+		if f, err := os.OpenFile("/tmp/nexus_layout.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
+			taH := m.textarea.Height()
+			taW := m.textarea.Width()
+			fmt.Fprintf(f, "area=%v editor=%v main=%v taH=%d taW=%d state=%d\n",
+				area, layout.editor, layout.main, taH, taW, m.state)
+			if cur := m.textarea.Cursor(); cur != nil {
+				fmt.Fprintf(f, "  ta.Cursor={X:%d,Y:%d} final={X:%d,Y:%d}\n",
+					cur.X, cur.Y,
+					cur.X+m.layout.editor.Min.X+1,
+					cur.Y+m.layout.editor.Min.Y+m.editorAttachmentsHeight(m.layout.editor.Dx())+1)
+			}
+			f.Close()
+		}
+	}
 
 	// Clear the screen first
 	screen.Clear(scr)
@@ -3044,7 +3064,7 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 		).Split(appRect).Assign(&headerRect, &mainRect)
 		var editorRect image.Rectangle
 		layout.Vertical(
-			layout.Len(mainRect.Dy()-editorHeight),
+			layout.Len(max(0, mainRect.Dy()-editorHeight)),
 			layout.Fill(1),
 		).Split(mainRect).Assign(&mainRect, &editorRect)
 		// Remove extra padding from editor (but keep it for header and main)
@@ -3083,7 +3103,7 @@ func (m *UI) generateLayout(w, h int) uiLayout {
 		mainRect.Min.Y += 1
 		var editorRect image.Rectangle
 		layout.Vertical(
-			layout.Len(mainRect.Dy()-editorHeight),
+			layout.Len(max(0, mainRect.Dy()-editorHeight)),
 			layout.Fill(1),
 		).Split(mainRect).Assign(&mainRect, &editorRect)
 		mainRect.Max.X -= 1 // right padding
@@ -3192,12 +3212,15 @@ func (m *UI) setEditorPrompt(yolo bool) {
 
 // normalPromptFunc returns the normal editor prompt style.
 // First line shows "  > " (focused) or "    " (blurred).
-// Subsequent lines show "    " (blank, same width as prompt).
+// Subsequent lines show "  │ " so wrapped text is visually aligned with line 1.
 func (m *UI) normalPromptFunc(info textarea.PromptInfo) string {
-	if info.LineNumber == 0 && info.Focused {
-		return "  > "
+	if info.LineNumber == 0 {
+		if info.Focused {
+			return "  > "
+		}
+		return "    "
 	}
-	return "    "
+	return "  │ "
 }
 
 // yoloPromptFunc returns the yolo mode editor prompt style with warning icon
@@ -3456,7 +3479,11 @@ func (m *UI) renderEditorView(width int) string {
 	if m.focus == uiFocusEditor {
 		borderColor = t.Logo.FieldColor
 	}
-	boxWidth := max(10, width-2)
+	// lipgloss.Width is the total box width, including borders. The textarea
+	// itself is already sized to the inner content width in updateSize, so
+	// subtracting the border again here makes lipgloss re-wrap the textarea's
+	// rendered lines two cells too early.
+	boxWidth := max(10, width)
 	box := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
 		BorderForeground(borderColor).
