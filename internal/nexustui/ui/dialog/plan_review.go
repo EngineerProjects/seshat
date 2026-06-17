@@ -196,6 +196,7 @@ func (p *PlanReview) AddSubmission(submission planreview.Submission) {
 	p.editorMode = planReviewModeView
 	p.input.SetValue("")
 	p.input.Blur()
+	p.viewport.SetYOffset(0)
 	p.viewportDirty = true
 	p.ensureSelectionInBounds()
 }

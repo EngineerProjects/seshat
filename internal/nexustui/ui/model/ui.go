@@ -4020,13 +4020,17 @@ func formatPlanReviewResponse(review planreview.Review) string {
 		b.WriteString("\n\n")
 	}
 	if comments := review.SortedLineComments(); len(comments) > 0 {
+		lines := strings.Split(strings.ReplaceAll(review.Submission.Content, "\r\n", "\n"), "\n")
 		b.WriteString("Line comments:\n")
 		for _, comment := range comments {
 			b.WriteString(fmt.Sprintf("- line %d: %s\n", comment.Line, comment.Comment))
+			if comment.Line >= 1 && comment.Line <= len(lines) {
+				b.WriteString(fmt.Sprintf("  (current content: %s)\n", strings.TrimSpace(lines[comment.Line-1])))
+			}
 		}
 		b.WriteString("\n")
 	}
-	b.WriteString("Please revise the plan and submit an updated version with submit_plan.")
+	b.WriteString(fmt.Sprintf("Revise the plan and call submit_plan with plan_id=%q to update it (do NOT omit plan_id or a new plan will be created instead of updating this one).", review.Submission.PlanID))
 	return strings.TrimSpace(b.String())
 }
 
