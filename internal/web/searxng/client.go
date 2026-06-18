@@ -90,6 +90,16 @@ func NewClientWithURL(rawURL string) *Client {
 	return c
 }
 
+// NewClientWithURLAndAuth creates a Client with an explicit base URL and Basic Auth credentials.
+// username and password are empty strings when no auth is needed.
+func NewClientWithURLAndAuth(rawURL, username, password string) *Client {
+	c := NewClientWithURL(rawURL)
+	if username != "" && password != "" {
+		c.auth = base64.StdEncoding.EncodeToString([]byte(username + ":" + password))
+	}
+	return c
+}
+
 // NewClientForTest creates a minimal Client with a custom http.RoundTripper.
 // Intended for unit tests only; skips env-var reading for transport/auth.
 func NewClientForTest(rawURL string, transport http.RoundTripper) *Client {

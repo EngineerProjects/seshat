@@ -29,6 +29,12 @@ func NewSearXNGProviderWithBaseURL(baseURL string) *SearXNGProvider {
 	return &SearXNGProvider{client: searxng.NewClientWithURL(baseURL)}
 }
 
+// NewSearXNGProviderWithConfig creates a provider with explicit URL and optional Basic Auth credentials.
+// username and password are empty when the SearXNG instance has no HTTP Basic Auth.
+func NewSearXNGProviderWithConfig(baseURL, username, password string) *SearXNGProvider {
+	return &SearXNGProvider{client: searxng.NewClientWithURLAndAuth(baseURL, username, password)}
+}
+
 func (p *SearXNGProvider) Name() string { return "searxng" }
 
 func (p *SearXNGProvider) IsConfigured() bool { return p.client.IsConfigured() }
