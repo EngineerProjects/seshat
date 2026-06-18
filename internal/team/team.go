@@ -1,4 +1,4 @@
-package agent
+package team
 
 import (
 	"context"
@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/EngineerProjects/nexus-engine/internal/agent"
 	"github.com/EngineerProjects/nexus-engine/internal/db"
 	"github.com/google/uuid"
 )
@@ -46,16 +47,16 @@ func NewTeam(name, description string) Team {
 var ErrTeamNotFound = db.ErrTeamNotFound
 
 // TeamRegistry stores and retrieves Team records backed by SQLite.
-// Member assignment is done via the same DB so agent_profiles.team_id stays
-// consistent without needing a separate join table.
+// Member assignment updates AgentProfile.TeamID directly so the mailbox
+// routing keys stay consistent without a separate join table.
 type TeamRegistry struct {
 	db       *db.DB
-	profiles *ProfileRegistry
+	profiles *agent.ProfileRegistry
 }
 
 // NewTeamRegistry creates a TeamRegistry wired to the given DB and profile
 // registry (used for member queries and assignment).
-func NewTeamRegistry(database *db.DB, profiles *ProfileRegistry) *TeamRegistry {
+func NewTeamRegistry(database *db.DB, profiles *agent.ProfileRegistry) *TeamRegistry {
 	return &TeamRegistry{db: database, profiles: profiles}
 }
 
@@ -121,15 +122,15 @@ func (r *TeamRegistry) List(ctx context.Context) ([]Team, error) {
 }
 
 // Delete removes the team record. Agent profiles that reference this team's ID
-// keep their TeamID field — callers should RemoveMember each agent first if
-// they want a clean disband.
+// keep their TeamID field — callers should RemoveMember each agent first when
+// disbanding cleanly.
 func (r *TeamRegistry) Delete(ctx context.Context, id string) error {
 	return r.db.DeleteTeam(ctx, id)
 }
 
-// AddMember assigns an agent to this team by setting AgentProfile.TeamID.
-// An agent can belong to at most one team at a time; calling AddMember again
-// with a different teamID re-assigns the agent.
+// AddMember assigns an agent to this team by updating AgentProfile.TeamID.
+// An agent belongs to at most one team; re-calling with a different teamID
+// moves the agent.
 func (r *TeamRegistry) AddMember(ctx context.Context, teamID, agentID string) error {
 	if teamID == "" {
 		return errors.New("teamID must not be empty")
@@ -140,8 +141,7 @@ func (r *TeamRegistry) AddMember(ctx context.Context, teamID, agentID string) er
 	return r.db.SetProfileTeam(ctx, agentID, teamID)
 }
 
-// RemoveMember clears AgentProfile.TeamID for the given agent, leaving it
-// without a team.
+// RemoveMember clears AgentProfile.TeamID for the given agent.
 func (r *TeamRegistry) RemoveMember(ctx context.Context, agentID string) error {
 	if agentID == "" {
 		return errors.New("agentID must not be empty")
@@ -150,7 +150,7 @@ func (r *TeamRegistry) RemoveMember(ctx context.Context, agentID string) error {
 }
 
 // Members returns all AgentProfiles currently assigned to the given team.
-func (r *TeamRegistry) Members(ctx context.Context, teamID string) ([]AgentProfile, error) {
+func (r *TeamRegistry) Members(ctx context.Context, teamID string) ([]agent.AgentProfile, error) {
 	return r.profiles.FindByTeam(ctx, teamID)
 }
 
