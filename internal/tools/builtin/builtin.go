@@ -9,7 +9,6 @@ import (
 	fsTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/fs"
 	globTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/glob"
 	grepTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/grep"
-	notebookTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/notebook"
 	patchTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/patch"
 	fileReadTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/read"
 	readURLTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/read_url"
@@ -18,6 +17,7 @@ import (
 	financialTool "github.com/EngineerProjects/nexus-engine/internal/tools/math/financial"
 	statisticsTool "github.com/EngineerProjects/nexus-engine/internal/tools/math/statistics"
 	unitsTool "github.com/EngineerProjects/nexus-engine/internal/tools/math/units"
+	notebookTool "github.com/EngineerProjects/nexus-engine/internal/tools/notebook"
 	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
 	agentsTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/agents"
 	askUserQuestionTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/ask_user"
@@ -95,9 +95,13 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		fsTool.NewGetMetadataTool(config.WorkingDir),
 		fsTool.NewListDirectoryTool(config.WorkingDir),
 		fsTool.NewRemoveTool(config.WorkingDir),
-		notebookTool.NewEditTool(),
 		notebookTool.NewCreateTool(),
+		notebookTool.NewReadTool(),
 		notebookTool.NewWriteTool(),
+		notebookTool.NewEditTool(),
+		notebookTool.NewExecuteTool(),
+		notebookTool.NewRunTool(),
+		notebookTool.NewKernelTool(),
 		askUserQuestionTool.NewTool(askUserConfig),
 		webfetchTool.NewTool(webFetchConfig),
 		webSearchTool.NewTool(),
