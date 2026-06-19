@@ -80,7 +80,9 @@ func (ch *Channel) Execute(ctx context.Context, code string, timeout time.Durati
 		if remaining <= 0 {
 			return outputs, fmt.Errorf("execution timeout after %s", timeout)
 		}
-		ch.conn.SetReadDeadline(time.Now().Add(remaining))
+		if err := ch.conn.SetReadDeadline(time.Now().Add(remaining)); err != nil {
+			return outputs, fmt.Errorf("set read deadline: %w", err)
+		}
 
 		var msg jupyterMessage
 		if err := ch.conn.ReadJSON(&msg); err != nil {
@@ -139,10 +141,8 @@ func (ch *Channel) Execute(ctx context.Context, code string, timeout time.Durati
 			return outputs, nil
 
 		case "status":
-			var c statusContent
-			if err := json.Unmarshal(msg.Content, &c); err == nil && c.ExecutionState == "idle" {
-				// If we haven't seen execute_reply yet keep reading — it may follow.
-			}
+			// idle signals the kernel finished, but execute_reply is the authoritative
+			// completion message — keep reading until we see it.
 		}
 
 		if ctx.Err() != nil {
