@@ -19,6 +19,8 @@ import (
 	unitsTool "github.com/EngineerProjects/nexus-engine/internal/tools/math/units"
 	notebookTool "github.com/EngineerProjects/nexus-engine/internal/tools/notebook"
 	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
+	devtoTool "github.com/EngineerProjects/nexus-engine/internal/tools/social/devto"
+	hnTool "github.com/EngineerProjects/nexus-engine/internal/tools/social/hackernews"
 	agentsTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/agents"
 	askUserQuestionTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/ask_user"
 	fimtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/fim"
@@ -163,6 +165,15 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		agentsTool.NewSendAgentMessageTool(),
 		agentsTool.NewCloseAgentTool(),
 		// agentTool (synchronous): registered separately in sdk/client.go after engine creation.
+
+		// Social / community tools (fully implemented, no auth required)
+		hnTool.NewSearchTool(),
+		hnTool.NewStoriesTool(),
+		hnTool.NewItemTool(),
+		devtoTool.NewFeedTool(),
+		devtoTool.NewArticleTool(),
+		devtoTool.NewPublishTool(),
+		// Reddit, Twitter, LinkedIn, WhatsApp: stubs disabled until implemented (IsEnabled=false)
 	}
 
 	for _, builtinTool := range tools {
