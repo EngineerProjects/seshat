@@ -22,7 +22,12 @@ import (
 	devtoTool "github.com/EngineerProjects/nexus-engine/internal/tools/social/devto"
 	hnTool "github.com/EngineerProjects/nexus-engine/internal/tools/social/hackernews"
 	agentsTool "github.com/EngineerProjects/nexus-engine/internal/tools/agents"
+	gitTool "github.com/EngineerProjects/nexus-engine/internal/tools/git"
 	multimediaTool "github.com/EngineerProjects/nexus-engine/internal/tools/multimedia"
+	discordTool "github.com/EngineerProjects/nexus-engine/internal/tools/notifications/discord"
+	emailTool "github.com/EngineerProjects/nexus-engine/internal/tools/notifications/email"
+	slackTool "github.com/EngineerProjects/nexus-engine/internal/tools/notifications/slack"
+	telegramTool "github.com/EngineerProjects/nexus-engine/internal/tools/notifications/telegram"
 	askUserQuestionTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/ask_user"
 	fimtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/fim"
 	goalTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/goal"
@@ -162,6 +167,19 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		agentsTool.NewSendAgentMessageTool(),
 		agentsTool.NewCloseAgentTool(),
 		// agentTool (synchronous): registered separately in sdk/client.go after engine creation.
+
+		// VCS — git tools (stubs, IsEnabled=false until implemented via os/exec)
+		gitTool.NewStatusTool(),
+		gitTool.NewLogTool(),
+		gitTool.NewDiffTool(),
+		gitTool.NewCommitTool(),
+		gitTool.NewBranchTool(),
+
+		// Notifications — messaging platforms (stubs, IsEnabled=false until implemented)
+		slackTool.NewSendTool(),
+		discordTool.NewSendTool(),
+		telegramTool.NewSendTool(),
+		emailTool.NewSendTool(),
 
 		// Social / community tools (fully implemented, no auth required)
 		hnTool.NewSearchTool(),
