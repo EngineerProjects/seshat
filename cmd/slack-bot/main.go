@@ -120,15 +120,7 @@ func main() {
 		maxTokens = 8192
 	}
 
-	slackPrompt := `You are Nexus, an AI assistant integrated into Slack via the Nexus Engine runtime.
-
-Rules:
-- PERSISTENT conversation: each channel has one continuous session — prior messages are in your context.
-- NEVER repeat a search you already ran in this conversation. Use existing results from your context.
-- Be concise. Slack has a 3000-character limit — prefer bullet points over long prose.
-- "based on that" / "from this" refers to your previous response in this channel.
-- You have access to all Nexus tools: web search, file ops, memory, sub-agents, MCP servers.
-- Long-term memory is active: facts about users and projects are remembered across sessions.`
+	sysPrompt := buildSlackSystemPrompt()
 
 	nexusClient, err := sdk.NewClient(&sdk.ClientConfig{
 		APIKey:            apiKey,
@@ -143,7 +135,7 @@ Rules:
 		MCPServers:        mcpServers,
 		LongTermMemory:    ltMemory,
 		PromptConfig: &sdk.PromptConfig{
-			AppendSystemPrompt: &slackPrompt,
+			SystemPrompt: &sysPrompt,
 		},
 		OnSessionTitled: func(id sdk.SessionID, title string) {
 			log.Printf("[nexus-bot] session %s titled: %s", id, title)
