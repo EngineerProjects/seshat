@@ -163,6 +163,20 @@ func main() {
 	defer nexusClient.Close()
 	b.nexus = nexusClient
 
+	// Register the slack_search tool (Real-Time Search API).
+	// Prefers a user token (NEXUS_SLACK_USER_TOKEN) which avoids the action_token
+	// requirement. Falls back to the bot token for public-channel content.
+	searchAPI := b.api
+	if userToken := os.Getenv("NEXUS_SLACK_USER_TOKEN"); userToken != "" {
+		searchAPI = slackgo.New(userToken)
+		log.Printf("[nexus-bot] slack_search: using user token for Real-Time Search API")
+	} else {
+		log.Printf("[nexus-bot] slack_search: using bot token (set NEXUS_SLACK_USER_TOKEN for full access)")
+	}
+	if err := nexusClient.RegisterTool(&slackSearchTool{api: searchAPI}); err != nil {
+		log.Printf("[nexus-bot] warning: slack_search registration failed: %v", err)
+	}
+
 	sm := socketmode.New(b.api)
 
 	ctx, cancel := context.WithCancel(context.Background())

@@ -16,9 +16,12 @@ const promptTimeout = 5 * time.Minute
 type channelCtxKey struct{}
 
 // channelCtxVal carries the channel and thread TS through the tool-call context.
+// ActionToken is set when the bot operates as a Slack AI assistant and receives
+// an action token from assistant_thread events — used by slack_search.
 type channelCtxVal struct {
-	Channel  string
-	ThreadTS string
+	Channel     string
+	ThreadTS    string
+	ActionToken string
 }
 
 // makeSlackPromptFn returns a PromptFn that routes ask_user_question calls to
