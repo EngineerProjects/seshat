@@ -72,9 +72,11 @@ type bot struct {
 }
 
 func main() {
-	// Pin runtime root to nexus-cli config dir, same as cmd/cli.
+	// Give the bot its own isolated runtime root so session artifacts,
+	// cache, and logs go to ~/.config/nexus-slack/ and don't mix with
+	// the CLI's ~/.config/nexus-cli/.
 	if os.Getenv(runtimepath.EnvRuntimeRoot) == "" {
-		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("nexus-cli"))
+		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("nexus-slack"))
 	}
 
 	botToken := mustEnv("NEXUS_SLACK_BOT_TOKEN")
@@ -548,8 +550,22 @@ func resolveModel(cfg engineconfig.Config) sdk.ModelIdentifier {
 }
 
 // loadMCPServers reads MCP configs and converts them to sdk.MCPServerConfig.
+// It loads from the bot runtime root (NEXUS_RUNTIME_ROOT = ~/.config/nexus-slack/)
+// and falls back to the CLI config (~/.config/nexus-cli/mcp.json) so users
+// don't have to duplicate their MCP setup for the bot.
 func loadMCPServers(cwd string) []sdk.MCPServerConfig {
 	result := mcp.LoadMcpConfigs(cwd)
+
+	// Pull in the CLI's mcp.json for servers not already defined in the bot config.
+	cliMcpPath := filepath.Join(runtimepath.DefaultConfigDir("nexus-cli"), "mcp.json")
+	if cliCfg, _ := mcp.ParseMcpConfigFromFile(cliMcpPath); len(cliCfg.MCPServers) > 0 {
+		for name, srv := range cliCfg.MCPServers {
+			if _, exists := result.Servers[name]; !exists {
+				result.Servers[name] = mcp.ScopedMcpServerConfig{McpServerConfig: srv}
+			}
+		}
+	}
+
 	var servers []sdk.MCPServerConfig
 	for name, scoped := range result.Servers {
 		cfg := scoped.McpServerConfig
@@ -580,20 +596,15 @@ func nexusDBPath() string {
 	if p := os.Getenv("NEXUS_SLACK_DB_PATH"); p != "" {
 		return p
 	}
-	return filepath.Join(slackDataDir(), "sessions.db")
+	return runtimepath.Join("", "sessions.db")
 }
 
 func memoryDBPath() string {
-	return filepath.Join(slackDataDir(), "memory.db")
+	return runtimepath.Join("", "memory.db")
 }
 
 func channelWorkdir(channelID string) string {
-	return filepath.Join(slackDataDir(), "workspaces", channelID)
-}
-
-func slackDataDir() string {
-	home, _ := os.UserHomeDir()
-	return filepath.Join(home, ".config", "nexus-slack")
+	return runtimepath.Join("", "workspaces", channelID)
 }
 
 func workdir() string {
