@@ -44,7 +44,7 @@ build-slack-bot:
 	go build -o bin/nexus-slack $(CMD_SLACK_BOT)
 
 slack-bot:
-	@export $$(grep -v '^#' private/.env.dev | xargs) && \
+	@export $$(grep -v '^#' private/.env.slack | xargs) && \
 	go run $(CMD_SLACK_BOT)
 
 build_linux:

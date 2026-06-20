@@ -69,6 +69,11 @@ type bot struct {
 	// callbackMu serialises SetResponseChunkFn / SetRuntimeEventFn so concurrent
 	// channel messages don't overwrite each other's per-request callbacks.
 	callbackMu sync.Mutex
+
+	// pendingMu guards pending and textPending — used by the Slack PromptFn.
+	pendingMu   sync.Mutex
+	pending     map[string]chan string // blockID → result (button clicks)
+	textPending map[string]chan string // "channel:threadTS" → result (thread replies)
 }
 
 func main() {
@@ -124,6 +129,14 @@ func main() {
 
 	sysPrompt := buildSlackSystemPrompt()
 
+	// b is used by PromptFn below; build it first then assign nexusClient.
+	b := &bot{
+		api:         slackgo.New(botToken, slackgo.OptionAppLevelToken(appToken)),
+		sessions:    make(map[string]sdk.SessionID),
+		pending:     make(map[string]chan string),
+		textPending: make(map[string]chan string),
+	}
+
 	nexusClient, err := sdk.NewClient(&sdk.ClientConfig{
 		APIKey:            apiKey,
 		Model:             model,
@@ -136,6 +149,7 @@ func main() {
 		ProviderConfig:    providerCfg,
 		MCPServers:        mcpServers,
 		LongTermMemory:    ltMemory,
+		PromptFn:          b.makeSlackPromptFn(),
 		PromptConfig: &sdk.PromptConfig{
 			SystemPrompt: &sysPrompt,
 		},
@@ -147,15 +161,9 @@ func main() {
 		log.Fatalf("[nexus-bot] nexus client: %v", err)
 	}
 	defer nexusClient.Close()
+	b.nexus = nexusClient
 
-	api := slackgo.New(botToken, slackgo.OptionAppLevelToken(appToken))
-	sm := socketmode.New(api)
-
-	b := &bot{
-		nexus:    nexusClient,
-		api:      api,
-		sessions: make(map[string]sdk.SessionID),
-	}
+	sm := socketmode.New(b.api)
 
 	ctx, cancel := context.WithCancel(context.Background())
 	defer cancel()
@@ -197,6 +205,16 @@ func (b *bot) handleEvents(ctx context.Context, sm *socketmode.Client) {
 				}
 				b.dispatch(ctx, ev)
 
+			case socketmode.EventTypeInteractive:
+				callback, ok := evt.Data.(slackgo.InteractionCallback)
+				if !ok || evt.Request == nil {
+					continue
+				}
+				if err := sm.Ack(*evt.Request); err != nil {
+					log.Printf("[nexus-bot] ack error (interactive): %v", err)
+				}
+				b.handleInteraction(callback)
+
 			default:
 				if evt.Request != nil {
 					if err := sm.Ack(*evt.Request); err != nil {
@@ -218,14 +236,41 @@ func (b *bot) dispatch(ctx context.Context, ev slackevents.EventsAPIEvent) {
 		if replyTS == "" {
 			replyTS = inner.TimeStamp
 		}
+		// If a text prompt is waiting for a reply in this thread, route to it.
+		threadKey := inner.Channel + ":" + replyTS
+		b.pendingMu.Lock()
+		textCh, waiting := b.textPending[threadKey]
+		b.pendingMu.Unlock()
+		if waiting {
+			select {
+			case textCh <- stripMention(inner.Text):
+			default:
+			}
+			return
+		}
 		go b.onMessage(ctx, inner.Channel, replyTS, inner.Text)
 
 	case *slackevents.MessageEvent:
 		if inner.BotID != "" || inner.SubType != "" {
 			return
 		}
+		replyTS := inner.ThreadTimeStamp
+		if replyTS == "" {
+			replyTS = inner.TimeStamp
+		}
+		threadKey := inner.Channel + ":" + replyTS
+		b.pendingMu.Lock()
+		textCh, waiting := b.textPending[threadKey]
+		b.pendingMu.Unlock()
+		if waiting {
+			select {
+			case textCh <- stripMention(inner.Text):
+			default:
+			}
+			return
+		}
 		if ev.InnerEvent.Type == "message" {
-			go b.onMessage(ctx, inner.Channel, inner.TimeStamp, inner.Text)
+			go b.onMessage(ctx, inner.Channel, replyTS, inner.Text)
 		}
 	}
 }
@@ -307,8 +352,14 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 		}
 	}()
 
+	// Inject channel context so the Slack PromptFn knows where to post questions.
+	msgCtx := context.WithValue(ctx, channelCtxKey{}, channelCtxVal{
+		Channel:  channel,
+		ThreadTS: replyTS,
+	})
+
 	t0 := time.Now()
-	resp, err := session.SubmitMessage(ctx, query)
+	resp, err := session.SubmitMessage(msgCtx, query)
 
 	close(done)
 	b.callbackMu.Lock()
