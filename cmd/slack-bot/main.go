@@ -302,8 +302,6 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 	// ── Live callbacks ─────────────────────────────────────────────────────────
 	b.callbackMu.Lock()
 	state := &requestState{}
-	var artifactsMu sync.Mutex
-	var artifactPaths []string // browser screenshots collected during the turn
 
 	b.nexus.SetResponseChunkFn(func(chunk sdk.ResponseChunk) {
 		if chunk.Delta != "" {
@@ -331,13 +329,6 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 		case sdk.RuntimeEventTypeExecutionModeChanged:
 			if evt.ExecutionMode == "execute" {
 				state.setStatus("⚡ _Executing plan..._")
-			}
-
-		case sdk.RuntimeEventTypeBrowserScreenshot:
-			if evt.Browser != nil && evt.Browser.PersistedPath != "" {
-				artifactsMu.Lock()
-				artifactPaths = append(artifactPaths, evt.Browser.PersistedPath)
-				artifactsMu.Unlock()
 			}
 		}
 	})
@@ -414,11 +405,8 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 		}
 	}
 
-	// Upload files created during this turn (workdir + session artifacts + screenshots).
-	artifactsMu.Lock()
-	collected := append([]string(nil), artifactPaths...)
-	artifactsMu.Unlock()
-	go b.uploadTurnArtifacts(ctx, channel, replyTS, session.GetID(), startTime, collected)
+	// Upload files produced during this turn (workspace + generated images/audio).
+	go b.uploadTurnArtifacts(ctx, channel, replyTS, session.GetID(), startTime)
 }
 
 func (b *bot) getOrCreateSession(ctx context.Context, channelID string) (*sdk.Session, error) {
@@ -442,18 +430,19 @@ func (b *bot) getOrCreateSession(ctx context.Context, channelID string) (*sdk.Se
 		return nil, err
 	}
 
-	// Give each channel its own working directory so file operations
-	// between channels don't interfere with each other.
-	channelDir := channelWorkdir(channelID)
-	if mkErr := os.MkdirAll(channelDir, 0o755); mkErr == nil {
-		s.SetWorkingDirectory(channelDir)
+	// Each session gets its own workspace inside the session dir.
+	// This keeps the agent's file work co-located with the session and makes
+	// cleanup trivial (os.RemoveAll(sessions/{id}/)).
+	workspace := sessionWorkspaceDir(s.GetID())
+	if mkErr := os.MkdirAll(workspace, 0o755); mkErr == nil {
+		s.SetWorkingDirectory(workspace)
 	}
 
 	b.mu.Lock()
 	b.sessions[channelID] = s.GetID()
 	b.mu.Unlock()
 
-	log.Printf("[nexus-bot] new session %s for channel %s (workdir: %s)", s.GetID(), channelID, channelDir)
+	log.Printf("[nexus-bot] new session %s for channel %s workspace: %s", s.GetID(), channelID, workspace)
 	return s, nil
 }
 
@@ -686,10 +675,6 @@ func nexusDBPath() string {
 
 func memoryDBPath() string {
 	return runtimepath.Join("", "memory.db")
-}
-
-func channelWorkdir(channelID string) string {
-	return runtimepath.Join("", "workspaces", channelID)
 }
 
 func workdir() string {

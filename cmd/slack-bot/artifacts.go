@@ -17,17 +17,26 @@ import (
 
 const maxUploadBytes = 10 * 1024 * 1024 // 10 MB
 
-// uploadTurnArtifacts uploads files created or modified during the current turn
-// to the Slack thread. It scans:
-//   - the per-channel working directory (agent-produced files)
-//   - the session artifacts directory (browser screenshots, etc.)
-//   - any paths collected explicitly via RuntimeEventFn (extraPaths)
+// sessionWorkspaceDir returns the per-session working directory where the agent
+// organises files and produces deliverables. Lives inside the session dir so
+// the entire session (workspace + artifacts + logs) can be cleaned up together.
+func sessionWorkspaceDir(sessionID sdk.SessionID) string {
+	return filepath.Join(runtimepath.SessionDir("", string(sessionID)), "workspace")
+}
+
+// uploadTurnArtifacts uploads files produced during the current turn to the
+// Slack thread. Only user-relevant output is uploaded:
+//   - session workspace (agent-created files, reports, code, etc.)
+//   - artifacts/images (AI-generated images)
+//   - artifacts/audio  (TTS output)
+//
+// Browser screenshots, web-scraping cache, plan files, pastes and logs are
+// intentionally excluded — they are operational artefacts, not deliverables.
 func (b *bot) uploadTurnArtifacts(
 	ctx context.Context,
 	channel, replyTS string,
 	sessionID sdk.SessionID,
 	startTime time.Time,
-	extraPaths []string,
 ) {
 	seen := make(map[string]bool)
 	var toUpload []string
@@ -47,38 +56,32 @@ func (b *bot) uploadTurnArtifacts(
 		toUpload = append(toUpload, path)
 	}
 
-	// Extra paths collected from RuntimeEventFn (e.g. browser screenshots).
-	for _, p := range extraPaths {
-		collect(p)
+	scanDir := func(dir string) {
+		_ = filepath.WalkDir(dir, func(path string, d fs.DirEntry, err error) error {
+			if err != nil || d.IsDir() {
+				return nil
+			}
+			info, err2 := d.Info()
+			if err2 != nil || !info.ModTime().After(startTime) {
+				return nil
+			}
+			collect(path)
+			return nil
+		})
 	}
 
-	// Scan channel workdir for files created during this turn.
-	workdir := channelWorkdir(channel)
-	_ = filepath.WalkDir(workdir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-		info, err2 := d.Info()
-		if err2 != nil || !info.ModTime().After(startTime) {
-			return nil
-		}
-		collect(path)
-		return nil
-	})
+	sid := string(sessionID)
 
-	// Scan session artifacts directory (screenshots, downloaded files, etc.).
-	artifactsDir := runtimepath.SessionArtifactsDir("", string(sessionID))
-	_ = filepath.WalkDir(artifactsDir, func(path string, d fs.DirEntry, err error) error {
-		if err != nil || d.IsDir() {
-			return nil
-		}
-		info, err2 := d.Info()
-		if err2 != nil || !info.ModTime().After(startTime) {
-			return nil
-		}
-		collect(path)
-		return nil
-	})
+	// Agent workspace — primary deliverable area.
+	scanDir(sessionWorkspaceDir(sessionID))
+
+	// Generated images (DALL-E, Stable Diffusion, etc.).
+	scanDir(runtimepath.SessionArtifactsImagesDir("", sid))
+
+	// TTS audio output.
+	scanDir(runtimepath.SessionArtifactsAudioDir("", sid))
+
+	// screenshots, web cache, plans, pastes, session.log → excluded
 
 	for _, path := range toUpload {
 		if err := b.uploadFile(ctx, channel, replyTS, path); err != nil {
