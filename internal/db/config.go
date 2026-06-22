@@ -18,7 +18,7 @@ type Config struct {
 }
 
 // DefaultSQLiteConfig returns a pragmatic default SQLite configuration for
-// local Nexus persistence.
+// local Seshat persistence.
 func DefaultSQLiteConfig(path string) Config {
 	return Config{
 		Driver:        DriverSQLite,

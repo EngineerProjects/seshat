@@ -49,7 +49,7 @@ type runtimeOptions struct {
 	Monitoring *sdk.MonitoringSystem
 
 	// MCPServers are the MCP server configs to wire into the SDK client so
-	// the agent can call MCP tools. Populated from nexus.json before newClient().
+	// the agent can call MCP tools. Populated from seshat.json before newClient().
 	MCPServers []sdk.MCPServerConfig
 
 	ImageGeneration *sdk.ImageGenerationConfig

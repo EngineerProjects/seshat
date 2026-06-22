@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-const nexusTracerName = "seshat"
+const seshatTracerName = "seshat"
 
 // InitTracer initialises the global OTel tracer provider.
 //
@@ -57,9 +57,9 @@ func InitTracer(ctx context.Context, serviceName string) (shutdown func(context.
 	return tp.Shutdown, nil
 }
 
-// Tracer returns the global named tracer for Nexus Engine.
+// Tracer returns the global named tracer for Seshat.
 // Safe to call before InitTracer — returns a no-op tracer until the provider
 // is initialised.
 func Tracer() trace.Tracer {
-	return otel.Tracer(nexusTracerName)
+	return otel.Tracer(seshatTracerName)
 }

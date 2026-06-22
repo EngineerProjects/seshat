@@ -13,7 +13,7 @@ import (
 	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
-// DefaultPlansDirectory is the default location for plan files (~/.config/nexus/plans/).
+// DefaultPlansDirectory is the default location for plan files (~/.config/seshat/plans/).
 var DefaultPlansDirectory = runtimepath.PlansDir("")
 
 // State represents the current plan mode state for a session.

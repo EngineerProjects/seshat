@@ -38,7 +38,7 @@ type ModeCache[S any] struct {
 }
 
 // NewModeCache creates a new ModeCache.
-// subDir is the path relative to cwd (e.g. ".nexus/plans").
+// subDir is the path relative to cwd (e.g. ".seshat/plans").
 // newState returns a fresh zero state for new sessions.
 func NewModeCache[S any](subDir string, newState func() *S) *ModeCache[S] {
 	return &ModeCache[S]{
@@ -114,7 +114,7 @@ func (c *ModeCache[S]) GetDirectory() string {
 		path = filepath.Join(cwd, c.subDir)
 	}
 	if err := os.MkdirAll(path, 0755); err != nil {
-		path = filepath.Join(os.TempDir(), "nexus", filepath.Base(c.subDir))
+		path = filepath.Join(os.TempDir(), "seshat", filepath.Base(c.subDir))
 		_ = os.MkdirAll(path, 0755)
 	}
 	c.dir = path

@@ -1906,7 +1906,7 @@ func TestBuildRequestBodyUsesProviderModelName(t *testing.T) {
 		t.Fatalf("expected provider-facing model %q, got %#v", req.Model.ProviderModelName(), got)
 	}
 	if got := payload["model"]; got == req.Model.String() {
-		t.Fatalf("request model must not use Nexus-qualified name %q", req.Model.String())
+		t.Fatalf("request model must not use Seshat-qualified name %q", req.Model.String())
 	}
 }
 

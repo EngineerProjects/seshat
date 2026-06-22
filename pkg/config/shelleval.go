@@ -46,7 +46,7 @@ func expandField(s string) string {
 		inner := match[2 : len(match)-1]
 		result, err := runShell(inner)
 		if err != nil {
-			fmt.Fprintf(os.Stderr, "nexus: shell eval failed for %q: %v\n", inner, err)
+			fmt.Fprintf(os.Stderr, "seshat: shell eval failed for %q: %v\n", inner, err)
 			return match // leave original on failure
 		}
 		return result

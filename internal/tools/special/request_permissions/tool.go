@@ -43,7 +43,7 @@ If the user denies the request (` + "`granted: false`" + `), you must find a saf
 Good reason: "Need to read ~/.ssh/config to verify the SSH key used by the deployment script."
 Bad reason: "Need more permissions."
 
-Good reason: "Writing build artifacts to /tmp/nexus-build/ to avoid polluting the workspace."
+Good reason: "Writing build artifacts to /tmp/seshat-build/ to avoid polluting the workspace."
 Bad reason: "Write access needed."
 `
 

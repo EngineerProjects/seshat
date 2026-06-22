@@ -1,4 +1,4 @@
-// Package browser provides the shared local browser runtime used by Nexus tools and sessions.
+// Package browser provides the shared local browser runtime used by Seshat tools and sessions.
 package browser
 
 import (

@@ -15,7 +15,7 @@ import (
 	"github.com/EngineerProjects/seshat/internal/types"
 )
 
-// EnsureSession creates browser state for a Nexus session when needed.
+// EnsureSession creates browser state for a Seshat session when needed.
 func (m *RodManager) EnsureSession(ctx context.Context, sessionID types.SessionID) (SessionState, error) {
 	session, err := m.ensureSession(ctx, sessionID)
 	if err != nil {

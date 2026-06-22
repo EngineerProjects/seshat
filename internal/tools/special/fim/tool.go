@@ -1,4 +1,4 @@
-// Package fimtool exposes Fill-in-the-Middle code completion as a Nexus tool.
+// Package fimtool exposes Fill-in-the-Middle code completion as a Seshat tool.
 package fimtool
 
 import (

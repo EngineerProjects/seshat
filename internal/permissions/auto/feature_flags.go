@@ -3,7 +3,7 @@
 // This module provides feature flag support for the auto mode classifier,
 // allowing runtime configuration via environment variables. This aligns with
 // OpenClaude's GrowthBook-based feature flag system, but uses env vars for
-// simpler deployment in Nexus.
+// simpler deployment in Seshat.
 //
 // Environment Variables:
 //   - CLAUDE_CODE_TWO_STAGE_CLASSIFIER: Enable two-stage classifier (true/fast/thinking)

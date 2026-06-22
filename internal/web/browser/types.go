@@ -78,7 +78,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// SessionState describes the browser state attached to one Nexus session.
+// SessionState describes the browser state attached to one Seshat session.
 type SessionState struct {
 	SessionID    types.SessionID `json:"session_id"`
 	ActivePageID string          `json:"active_page_id,omitempty"`

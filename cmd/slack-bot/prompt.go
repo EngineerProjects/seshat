@@ -63,9 +63,9 @@ var slackOperatingRules = `# Slack operating rules
 // (which describes a headless coding runtime), prepends the Slack-adapted identity,
 // and appends the Slack-specific operating rules.
 func buildSlackSystemPrompt() string {
-	base := prompt.NexusCoreStablePrompt()
+	base := prompt.SeshatCoreStablePrompt()
 
-	// NexusCoreStablePrompt() concatenates sections with "\n\n".
+	// SeshatCoreStablePrompt() concatenates sections with "\n\n".
 	// The identity section is always first. Skip it by finding the
 	// start of "# Runtime contract" which is the second section.
 	rest := base

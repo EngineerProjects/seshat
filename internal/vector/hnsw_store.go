@@ -22,7 +22,7 @@ import (
 //   - <slug>.meta.json — text and metadata per key
 //
 // Search is O(log n) via HNSW. No external service or CGO required.
-// Designed as the default RAG backend for the Nexus CLI.
+// Designed as the default RAG backend for the Seshat CLI.
 type HNSWStore struct {
 	dir string
 	mu  sync.RWMutex

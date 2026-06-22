@@ -9,7 +9,7 @@ import (
 	"time"
 )
 
-// System provides centralized monitoring for Nexus Engine
+// System provides centralized monitoring for Seshat
 type System struct {
 	// Metrics for different subsystems
 	// API Requests

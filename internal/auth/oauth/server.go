@@ -106,7 +106,7 @@ func (s *Server) handleRoot(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html")
 	w.WriteHeader(http.StatusOK)
 	fmt.Fprintf(w, `<html>
-<head><title>Nexus Auth Server</title></head>
+<head><title>Seshat Auth Server</title></head>
 <body style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #10a37f; color: white;">
 <div style="text-align: center;">
 <h1>🔐 Waiting for authentication...</h1>

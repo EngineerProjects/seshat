@@ -50,7 +50,7 @@ func NewClient(config ServerConfig) (*Client, error) {
 }
 
 // Start starts the underlying transport but intentionally leaves the client in
-// the pending state. Nexus only treats the connection as fully ready after the
+// the pending state. Seshat only treats the connection as fully ready after the
 // explicit MCP initialize handshake succeeds.
 func (c *Client) Start(ctx context.Context) error {
 	if err := c.transport.Start(ctx); err != nil {

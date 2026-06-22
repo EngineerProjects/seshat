@@ -673,7 +673,7 @@ func IsBackgroundCommand(command string) bool {
 
 // isApplyPatchInvocation returns true when the command invokes apply_patch or
 // applypatch as a bare shell command or as a segment inside a composed command.
-// Codex intercepts these at the exec/sandbox level; Nexus denies them at the
+// Codex intercepts these at the exec/sandbox level; Seshat denies them at the
 // tool layer and requires the model to use the dedicated apply_patch tool.
 func isApplyPatchInvocation(command string) bool {
 	if applyPatchCommandName(command) {

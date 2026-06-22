@@ -17,7 +17,7 @@ func TestHTMLToMarkdownPrefersReadableContent(t *testing.T) {
     <nav>Home Pricing Docs Sign in</nav>
     <article>
       <h1>Shipping V1</h1>
-      <p>Nexus Engine now ships a browser-aware fetch pipeline for rendered pages.</p>
+      <p>Seshat now ships a browser-aware fetch pipeline for rendered pages.</p>
       <p>The extractor should keep the main article content and discard obvious chrome.</p>
     </article>
     <footer>newsletter links and social links</footer>

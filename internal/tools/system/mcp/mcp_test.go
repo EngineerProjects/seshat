@@ -23,7 +23,7 @@ func newRegistry(t *testing.T) *tool.Registry {
 func badServerConfig(name string) ServerConfig {
 	return ServerConfig{
 		Name:      name,
-		Command:   "__nexus_mcp_no_such_binary__",
+		Command:   "__seshat_mcp_no_such_binary__",
 		Args:      nil,
 		Transport: TransportTypeStdio,
 	}

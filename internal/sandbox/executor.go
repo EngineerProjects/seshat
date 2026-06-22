@@ -121,7 +121,7 @@ type DaggerExecutorConfig struct {
 	Env map[string]string
 
 	// StorageDir is the host directory where environment state is persisted.
-	// Default: ~/.config/nexus/sandbox/
+	// Default: ~/.config/seshat/sandbox/
 	StorageDir string
 
 	// NetworkAccess controls whether the container can reach the internet.

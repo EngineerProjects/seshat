@@ -1,5 +1,5 @@
 // Package automation exposes the automation workflow primitives for use by
-// external embedders, nexus-ai, and cmd/automation workflows.
+// external embedders, seshat-ai, and cmd/automation workflows.
 package automation
 
 import (
@@ -115,7 +115,7 @@ type ModelIdentifier = sdk.ModelIdentifier
 // ─── Convenience: build RunnerConfig from environment ────────────────────────
 
 // RunnerConfigFromEnv resolves provider credentials from the environment and
-// nexus config file. modelRaw follows "provider:model" format.
+// seshat config file. modelRaw follows "provider:model" format.
 func RunnerConfigFromEnv(modelRaw string) (RunnerConfig, error) {
 	cfg, err := engineconfig.Load()
 	if err != nil {

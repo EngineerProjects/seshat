@@ -10,7 +10,7 @@ import (
 )
 
 func main() {
-	// Pin the CLI runtime root to the platform config dir (nexus-cli),
+	// Pin the CLI runtime root to the platform config dir (seshat-cli),
 	// isolated from the seshat-product backend (seshat). SESHAT_RUNTIME_ROOT takes precedence.
 	if os.Getenv(runtimepath.EnvRuntimeRoot) == "" {
 		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("seshat-cli"))

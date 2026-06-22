@@ -108,7 +108,7 @@ type SystemPromptBlock struct {
 	CacheControl *PromptCacheControl `json:"cache_control,omitempty"`
 }
 
-// APIToolDefinition is the stable provider-facing tool schema used by Nexus.
+// APIToolDefinition is the stable provider-facing tool schema used by Seshat.
 type APIToolDefinition struct {
 	Name        string                `json:"name"`
 	Description string                `json:"description"`

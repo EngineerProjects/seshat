@@ -1,7 +1,7 @@
 // Package auto - Classifier API client.
 //
 // This module provides the API client interface for making classification
-// requests to the LLM provider. It wraps the Nexus providers.Client to provide
+// requests to the LLM provider. It wraps the Seshat providers.Client to provide
 // a classifier-specific interface with proper request/response handling.
 //
 // The ClassifierAPI interface defines the contract for classifier API clients,

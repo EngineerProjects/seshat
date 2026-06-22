@@ -285,7 +285,7 @@ func getBaseMemoryPath() (string, error) {
 	}
 
 	// Default to <runtime-root>/memory — honours SESHAT_RUNTIME_ROOT so the CLI
-	// (nexus-cli) and the product backend (nexus) stay isolated automatically.
+	// (seshat-cli) and the product backend (seshat) stay isolated automatically.
 	return runtimepath.Join("", "memory"), nil
 }
 

@@ -69,7 +69,7 @@ func (r *LangSearchReranker) Rerank(ctx context.Context, query string, docs []st
 	}
 	req.Header.Set("Authorization", "Bearer "+r.apiKey)
 	req.Header.Set("Content-Type", "application/json")
-	req.Header.Set("User-Agent", "NexusAI-RAG/1.0")
+	req.Header.Set("User-Agent", "SeshatAI-RAG/1.0")
 
 	resp, err := r.httpClient.Do(req)
 	if err != nil {

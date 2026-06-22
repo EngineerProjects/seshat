@@ -23,7 +23,7 @@ import (
 	"github.com/EngineerProjects/seshat/internal/storage"
 	internaltypes "github.com/EngineerProjects/seshat/internal/types"
 	appconfig "github.com/EngineerProjects/seshat/pkg/config"
-	pb "github.com/EngineerProjects/seshat/pkg/grpc/nexus"
+	pb "github.com/EngineerProjects/seshat/pkg/grpc/seshat"
 	publicmcp "github.com/EngineerProjects/seshat/pkg/mcp"
 	"github.com/EngineerProjects/seshat/pkg/sdk"
 	publicskills "github.com/EngineerProjects/seshat/pkg/skills"
@@ -119,9 +119,9 @@ func (s *sdkSessionAdapter) Close() error {
 	return s.session.Close()
 }
 
-// NexusServer implements pb.NexusServiceServer using the real engine packages.
-type NexusServer struct {
-	pb.UnimplementedNexusServiceServer
+// SeshatServer implements pb.SeshatServiceServer using the real engine packages.
+type SeshatServer struct {
+	pb.UnimplementedSeshatServiceServer
 	startedAt     time.Time
 	version       string
 	defaultModel  string
@@ -130,9 +130,9 @@ type NexusServer struct {
 	clientFactory func(*pb.QueryRequest) (grpcSDKClient, error)
 }
 
-var _ pb.NexusServiceServer = (*NexusServer)(nil)
+var _ pb.SeshatServiceServer = (*SeshatServer)(nil)
 
-func NewNexusServer(hostConfig appconfig.Config) *NexusServer {
+func NewSeshatServer(hostConfig appconfig.Config) *SeshatServer {
 	cwd := strings.TrimSpace(hostConfig.Cwd)
 	if cwd == "" {
 		if resolved, err := os.Getwd(); err == nil && resolved != "" {
@@ -141,7 +141,7 @@ func NewNexusServer(hostConfig appconfig.Config) *NexusServer {
 			cwd = "."
 		}
 	}
-	return &NexusServer{
+	return &SeshatServer{
 		startedAt:     time.Now().UTC(),
 		version:       grpcServerVersion(),
 		defaultModel:  strings.TrimSpace(hostConfig.Model),
@@ -206,7 +206,7 @@ func main() {
 		}),
 	)
 
-	pb.RegisterNexusServiceServer(grpcServer, NewNexusServer(hostConfig))
+	pb.RegisterSeshatServiceServer(grpcServer, NewSeshatServer(hostConfig))
 	if cfg.EnableReflection {
 		reflection.Register(grpcServer)
 	}
@@ -228,7 +228,7 @@ func main() {
 // Query — single-turn, non-streaming
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryResponse, error) {
+func (s *SeshatServer) Query(ctx context.Context, req *pb.QueryRequest) (*pb.QueryResponse, error) {
 	if req.Prompt == "" {
 		return nil, status.Error(codes.InvalidArgument, "prompt is required")
 	}
@@ -271,7 +271,7 @@ func (s *NexusServer) Query(ctx context.Context, req *pb.QueryRequest) (*pb.Quer
 // QueryStream — server-side streaming
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) QueryStream(req *pb.QueryRequest, stream grpc.ServerStreamingServer[pb.QueryResponse]) error {
+func (s *SeshatServer) QueryStream(req *pb.QueryRequest, stream grpc.ServerStreamingServer[pb.QueryResponse]) error {
 	if req.Prompt == "" {
 		return status.Error(codes.InvalidArgument, "prompt is required")
 	}
@@ -432,7 +432,7 @@ func runtimeEventToProto(event sdk.RuntimeEvent) *pb.RuntimeEvent {
 // Skills
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) ListSkills(ctx context.Context, req *pb.ListSkillsRequest) (*pb.ListSkillsResponse, error) {
+func (s *SeshatServer) ListSkills(ctx context.Context, req *pb.ListSkillsRequest) (*pb.ListSkillsResponse, error) {
 	skills, err := publicskills.All(s.skillsCWD)
 	if err != nil {
 		return nil, status.Errorf(codes.Internal, "list skills: %v", err)
@@ -454,7 +454,7 @@ func (s *NexusServer) ListSkills(ctx context.Context, req *pb.ListSkillsRequest)
 	}, nil
 }
 
-func (s *NexusServer) GetSkillDetails(ctx context.Context, req *pb.GetSkillDetailsRequest) (*pb.GetSkillDetailsResponse, error) {
+func (s *SeshatServer) GetSkillDetails(ctx context.Context, req *pb.GetSkillDetailsRequest) (*pb.GetSkillDetailsResponse, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
@@ -478,7 +478,7 @@ func (s *NexusServer) GetSkillDetails(ctx context.Context, req *pb.GetSkillDetai
 // MCP
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) ListMCP(ctx context.Context, _ *pb.ListMCPRequest) (*pb.ListMCPResponse, error) {
+func (s *SeshatServer) ListMCP(ctx context.Context, _ *pb.ListMCPRequest) (*pb.ListMCPResponse, error) {
 	statuses := s.mcpManager.GetServerStatuses()
 	servers := make([]*pb.MCPServer, 0, len(statuses))
 	for _, st := range statuses {
@@ -495,7 +495,7 @@ func (s *NexusServer) ListMCP(ctx context.Context, _ *pb.ListMCPRequest) (*pb.Li
 	}, nil
 }
 
-func (s *NexusServer) ConnectMCP(ctx context.Context, req *pb.ConnectMCPRequest) (*pb.ConnectMCPResponse, error) {
+func (s *SeshatServer) ConnectMCP(ctx context.Context, req *pb.ConnectMCPRequest) (*pb.ConnectMCPResponse, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
@@ -530,7 +530,7 @@ func (s *NexusServer) ConnectMCP(ctx context.Context, req *pb.ConnectMCPRequest)
 	return &pb.ConnectMCPResponse{Success: true}, nil
 }
 
-func (s *NexusServer) DisconnectMCP(ctx context.Context, req *pb.DisconnectMCPRequest) (*pb.DisconnectMCPResponse, error) {
+func (s *SeshatServer) DisconnectMCP(ctx context.Context, req *pb.DisconnectMCPRequest) (*pb.DisconnectMCPResponse, error) {
 	if req.Name == "" {
 		return nil, status.Error(codes.InvalidArgument, "name is required")
 	}
@@ -544,7 +544,7 @@ func (s *NexusServer) DisconnectMCP(ctx context.Context, req *pb.DisconnectMCPRe
 // Models
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) GetModels(_ context.Context, _ *pb.GetModelsRequest) (*pb.GetModelsResponse, error) {
+func (s *SeshatServer) GetModels(_ context.Context, _ *pb.GetModelsRequest) (*pb.GetModelsResponse, error) {
 	all := providers.AllProvidersInfo()
 	var models []*pb.ModelInfo
 	for provider, info := range all {
@@ -570,7 +570,7 @@ func (s *NexusServer) GetModels(_ context.Context, _ *pb.GetModelsRequest) (*pb.
 // Health
 // ---------------------------------------------------------------------------
 
-func (s *NexusServer) HealthCheck(_ context.Context, _ *pb.HealthCheckRequest) (*pb.HealthCheckResponse, error) {
+func (s *SeshatServer) HealthCheck(_ context.Context, _ *pb.HealthCheckRequest) (*pb.HealthCheckResponse, error) {
 	return &pb.HealthCheckResponse{
 		Status:  "ok",
 		Version: s.version,
@@ -678,7 +678,7 @@ func resolvedModelString(req *pb.QueryRequest) string {
 	return strings.TrimSpace(req.GetModel())
 }
 
-func (s *NexusServer) responseModel(req *pb.QueryRequest) string {
+func (s *SeshatServer) responseModel(req *pb.QueryRequest) string {
 	if model := effectiveResponseModel(req); model != "" {
 		return model
 	}

@@ -28,10 +28,10 @@ type ChromaConfig struct {
 
 // ChromaStore is a vector.Store backed by the Chroma HTTP API (v2).
 //
-// Namespace mapping: each Nexus namespace becomes a Chroma collection.
+// Namespace mapping: each Seshat namespace becomes a Chroma collection.
 // Collection IDs (UUIDs) are cached in-memory after first use.
 //
-// Chroma stores the original Nexus key as the document id.
+// Chroma stores the original Seshat key as the document id.
 // Text and metadata are stored as Chroma document + metadata fields.
 type ChromaStore struct {
 	cfg    ChromaConfig

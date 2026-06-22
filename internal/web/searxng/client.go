@@ -75,7 +75,7 @@ func NewClient() *Client {
 			Transport: transport,
 		},
 		auth:      buildBasicAuth(),
-		userAgent: firstNonEmpty(os.Getenv("SEARXNG_USER_AGENT"), os.Getenv("USER_AGENT"), "NexusAI-WebSearch/2.0"),
+		userAgent: firstNonEmpty(os.Getenv("SEARXNG_USER_AGENT"), os.Getenv("USER_AGENT"), "SeshatAI-WebSearch/2.0"),
 	}
 }
 
@@ -116,7 +116,7 @@ func NewClientForTest(rawURL string, transport http.RoundTripper) *Client {
 			Timeout:   10 * time.Second,
 			Transport: transport,
 		},
-		userAgent: "NexusAI-Test/1.0",
+		userAgent: "SeshatAI-Test/1.0",
 	}
 }
 

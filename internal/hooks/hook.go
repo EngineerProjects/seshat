@@ -65,7 +65,7 @@ func (d Decision) String() string {
 	}
 }
 
-// HookConfig declares a shell hook. Stored in .nexus.yaml under hooks.pre_tool_use.
+// HookConfig declares a shell hook. Stored in .seshat.yaml under hooks.pre_tool_use.
 type HookConfig struct {
 	// Matcher is a regex against the tool name. Empty = match all.
 	Matcher string `yaml:"matcher" json:"matcher,omitempty"`

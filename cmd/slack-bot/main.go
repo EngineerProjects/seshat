@@ -60,11 +60,11 @@ func (r *requestState) snapshot() (status, text string) {
 }
 
 type bot struct {
-	nexus *sdk.Client
-	api   *slackgo.Client
+	seshat *sdk.Client
+	api    *slackgo.Client
 
 	mu       sync.Mutex
-	sessions map[string]sdk.SessionID // channelID → nexus sessionID
+	sessions map[string]sdk.SessionID // channelID → seshat sessionID
 
 	// callbackMu serialises SetResponseChunkFn / SetRuntimeEventFn so concurrent
 	// channel messages don't overwrite each other's per-request callbacks.
@@ -129,7 +129,7 @@ func main() {
 
 	sysPrompt := buildSlackSystemPrompt()
 
-	// b is used by PromptFn below; build it first then assign nexusClient.
+	// b is used by PromptFn below; build it first then assign seshatClient.
 	b := &bot{
 		api:         slackgo.New(botToken, slackgo.OptionAppLevelToken(appToken)),
 		sessions:    make(map[string]sdk.SessionID),
@@ -137,14 +137,14 @@ func main() {
 		textPending: make(map[string]chan string),
 	}
 
-	nexusClient, err := sdk.NewClient(&sdk.ClientConfig{
+	seshatClient, err := sdk.NewClient(&sdk.ClientConfig{
 		APIKey:            apiKey,
 		Model:             model,
 		MaxTokens:         maxTokens,
 		PermissionMode:    sdk.PermissionModeBypass,
 		AutoCompact:       true,
 		PersistSessions:   true,
-		SessionSQLitePath: nexusDBPath(),
+		SessionSQLitePath: seshatDBPath(),
 		WorkingDir:        workdir(),
 		ProviderConfig:    providerCfg,
 		MCPServers:        mcpServers,
@@ -160,8 +160,8 @@ func main() {
 	if err != nil {
 		log.Fatalf("[seshat-bot] seshat client: %v", err)
 	}
-	defer nexusClient.Close()
-	b.nexus = nexusClient
+	defer seshatClient.Close()
+	b.seshat = seshatClient
 
 	// Register the slack_search tool (Real-Time Search API).
 	// Prefers a user token (SESHAT_SLACK_USER_TOKEN) which avoids the action_token
@@ -173,7 +173,7 @@ func main() {
 	} else {
 		log.Printf("[seshat-bot] slack_search: using bot token (set SESHAT_SLACK_USER_TOKEN for full access)")
 	}
-	if err := nexusClient.RegisterTool(&slackSearchTool{api: searchAPI}); err != nil {
+	if err := seshatClient.RegisterTool(&slackSearchTool{api: searchAPI}); err != nil {
 		log.Printf("[seshat-bot] warning: slack_search registration failed: %v", err)
 	}
 
@@ -317,13 +317,13 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 	b.callbackMu.Lock()
 	state := &requestState{}
 
-	b.nexus.SetResponseChunkFn(func(chunk sdk.ResponseChunk) {
+	b.seshat.SetResponseChunkFn(func(chunk sdk.ResponseChunk) {
 		if chunk.Delta != "" {
 			state.addChunk(chunk.Delta)
 		}
 	})
 
-	b.nexus.SetRuntimeEventFn(func(evt sdk.RuntimeEvent) {
+	b.seshat.SetRuntimeEventFn(func(evt sdk.RuntimeEvent) {
 		switch evt.Type {
 		case sdk.RuntimeEventTypeToolProgress:
 			tp := evt.ToolProgress
@@ -385,8 +385,8 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 
 	close(done)
 	b.callbackMu.Lock()
-	b.nexus.SetResponseChunkFn(nil)
-	b.nexus.SetRuntimeEventFn(nil)
+	b.seshat.SetResponseChunkFn(nil)
+	b.seshat.SetRuntimeEventFn(nil)
 	b.callbackMu.Unlock()
 
 	if err != nil {
@@ -429,14 +429,14 @@ func (b *bot) getOrCreateSession(ctx context.Context, channelID string) (*sdk.Se
 	b.mu.Unlock()
 
 	if exists {
-		s, err := b.nexus.LoadSession(ctx, sessionID)
+		s, err := b.seshat.LoadSession(ctx, sessionID)
 		if err == nil {
 			return s, nil
 		}
 		log.Printf("[seshat-bot] reload session %s failed (%v) — creating new", sessionID, err)
 	}
 
-	s, err := b.nexus.CreateSessionWithAdditional(ctx, map[string]any{
+	s, err := b.seshat.CreateSessionWithAdditional(ctx, map[string]any{
 		"slack_channel": channelID,
 		"source":        "seshat-slack-bot",
 	})
@@ -680,7 +680,7 @@ func loadMCPServers(cwd string) []sdk.MCPServerConfig {
 	return servers
 }
 
-func nexusDBPath() string {
+func seshatDBPath() string {
 	if p := os.Getenv("SESHAT_SLACK_DB_PATH"); p != "" {
 		return p
 	}

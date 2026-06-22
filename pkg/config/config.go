@@ -111,10 +111,10 @@ type Config struct {
 	// Example: SESHAT_SKILL_REPO_HOSTS=github.com,mygitlab.company.com
 	SkillRepoHosts string `mapstructure:"skill_repo_hosts" yaml:"skill_repo_hosts,omitempty"`
 
-	// DefaultSkillRepo — git URL of the official Nexus skills collection cloned
-	// silently in the background on first boot. Defaults to the canonical nexus-skills
+	// DefaultSkillRepo — git URL of the official Seshat skills collection cloned
+	// silently in the background on first boot. Defaults to the canonical seshat-skills
 	// repo. Set to "none" to disable automatic install.
-	// Example: SESHAT_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/nexus-skills
+	// Example: SESHAT_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/seshat-skills
 	DefaultSkillRepo string `mapstructure:"default_skill_repo" yaml:"default_skill_repo,omitempty"`
 
 	// Hooks — user-defined shell commands that fire on lifecycle events.
@@ -196,8 +196,8 @@ func LoadInto(config *Config) error {
 	v.SetConfigType("yaml")
 	v.SetEnvPrefix("SESHAT")
 
-	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/nexus by default).
-	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/nexus-cli before calling Load().
+	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/seshat by default).
+	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/seshat-cli before calling Load().
 	v.SetConfigName("config")
 	v.AddConfigPath(runtimepath.ResolveRoot(""))
 	// Fallback: legacy ~/.nexus.yaml for migration
