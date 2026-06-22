@@ -1,6 +1,6 @@
 package utils
 
-import "github.com/EngineerProjects/nexus-engine/internal/types"
+import "github.com/EngineerProjects/seshat/internal/types"
 
 // ContextManager manages context window limits
 type ContextManager struct {

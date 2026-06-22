@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	websearchtool "github.com/EngineerProjects/nexus-engine/internal/tools/web/search"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	websearchtool "github.com/EngineerProjects/seshat/internal/tools/web/search"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // LoadSessionWithAdditional loads an existing session and merges additional metadata keys.

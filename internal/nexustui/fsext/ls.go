@@ -10,9 +10,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	"github.com/charlievieth/fastwalk"
 	gitconfig "github.com/go-git/go-git/v5/config"
 	"github.com/go-git/go-git/v5/plumbing/format/gitignore"

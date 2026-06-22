@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/vector"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/vector"
 )
 
 type Service struct {

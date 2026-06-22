@@ -3,7 +3,7 @@ package history
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
 )
 
 const (

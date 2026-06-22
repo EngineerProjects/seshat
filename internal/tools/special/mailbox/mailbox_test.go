@@ -5,8 +5,8 @@ import (
 	"errors"
 	"testing"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	mbtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/mailbox"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	mbtool "github.com/EngineerProjects/seshat/internal/tools/special/mailbox"
 )
 
 // ─── fake dispatcher ──────────────────────────────────────────────────────────

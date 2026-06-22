@@ -16,12 +16,12 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/permission"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/version"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/permission"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/nexustui/version"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

@@ -3,10 +3,10 @@ package webfetch
 import (
 	"context"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
-	fetchcore "github.com/EngineerProjects/nexus-engine/internal/web/fetch"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
+	fetchcore "github.com/EngineerProjects/seshat/internal/web/fetch"
 )
 
 // permissionInput enriches the tool payload with stable derived fields used by the permission layer.

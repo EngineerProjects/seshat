@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/diffdetect"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/stringext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/diffdetect"
+	"github.com/EngineerProjects/seshat/internal/nexustui/stringext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 type toolResultContentWidths struct {

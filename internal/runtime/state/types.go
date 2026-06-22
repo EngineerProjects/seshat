@@ -1,6 +1,6 @@
 package state
 
-import "github.com/EngineerProjects/nexus-engine/internal/types"
+import "github.com/EngineerProjects/seshat/internal/types"
 
 // Checkpoint represents a session checkpoint for recovery.
 type Checkpoint struct {

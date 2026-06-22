@@ -4,8 +4,8 @@ import (
 	"context"
 	"net/http"
 
-	providerretry "github.com/EngineerProjects/nexus-engine/internal/providers/retry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	providerretry "github.com/EngineerProjects/seshat/internal/providers/retry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type RetryStrategy = providerretry.RetryStrategy

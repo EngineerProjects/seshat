@@ -3,8 +3,8 @@ package providers
 import (
 	"context"
 
-	internalproviders "github.com/EngineerProjects/nexus-engine/internal/providers"
-	internaltypes "github.com/EngineerProjects/nexus-engine/internal/types"
+	internalproviders "github.com/EngineerProjects/seshat/internal/providers"
+	internaltypes "github.com/EngineerProjects/seshat/internal/types"
 )
 
 type (

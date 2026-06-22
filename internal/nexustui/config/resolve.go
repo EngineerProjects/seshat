@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/env"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/shell"
+	"github.com/EngineerProjects/seshat/internal/nexustui/env"
+	"github.com/EngineerProjects/seshat/internal/nexustui/shell"
 )
 
 // resolveTimeout bounds how long a single ResolveValue call may spend

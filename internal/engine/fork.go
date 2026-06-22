@@ -3,10 +3,10 @@ package engine
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Fork returns a new Engine configured for a specific agent persona. It shares

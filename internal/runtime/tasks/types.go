@@ -5,7 +5,7 @@ import (
 	"os/exec"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // TaskCompletionCallback is called when a task completes.

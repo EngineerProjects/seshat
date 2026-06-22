@@ -15,7 +15,7 @@ import (
 	"charm.land/lipgloss/v2"
 	"github.com/lucasb-eyer/go-colorful"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
 )
 
 const (

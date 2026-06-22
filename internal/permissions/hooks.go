@@ -4,7 +4,7 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // HookAdapter adapts the internal Hook type to implement the types.Hook interface.

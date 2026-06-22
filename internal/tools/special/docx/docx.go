@@ -6,9 +6,9 @@ import (
 	"os"
 	"strings"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 	docx "github.com/mmonterroca/docxgo/v2"
 	"github.com/mmonterroca/docxgo/v2/domain"
 )

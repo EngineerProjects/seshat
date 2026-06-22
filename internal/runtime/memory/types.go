@@ -1,6 +1,6 @@
 package memory
 
-import "github.com/EngineerProjects/nexus-engine/internal/types"
+import "github.com/EngineerProjects/seshat/internal/types"
 
 // TrackingState carries circuit-breaker state across loop iterations.
 type TrackingState struct {

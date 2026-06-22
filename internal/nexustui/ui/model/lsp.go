@@ -7,10 +7,10 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/app"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lsp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/app"
+	"github.com/EngineerProjects/seshat/internal/nexustui/lsp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )
 

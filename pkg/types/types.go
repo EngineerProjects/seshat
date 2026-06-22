@@ -3,7 +3,7 @@ package types
 import (
 	"context"
 
-	internaltypes "github.com/EngineerProjects/nexus-engine/internal/types"
+	internaltypes "github.com/EngineerProjects/seshat/internal/types"
 )
 
 type (

@@ -8,12 +8,12 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/anim"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/attachments"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/list"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/anim"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/attachments"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/list"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 // MessageLeftPaddingTotal is the total width consumed by the user message prefix:

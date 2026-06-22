@@ -5,7 +5,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	"gopkg.in/yaml.v3"
 )
 

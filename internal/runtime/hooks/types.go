@@ -3,8 +3,8 @@ package hooks
 import (
 	"context"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ToolHookStage identifies when a hook fires.

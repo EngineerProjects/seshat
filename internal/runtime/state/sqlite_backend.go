@@ -7,8 +7,8 @@ import (
 	"fmt"
 	"time"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // dbCtx returns a context with a timeout for short DB operations.

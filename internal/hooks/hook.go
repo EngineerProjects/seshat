@@ -309,11 +309,11 @@ func aggregate(configs []HookConfig, results []HookResult, inputJSON string) Agg
 
 func buildEnv(sessionID, toolName, cwd, projectDir, inputJSON string) []string {
 	return []string{
-		"NEXUS_HOOK_EVENT=pre_tool_use",
-		fmt.Sprintf("NEXUS_TOOL_NAME=%s", toolName),
-		fmt.Sprintf("NEXUS_SESSION_ID=%s", sessionID),
-		fmt.Sprintf("NEXUS_CWD=%s", cwd),
-		fmt.Sprintf("NEXUS_PROJECT_DIR=%s", projectDir),
-		fmt.Sprintf("NEXUS_TOOL_INPUT=%s", inputJSON),
+		"SESHAT_HOOK_EVENT=pre_tool_use",
+		fmt.Sprintf("SESHAT_TOOL_NAME=%s", toolName),
+		fmt.Sprintf("SESHAT_SESSION_ID=%s", sessionID),
+		fmt.Sprintf("SESHAT_CWD=%s", cwd),
+		fmt.Sprintf("SESHAT_PROJECT_DIR=%s", projectDir),
+		fmt.Sprintf("SESHAT_TOOL_INPUT=%s", inputJSON),
 	}
 }

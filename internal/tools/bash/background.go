@@ -14,7 +14,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	"golang.org/x/sys/unix"
 )
 

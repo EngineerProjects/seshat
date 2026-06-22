@@ -5,7 +5,7 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/stringext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/stringext"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

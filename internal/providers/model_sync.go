@@ -1,7 +1,7 @@
 package providers
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/model"
+	"github.com/EngineerProjects/seshat/internal/model"
 )
 
 // init populates model.Global from AllProvidersInfo() so that every caller of

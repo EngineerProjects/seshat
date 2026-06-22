@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"strings"
 
-	coredb "github.com/EngineerProjects/nexus-engine/internal/db"
-	internalvector "github.com/EngineerProjects/nexus-engine/internal/vector"
+	coredb "github.com/EngineerProjects/seshat/internal/db"
+	internalvector "github.com/EngineerProjects/seshat/internal/vector"
 )
 
 type (

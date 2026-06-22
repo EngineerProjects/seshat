@@ -8,8 +8,8 @@ import (
 	"strings"
 	"sync"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // MCPClientManager manages MCP server connections

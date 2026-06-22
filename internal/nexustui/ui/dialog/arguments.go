@@ -14,9 +14,9 @@ import (
 	"golang.org/x/text/cases"
 	"golang.org/x/text/language"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/commands"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/commands"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/util"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

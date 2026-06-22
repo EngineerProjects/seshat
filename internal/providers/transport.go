@@ -1,6 +1,6 @@
 package providers
 
-import providertransport "github.com/EngineerProjects/nexus-engine/internal/providers/transport"
+import providertransport "github.com/EngineerProjects/seshat/internal/providers/transport"
 
 type Transport = providertransport.Transport
 type BedrockTransport = providertransport.BedrockTransport

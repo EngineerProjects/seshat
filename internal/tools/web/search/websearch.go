@@ -5,12 +5,12 @@ import (
 	"fmt"
 	"strings"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
-	searchcore "github.com/EngineerProjects/nexus-engine/internal/web/search"
-	searchproviders "github.com/EngineerProjects/nexus-engine/internal/web/search/providers"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
+	searchcore "github.com/EngineerProjects/seshat/internal/web/search"
+	searchproviders "github.com/EngineerProjects/seshat/internal/web/search/providers"
 )
 
 const SearchHint = "search the web for current information"

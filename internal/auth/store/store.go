@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/types"
+	"github.com/EngineerProjects/seshat/internal/auth/types"
 )
 
 // ============================================================================

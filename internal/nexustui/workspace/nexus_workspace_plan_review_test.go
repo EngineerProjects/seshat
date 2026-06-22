@@ -5,10 +5,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	tasktool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	tasktool "github.com/EngineerProjects/seshat/internal/tools/task"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 func TestOnRuntimeEventPublishesPlanReviewSubmission(t *testing.T) {

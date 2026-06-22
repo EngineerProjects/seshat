@@ -5,7 +5,7 @@ import (
 	"encoding/json"
 	"log/slog"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lsp/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/lsp/util"
 	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
 	"github.com/charmbracelet/x/powernap/pkg/lsp/protocol"
 )

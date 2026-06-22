@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/internal/utils"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/internal/utils"
 )
 
 // Classifier is the interface for permission classification in auto mode.

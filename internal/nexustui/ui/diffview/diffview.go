@@ -7,8 +7,8 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ansiext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/xchroma"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ansiext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/xchroma"
 	"github.com/alecthomas/chroma/v2"
 	"github.com/alecthomas/chroma/v2/lexers"
 	"github.com/aymanbagabas/go-udiff"

@@ -10,9 +10,9 @@ import (
 	"go.opentelemetry.io/otel/codes"
 	oteltrace "go.opentelemetry.io/otel/trace"
 
-	runtimehooks "github.com/EngineerProjects/nexus-engine/internal/runtime/hooks"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	runtimehooks "github.com/EngineerProjects/seshat/internal/runtime/hooks"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func (o *Orchestrator) executePreparedTool(
@@ -58,7 +58,7 @@ func (o *Orchestrator) executePreparedToolPipeline(
 	t := prepared.tool
 
 	// OTel span per tool call. Span name follows the convention "tool <name>".
-	spanCtx, span := otel.Tracer("nexus-engine").Start(ctx, "tool "+toolUse.Name,
+	spanCtx, span := otel.Tracer("seshat").Start(ctx, "tool "+toolUse.Name,
 		oteltrace.WithAttributes(
 			attribute.String("tool.name", toolUse.Name),
 			attribute.String("tool.use_id", toolUse.ID),

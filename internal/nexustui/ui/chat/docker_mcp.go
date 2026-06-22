@@ -8,10 +8,10 @@ import (
 
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/table"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/stringext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/stringext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 // DockerMCPToolMessageItem is a message item that represents a Docker MCP tool call.

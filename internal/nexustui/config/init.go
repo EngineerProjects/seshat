@@ -7,7 +7,7 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
 )
 
 const (

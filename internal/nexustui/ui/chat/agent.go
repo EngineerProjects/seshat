@@ -8,9 +8,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
 	"charm.land/lipgloss/v2/tree"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/anim"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/anim"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 // -----------------------------------------------------------------------------

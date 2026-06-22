@@ -7,9 +7,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth/hyper"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth/hyper"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
 )
 
 func NewOAuthHyper(

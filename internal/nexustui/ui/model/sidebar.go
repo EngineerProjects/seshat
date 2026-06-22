@@ -8,10 +8,10 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/logo"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/logo"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/ultraviolet/layout"
 )

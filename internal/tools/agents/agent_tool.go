@@ -7,13 +7,13 @@ import (
 	"sync"
 	"time"
 
-	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	"github.com/EngineerProjects/nexus-engine/internal/runtime/tasks"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	worktreeTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/worktree"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	coreagent "github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/runtime/tasks"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	worktreeTool "github.com/EngineerProjects/seshat/internal/tools/special/worktree"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // subAgentDepthKey is the context key used to propagate spawn depth so that

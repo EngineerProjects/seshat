@@ -10,7 +10,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/event"
+	"github.com/EngineerProjects/seshat/internal/nexustui/event"
 	"github.com/charmbracelet/x/term"
 	"gopkg.in/natefinch/lumberjack.v2"
 )

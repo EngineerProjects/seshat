@@ -8,7 +8,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // FilesystemBackend stores each session as a directory with metadata,

@@ -98,14 +98,14 @@ func TestLocalProviderDefaultPath(t *testing.T) {
 }
 
 func TestGetConfigFromEnv(t *testing.T) {
-	os.Setenv("NEXUS_STORAGE_PROVIDER", "s3")
-	os.Setenv("NEXUS_STORAGE_LOCAL_PATH", "/custom/path")
-	os.Setenv("NEXUS_S3_ENDPOINT", "minio:9000")
-	os.Setenv("NEXUS_S3_BUCKET", "test-bucket")
-	os.Setenv("NEXUS_S3_ACCESS_KEY_ID", "key")
-	os.Setenv("NEXUS_S3_SECRET_ACCESS_KEY", "secret")
-	os.Setenv("NEXUS_S3_REGION", "us-west-2")
-	os.Setenv("NEXUS_S3_KEY_PREFIX", "prefix")
+	os.Setenv("SESHAT_STORAGE_PROVIDER", "s3")
+	os.Setenv("SESHAT_STORAGE_LOCAL_PATH", "/custom/path")
+	os.Setenv("SESHAT_S3_ENDPOINT", "minio:9000")
+	os.Setenv("SESHAT_S3_BUCKET", "test-bucket")
+	os.Setenv("SESHAT_S3_ACCESS_KEY_ID", "key")
+	os.Setenv("SESHAT_S3_SECRET_ACCESS_KEY", "secret")
+	os.Setenv("SESHAT_S3_REGION", "us-west-2")
+	os.Setenv("SESHAT_S3_KEY_PREFIX", "prefix")
 
 	cfg := GetConfigFromEnv()
 
@@ -134,14 +134,14 @@ func TestGetConfigFromEnv(t *testing.T) {
 		t.Errorf("S3KeyPrefix should be prefix, got %s", cfg.S3KeyPrefix)
 	}
 
-	os.Unsetenv("NEXUS_STORAGE_PROVIDER")
-	os.Unsetenv("NEXUS_STORAGE_LOCAL_PATH")
-	os.Unsetenv("NEXUS_S3_ENDPOINT")
-	os.Unsetenv("NEXUS_S3_BUCKET")
-	os.Unsetenv("NEXUS_S3_ACCESS_KEY_ID")
-	os.Unsetenv("NEXUS_S3_SECRET_ACCESS_KEY")
-	os.Unsetenv("NEXUS_S3_REGION")
-	os.Unsetenv("NEXUS_S3_KEY_PREFIX")
+	os.Unsetenv("SESHAT_STORAGE_PROVIDER")
+	os.Unsetenv("SESHAT_STORAGE_LOCAL_PATH")
+	os.Unsetenv("SESHAT_S3_ENDPOINT")
+	os.Unsetenv("SESHAT_S3_BUCKET")
+	os.Unsetenv("SESHAT_S3_ACCESS_KEY_ID")
+	os.Unsetenv("SESHAT_S3_SECRET_ACCESS_KEY")
+	os.Unsetenv("SESHAT_S3_REGION")
+	os.Unsetenv("SESHAT_S3_KEY_PREFIX")
 }
 
 func TestHealthCheck(t *testing.T) {

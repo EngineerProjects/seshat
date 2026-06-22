@@ -15,11 +15,11 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	taskTool "github.com/EngineerProjects/seshat/internal/tools/task"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // Manager manages background task execution.

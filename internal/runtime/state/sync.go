@@ -4,7 +4,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // SyncTranscriptMessages persists the current canonical message list.

@@ -3,8 +3,8 @@ package browser
 import (
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func screenshotKey(sessionID types.SessionID, pageID string) string {

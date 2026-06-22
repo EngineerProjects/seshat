@@ -10,17 +10,17 @@ import (
 	"time"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/EngineerProjects/nexus-engine/cmd/cli/appdir"
-	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
-	mcptools "github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools/mcp"
-	tuiconfig "github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	crushcommon "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	uimodel "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/model"
-	crushws "github.com/EngineerProjects/nexus-engine/internal/nexustui/workspace"
-	"github.com/EngineerProjects/nexus-engine/internal/python"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/cmd/cli/appdir"
+	"github.com/EngineerProjects/seshat/internal/monitoring"
+	mcptools "github.com/EngineerProjects/seshat/internal/nexustui/agent/tools/mcp"
+	tuiconfig "github.com/EngineerProjects/seshat/internal/nexustui/config"
+	crushcommon "github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	uimodel "github.com/EngineerProjects/seshat/internal/nexustui/ui/model"
+	crushws "github.com/EngineerProjects/seshat/internal/nexustui/workspace"
+	"github.com/EngineerProjects/seshat/internal/python"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
@@ -126,7 +126,7 @@ func buildTUIMonitoring() *sdk.MonitoringSystem {
 }
 
 func defaultNexusTUIRuntimeRoot() string {
-	return runtimepath.DefaultConfigDir("nexus-tui")
+	return runtimepath.DefaultConfigDir("seshat-tui")
 }
 
 func ensureNexusTUIRuntimeRoot() {

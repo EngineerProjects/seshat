@@ -1,10 +1,10 @@
 package engine
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 // Config represents the engine configuration.

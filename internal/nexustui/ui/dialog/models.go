@@ -11,9 +11,9 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/util"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

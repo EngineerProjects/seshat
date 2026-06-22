@@ -7,7 +7,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // ============================================================================
@@ -279,12 +279,12 @@ func (m *Manager) Context() string {
 // ============================================================================
 
 func getBaseMemoryPath() (string, error) {
-	// Check NEXUS_MEMORY_PATH env var
-	if path := os.Getenv("NEXUS_MEMORY_PATH"); path != "" {
+	// Check SESHAT_MEMORY_PATH env var
+	if path := os.Getenv("SESHAT_MEMORY_PATH"); path != "" {
 		return path, nil
 	}
 
-	// Default to <runtime-root>/memory — honours NEXUS_RUNTIME_ROOT so the CLI
+	// Default to <runtime-root>/memory — honours SESHAT_RUNTIME_ROOT so the CLI
 	// (nexus-cli) and the product backend (nexus) stay isolated automatically.
 	return runtimepath.Join("", "memory"), nil
 }

@@ -3,8 +3,8 @@ package contract
 import (
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Definition defines a tool's metadata and schema

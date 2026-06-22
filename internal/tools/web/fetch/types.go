@@ -5,7 +5,7 @@ import (
 	"net/url"
 	"strings"
 
-	fetchcore "github.com/EngineerProjects/nexus-engine/internal/web/fetch"
+	fetchcore "github.com/EngineerProjects/seshat/internal/web/fetch"
 )
 
 // Input represents the tool input.

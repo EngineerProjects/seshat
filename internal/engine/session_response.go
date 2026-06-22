@@ -1,8 +1,8 @@
 package engine
 
 import (
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // SessionResponse represents the response from a session turn.

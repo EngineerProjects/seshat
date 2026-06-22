@@ -17,7 +17,7 @@ package auto
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // NexusMdProvider is a function type that returns the NEXUS.md content.
@@ -53,7 +53,7 @@ func BuildNexusMdMessage() *types.Message {
 		`<user_nexus_md>\n` + content + "\n</user_nexus_md>"
 
 	return &types.Message{
-		ID:      types.MessageID("nexus-md-" + generateID()),
+		ID:      types.MessageID("seshat-md-" + generateID()),
 		Role:    types.RoleUser,
 		Content: []types.ContentBlock{types.TextContent{Text: wrappedContent}},
 	}

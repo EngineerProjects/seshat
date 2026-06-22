@@ -10,8 +10,8 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
 	"github.com/google/uuid"
 )
 

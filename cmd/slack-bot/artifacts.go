@@ -10,8 +10,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	slackgo "github.com/slack-go/slack"
 )
 
@@ -85,7 +85,7 @@ func (b *bot) uploadTurnArtifacts(
 
 	for _, path := range toUpload {
 		if err := b.uploadFile(ctx, channel, replyTS, path); err != nil {
-			log.Printf("[nexus-bot] upload %s: %v", filepath.Base(path), err)
+			log.Printf("[seshat-bot] upload %s: %v", filepath.Base(path), err)
 		}
 	}
 }
@@ -103,7 +103,7 @@ func (b *bot) uploadFile(ctx context.Context, channel, replyTS, path string) err
 	}
 
 	name := filepath.Base(path)
-	log.Printf("[nexus-bot] uploading %s (%d bytes)", name, info.Size())
+	log.Printf("[seshat-bot] uploading %s (%d bytes)", name, info.Size())
 
 	_, err = b.api.UploadFileContext(ctx, slackgo.UploadFileParameters{
 		Filename:        name,

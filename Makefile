@@ -1,8 +1,9 @@
-CMD_CLI       := ./cmd/cli
-CMD_GRPC      := ./cmd/grpc
-CMD_SLACK_BOT := ./cmd/slack-bot
+CMD_CLI        := ./cmd/cli
+CMD_GRPC       := ./cmd/grpc
+CMD_SLACK_BOT  := ./cmd/slack-bot
+CMD_AUTOMATION := ./cmd/automation
 
-.PHONY: all build build-cli build-grpc build-slack-bot build_linux test test-race fmt vet lint tidy clean hooks \
+.PHONY: all build build-cli build-grpc build-slack-bot build-automation build_linux test test-race fmt vet lint tidy clean hooks \
         setup install-python start-docling slack-bot
 
 # ── Default ────────────────────────────────────────────────────────────────────
@@ -32,23 +33,26 @@ setup:
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 
-build: build-cli build-grpc build-slack-bot
+build: build-cli build-grpc build-slack-bot build-automation
 
 build-cli:
-	go build -o bin/nexus $(CMD_CLI)
+	go build -o bin/seshat $(CMD_CLI)
 
 build-grpc:
-	go build -o bin/nexus-grpc $(CMD_GRPC)
+	go build -o bin/seshat-grpc $(CMD_GRPC)
 
 build-slack-bot:
-	go build -o bin/nexus-slack $(CMD_SLACK_BOT)
+	go build -o bin/seshat-slack $(CMD_SLACK_BOT)
+
+build-automation:
+	go build -o bin/seshat-auto $(CMD_AUTOMATION)
 
 slack-bot:
 	@export $$(grep -v '^#' private/.env.slack | xargs) && \
 	go run $(CMD_SLACK_BOT)
 
 build_linux:
-	go build -o /tmp/nexus $(CMD_CLI)
+	go build -o /tmp/seshat $(CMD_CLI)
 
 # ── Test ───────────────────────────────────────────────────────────────────────
 
@@ -96,7 +100,7 @@ install-python:
 	@./scripts/install-python-env.sh
 
 # Start docling-serve manually.
-# Nexus auto-starts it at launch when the venv is installed — this is only
+# Seshat auto-starts it at launch when the venv is installed — this is only
 # needed if you want to run it as a standalone process.
 
 start-docling:

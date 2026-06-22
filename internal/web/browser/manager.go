@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-rod/rod"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const defaultBlankURL = "about:blank"

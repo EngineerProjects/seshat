@@ -4,7 +4,7 @@ import (
 	"context"
 	"net/http"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // RetryStrategy defines advanced retry options.

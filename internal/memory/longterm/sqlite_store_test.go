@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
 )
 
 func newTestStore(t *testing.T) *SQLiteStore {
@@ -83,7 +83,7 @@ func TestSQLiteStore_SearchNodes(t *testing.T) {
 	userID := "u1"
 
 	if _, err := s.UpsertEntities(ctx, userID, []EntityInput{
-		{Name: "nexus-engine", EntityType: "project", Observations: []string{"TUI terminal en Go"}},
+		{Name: "seshat", EntityType: "project", Observations: []string{"TUI terminal en Go"}},
 		{Name: "alice", EntityType: "person", Observations: []string{"developer"}},
 		{Name: "bubbletea", EntityType: "library"},
 	}); err != nil {
@@ -95,8 +95,8 @@ func TestSQLiteStore_SearchNodes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if len(g.Entities) != 1 || g.Entities[0].Name != "nexus-engine" {
-		t.Fatalf("want [nexus-engine], got %v", entityNames(g.Entities))
+	if len(g.Entities) != 1 || g.Entities[0].Name != "seshat" {
+		t.Fatalf("want [seshat], got %v", entityNames(g.Entities))
 	}
 
 	// Search matching entity type "library"

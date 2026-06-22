@@ -3,7 +3,7 @@ package sdk
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/engine"
 )
 
 // Session represents a multi-turn conversation session.

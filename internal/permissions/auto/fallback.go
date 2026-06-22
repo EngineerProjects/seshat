@@ -3,7 +3,7 @@ package auto
 import (
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Fallback handles the transition from auto-approval to prompting when

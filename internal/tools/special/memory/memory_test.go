@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	longterm "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	memtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	longterm "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	memtool "github.com/EngineerProjects/seshat/internal/tools/special/memory"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ─── fakeStore ────────────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ func TestCreateEntitiesTool_BasicFlow(t *testing.T) {
 
 	result := callTool(t, tl, ctx, map[string]any{
 		"entities": []any{
-			map[string]any{"name": "nexus-engine", "entity_type": "project", "observations": []any{"Written in Go"}},
+			map[string]any{"name": "seshat", "entity_type": "project", "observations": []any{"Written in Go"}},
 			map[string]any{"name": "user", "entity_type": "person"},
 		},
 	})
@@ -139,7 +139,7 @@ func TestCreateEntitiesTool_BasicFlow(t *testing.T) {
 	var created []longterm.Entity
 	require.NoError(t, json.Unmarshal([]byte(result.Content), &created))
 	require.Len(t, created, 2)
-	require.Equal(t, "nexus-engine", created[0].Name)
+	require.Equal(t, "seshat", created[0].Name)
 	require.Equal(t, []string{"Written in Go"}, created[0].Observations)
 }
 

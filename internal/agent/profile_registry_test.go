@@ -9,8 +9,8 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/db"
+	"github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/db"
 )
 
 func openTestDB(t *testing.T) *db.DB {
@@ -67,7 +67,7 @@ func TestProfileRegistry_Seed(t *testing.T) {
 		nicknames[p.Nickname] = true
 		assert.Len(t, p.ID, 36, "built-in IDs must be UUID-format")
 	}
-	assert.True(t, nicknames["Nexus"])
+	assert.True(t, nicknames["Seshat"])
 	assert.True(t, nicknames["Aria"])
 	assert.True(t, nicknames["Kai"])
 }
@@ -84,7 +84,7 @@ func TestProfileRegistry_Seed_Idempotent(t *testing.T) {
 	for _, p := range profiles {
 		counts[p.Nickname]++
 	}
-	assert.Equal(t, 1, counts["Nexus"])
+	assert.Equal(t, 1, counts["Seshat"])
 	assert.Equal(t, 1, counts["Aria"])
 	assert.Equal(t, 1, counts["Kai"])
 }

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth"
 )
 
 const (

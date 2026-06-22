@@ -4,10 +4,10 @@ import (
 	"context"
 	"fmt"
 
-	coregoal "github.com/EngineerProjects/nexus-engine/internal/agent/goal"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	coregoal "github.com/EngineerProjects/seshat/internal/agent/goal"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const getGoalName = "get_goal"

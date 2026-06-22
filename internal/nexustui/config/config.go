@@ -13,9 +13,9 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth/copilot"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth/copilot"
 	"github.com/invopop/jsonschema"
 )
 

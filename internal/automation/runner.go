@@ -1,0 +1,101 @@
+package automation
+
+import (
+	"context"
+	"fmt"
+	"strings"
+
+	"github.com/EngineerProjects/seshat/internal/providers"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
+)
+
+// RunnerConfig is the base template used to build an SDK client for each
+// workflow execution.
+type RunnerConfig struct {
+	Model          sdk.ModelIdentifier
+	ProviderConfig *providers.Config
+	MaxTokens      int
+}
+
+// ExecuteConfig holds per-execution overrides applied on top of RunnerConfig.
+type ExecuteConfig struct {
+	// StreamFn receives each text delta in real time. May be nil.
+	StreamFn func(string)
+	// ModelOverride specifies a different model for this execution only.
+	// Format: "provider:model". Empty means use RunnerConfig.Model.
+	ModelOverride string
+	// SystemPrompt replaces the entire Nexus default system prompt.
+	// Empty means use the default.
+	SystemPrompt string
+}
+
+// Runner creates a fresh SDK client for each workflow execution.
+// It holds no mutable state, making it safe for concurrent use.
+type Runner struct {
+	cfg RunnerConfig
+}
+
+// NewRunner builds a Runner from cfg.
+func NewRunner(cfg RunnerConfig) (*Runner, error) {
+	return &Runner{cfg: cfg}, nil
+}
+
+// Execute runs w against a fresh SDK client and session.
+// A new client is created for every call, which ensures ExecuteConfig
+// overrides (model, system prompt) are fully isolated between executions.
+func (r *Runner) Execute(ctx context.Context, w Workflow, ec ExecuteConfig) error {
+	model := r.cfg.Model
+	if strings.TrimSpace(ec.ModelOverride) != "" {
+		model = engineconfig.ParseModelIdentifier(ec.ModelOverride)
+		if !engineconfig.HasExplicitProviderPrefix(ec.ModelOverride) {
+			if p := engineconfig.DetectProviderFromModel(ec.ModelOverride); p != "" {
+				model.Provider = p
+			}
+		}
+	}
+
+	clientCfg := &sdk.ClientConfig{
+		APIKey:                 r.cfg.ProviderConfig.APIKey,
+		Model:                  model,
+		PermissionMode:         sdk.PermissionModeBypass,
+		MaxTokens:              r.cfg.MaxTokens,
+		AutoCompact:            false,
+		PersistSessions:        false,
+		DisableTitleGeneration: true,
+		EnableMemory:           false,
+		EnableHooks:            false,
+		EnableMonitoring:       false,
+		ProviderConfig:         r.cfg.ProviderConfig,
+	}
+
+	if ec.StreamFn != nil {
+		streamFn := ec.StreamFn
+		clientCfg.ResponseChunkFn = func(chunk sdk.ResponseChunk) {
+			if chunk.Delta != "" {
+				streamFn(chunk.Delta)
+			}
+		}
+	}
+
+	if ec.SystemPrompt != "" {
+		sp := ec.SystemPrompt
+		clientCfg.PromptConfig = &sdk.PromptConfig{SystemPrompt: &sp}
+	}
+
+	client, err := sdk.NewClient(clientCfg)
+	if err != nil {
+		return fmt.Errorf("automation runner: %w", err)
+	}
+	defer client.Close()
+
+	session, err := client.CreateSession(ctx)
+	if err != nil {
+		return fmt.Errorf("create session: %w", err)
+	}
+
+	return w.Run(ctx, session)
+}
+
+// Close is a no-op — Runner holds no long-lived resources.
+func (r *Runner) Close() {}

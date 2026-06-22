@@ -6,10 +6,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	taskTool "github.com/EngineerProjects/seshat/internal/tools/task"
 )
 
 type TaskListToolMessageItem struct{ *baseToolMessageItem }

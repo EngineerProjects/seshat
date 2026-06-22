@@ -8,17 +8,17 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
-	"github.com/EngineerProjects/nexus-engine/internal/permissions"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	compact "github.com/EngineerProjects/nexus-engine/internal/runtime/memory"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	"github.com/EngineerProjects/seshat/internal/monitoring"
+	"github.com/EngineerProjects/seshat/internal/permissions"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	compact "github.com/EngineerProjects/seshat/internal/runtime/memory"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 // SessionStore persists canonical session metadata and transcript state.

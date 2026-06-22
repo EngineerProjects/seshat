@@ -3,8 +3,8 @@ package execution
 import (
 	"time"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ExecuteRequest represents a request to execute tools.

@@ -8,7 +8,7 @@ import (
 	"sort"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // DiscoveryResult reports the availability and authentication status of one provider.

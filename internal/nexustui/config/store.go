@@ -12,12 +12,12 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	hyperp "github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/hyper"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/env"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lock"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth/copilot"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth/hyper"
+	hyperp "github.com/EngineerProjects/seshat/internal/nexustui/agent/hyper"
+	"github.com/EngineerProjects/seshat/internal/nexustui/env"
+	"github.com/EngineerProjects/seshat/internal/nexustui/lock"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth/copilot"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth/hyper"
 	"github.com/tidwall/gjson"
 	"github.com/tidwall/sjson"
 )

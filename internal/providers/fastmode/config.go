@@ -4,7 +4,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // FastmodeConfig controls which model is used for low-latency background tasks
@@ -23,7 +23,7 @@ type FastmodeConfig struct {
 }
 
 // DefaultFastmodeConfig returns a sensible default configuration.
-// The fast model can be overridden via NEXUS_FAST_MODEL env var (format: "provider:model").
+// The fast model can be overridden via SESHAT_FAST_MODEL env var (format: "provider:model").
 func DefaultFastmodeConfig() *FastmodeConfig {
 	cfg := &FastmodeConfig{
 		Enabled: true,
@@ -34,7 +34,7 @@ func DefaultFastmodeConfig() *FastmodeConfig {
 		MaxTokens: 1024,
 	}
 
-	if raw := os.Getenv("NEXUS_FAST_MODEL"); raw != "" {
+	if raw := os.Getenv("SESHAT_FAST_MODEL"); raw != "" {
 		if idx := strings.Index(raw, ":"); idx > 0 {
 			cfg.FastModel = types.ModelIdentifier{
 				Provider: types.APIProvider(raw[:idx]),

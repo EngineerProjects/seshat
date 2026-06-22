@@ -11,7 +11,7 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // --- Request building ---

@@ -5,8 +5,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/db"
+	"github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/db"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

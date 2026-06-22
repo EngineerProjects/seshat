@@ -3,8 +3,8 @@ package state
 import (
 	"context"
 	"errors"
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
+	"github.com/EngineerProjects/seshat/internal/types"
 	"os"
 	"path/filepath"
 	"testing"

@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent/goal"
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/agent/goal"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // RunResult is the result of running an agent

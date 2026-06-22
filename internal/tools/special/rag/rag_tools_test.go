@@ -5,11 +5,11 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/rag"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	ragtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/rag"
-	"github.com/EngineerProjects/nexus-engine/internal/vector"
+	"github.com/EngineerProjects/seshat/internal/rag"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	ragtool "github.com/EngineerProjects/seshat/internal/tools/special/rag"
+	"github.com/EngineerProjects/seshat/internal/vector"
 )
 
 // stubEmbedder returns the same single-dimension vector for every text.

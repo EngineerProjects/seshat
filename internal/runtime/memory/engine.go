@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/internal/utils"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/internal/utils"
 )
 
 const (

@@ -4,7 +4,7 @@
 // docling-serve without accessing internal packages.
 package python
 
-import internalpython "github.com/EngineerProjects/nexus-engine/internal/python"
+import internalpython "github.com/EngineerProjects/seshat/internal/python"
 
 const (
 	DefaultDoclingPort = internalpython.DefaultDoclingPort
@@ -21,7 +21,7 @@ func NewDoclingManager(venvDir, host string, port int) *DoclingManager {
 }
 
 // DefaultDoclingManager creates a manager using the Nexus runtime root venv
-// (~/.config/nexus/.venv or $NEXUS_RUNTIME_ROOT/.venv).
+// (~/.config/nexus/.venv or $SESHAT_RUNTIME_ROOT/.venv).
 // Returns nil if the venv or docling-serve binary is not installed.
 func DefaultDoclingManager() *DoclingManager {
 	return internalpython.DefaultDoclingManager()

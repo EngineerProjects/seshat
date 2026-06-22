@@ -4,9 +4,9 @@ import (
 	"context"
 	"encoding/json"
 
-	shellhooks "github.com/EngineerProjects/nexus-engine/internal/hooks"
-	runtimehooks "github.com/EngineerProjects/nexus-engine/internal/runtime/hooks"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	shellhooks "github.com/EngineerProjects/seshat/internal/hooks"
+	runtimehooks "github.com/EngineerProjects/seshat/internal/runtime/hooks"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // registerShellPreToolHooks converts PreToolHookConfig entries to ToolHooks

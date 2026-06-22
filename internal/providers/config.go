@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // RoutingConfig defines provider routing and fallback behavior.

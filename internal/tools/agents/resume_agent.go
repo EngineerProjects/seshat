@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	coreagent "github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const resumeAgentName = "resume_agent"

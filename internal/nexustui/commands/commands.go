@@ -9,11 +9,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/tools/mcp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/skills"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 var namedArgPattern = regexp.MustCompile(`\$([A-Z][A-Z0-9_]*)`)

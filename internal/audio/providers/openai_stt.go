@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"path/filepath"
 
-	"github.com/EngineerProjects/nexus-engine/internal/audio/stt"
+	"github.com/EngineerProjects/seshat/internal/audio/stt"
 )
 
 const (

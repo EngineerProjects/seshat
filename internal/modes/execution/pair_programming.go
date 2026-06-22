@@ -6,7 +6,7 @@
 package execution
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const DefaultSuggestionsDirectory = ".nexus/suggestions"

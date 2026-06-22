@@ -13,9 +13,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
 	powernapconfig "github.com/charmbracelet/x/powernap/pkg/config"
 	powernap "github.com/charmbracelet/x/powernap/pkg/lsp"
 	"github.com/sourcegraph/jsonrpc2"

@@ -3,7 +3,7 @@ package memory
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // CompactionStrategy abstracts the compaction algorithm used by the query loop.

@@ -9,7 +9,7 @@ import (
 	"strconv"
 	"strings"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
 )
 
 // PgVectorStore is a persistent vector.Store backed by PostgreSQL + pgvector extension.

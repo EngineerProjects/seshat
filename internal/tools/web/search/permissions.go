@@ -3,9 +3,9 @@ package websearch
 import (
 	"context"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 // permissionInput enriches search inputs with normalized domain and provider metadata for the permission pipeline.

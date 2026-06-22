@@ -11,7 +11,7 @@ import (
 	"sync"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
 	"github.com/charmbracelet/x/etag"
 )
 

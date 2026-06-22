@@ -10,9 +10,9 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/list"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/tools/mcp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/list"
 	"github.com/charmbracelet/x/ansi"
 	"github.com/charmbracelet/x/exp/ordered"
 )

@@ -7,7 +7,7 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/anim"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/anim"
 	"github.com/charmbracelet/x/ansi"
 )
 

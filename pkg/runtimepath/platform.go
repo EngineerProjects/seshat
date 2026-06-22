@@ -14,7 +14,7 @@ import (
 //     avoids the space in "Library/Application Support")
 //   - Windows:     %APPDATA%\<appName>  (e.g. C:\Users\<user>\AppData\Roaming\<appName>)
 //
-// NEXUS_RUNTIME_ROOT overrides everything — callers should check that first.
+// SESHAT_RUNTIME_ROOT overrides everything — callers should check that first.
 func DefaultConfigDir(appName string) string {
 	switch runtime.GOOS {
 	case "windows":

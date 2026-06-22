@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"net/url"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 type fetchPlan struct {

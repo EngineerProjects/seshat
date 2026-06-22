@@ -4,8 +4,8 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Builder builds a tool from a definition and handler function

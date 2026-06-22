@@ -19,14 +19,14 @@ import (
 	"google.golang.org/grpc/reflection"
 	"google.golang.org/grpc/status"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	internaltypes "github.com/EngineerProjects/nexus-engine/internal/types"
-	appconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	pb "github.com/EngineerProjects/nexus-engine/pkg/grpc/nexus"
-	publicmcp "github.com/EngineerProjects/nexus-engine/pkg/mcp"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
-	publicskills "github.com/EngineerProjects/nexus-engine/pkg/skills"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	internaltypes "github.com/EngineerProjects/seshat/internal/types"
+	appconfig "github.com/EngineerProjects/seshat/pkg/config"
+	pb "github.com/EngineerProjects/seshat/pkg/grpc/nexus"
+	publicmcp "github.com/EngineerProjects/seshat/pkg/mcp"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
+	publicskills "github.com/EngineerProjects/seshat/pkg/skills"
 )
 
 // GRPCConfig holds server configuration.
@@ -584,29 +584,29 @@ func (s *NexusServer) HealthCheck(_ context.Context, _ *pb.HealthCheckRequest) (
 
 func loadGRPCConfigFromEnv() GRPCConfig {
 	cfg := defaultGRPCConfig
-	if raw := strings.TrimSpace(os.Getenv("NEXUS_GRPC_PORT")); raw != "" {
+	if raw := strings.TrimSpace(os.Getenv("SESHAT_GRPC_PORT")); raw != "" {
 		if port, err := strconv.Atoi(raw); err == nil && port > 0 {
 			cfg.Port = port
 		}
 	}
-	if raw := strings.TrimSpace(os.Getenv("NEXUS_GRPC_MAX_CONCURRENT_RPCS")); raw != "" {
+	if raw := strings.TrimSpace(os.Getenv("SESHAT_GRPC_MAX_CONCURRENT_RPCS")); raw != "" {
 		if value, err := strconv.Atoi(raw); err == nil && value > 0 {
 			cfg.MaxConcurrentRPCs = value
 		}
 	}
-	if raw := strings.TrimSpace(os.Getenv("NEXUS_GRPC_KEEPALIVE_TIME")); raw != "" {
+	if raw := strings.TrimSpace(os.Getenv("SESHAT_GRPC_KEEPALIVE_TIME")); raw != "" {
 		if value, err := time.ParseDuration(raw); err == nil && value > 0 {
 			cfg.KeepaliveTime = value
 		}
 	}
-	if raw := strings.TrimSpace(os.Getenv("NEXUS_GRPC_ENABLE_REFLECTION")); raw != "" {
+	if raw := strings.TrimSpace(os.Getenv("SESHAT_GRPC_ENABLE_REFLECTION")); raw != "" {
 		cfg.EnableReflection = strings.EqualFold(raw, "1") || strings.EqualFold(raw, "true") || strings.EqualFold(raw, "yes")
 	}
 	return cfg
 }
 
 func grpcServerVersion() string {
-	if value := strings.TrimSpace(os.Getenv("NEXUS_VERSION")); value != "" {
+	if value := strings.TrimSpace(os.Getenv("SESHAT_VERSION")); value != "" {
 		return value
 	}
 	return "dev"

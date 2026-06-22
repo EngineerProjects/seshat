@@ -9,7 +9,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 const (

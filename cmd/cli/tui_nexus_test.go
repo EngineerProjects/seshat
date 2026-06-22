@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 func TestEnsureNexusTUIRuntimeRootSetsDefaultWhenUnset(t *testing.T) {
@@ -17,18 +17,18 @@ func TestEnsureNexusTUIRuntimeRootSetsDefaultWhenUnset(t *testing.T) {
 
 	ensureNexusTUIRuntimeRoot()
 
-	want := filepath.Join(home, ".config", "nexus-tui")
+	want := filepath.Join(home, ".config", "seshat-tui")
 	if got := os.Getenv(runtimepath.EnvRuntimeRoot); got != want {
 		t.Fatalf("expected runtime root %q, got %q", want, got)
 	}
 }
 
 func TestEnsureNexusTUIRuntimeRootPreservesExistingValue(t *testing.T) {
-	t.Setenv(runtimepath.EnvRuntimeRoot, "/tmp/custom-nexus-root")
+	t.Setenv(runtimepath.EnvRuntimeRoot, "/tmp/custom-seshat-root")
 
 	ensureNexusTUIRuntimeRoot()
 
-	if got := os.Getenv(runtimepath.EnvRuntimeRoot); got != "/tmp/custom-nexus-root" {
+	if got := os.Getenv(runtimepath.EnvRuntimeRoot); got != "/tmp/custom-seshat-root" {
 		t.Fatalf("expected existing runtime root to be preserved, got %q", got)
 	}
 }

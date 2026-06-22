@@ -15,8 +15,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func main() {

@@ -1,8 +1,8 @@
 package common
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/diffview"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/diffview"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	"github.com/alecthomas/chroma/v2"
 )
 

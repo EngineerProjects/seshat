@@ -3,7 +3,7 @@ package app
 import (
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lsp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/lsp"
 )
 
 // LSPEventType represents the type of LSP event.

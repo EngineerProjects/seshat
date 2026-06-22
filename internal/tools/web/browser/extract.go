@@ -3,10 +3,10 @@ package browser
 import (
 	"context"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 func (t *snapshotTool) Definition() tool.Definition {
