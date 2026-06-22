@@ -55,7 +55,7 @@ func TestApplyRuntimeEnvFromConfig(t *testing.T) {
 	_ = os.Unsetenv("SESHAT_RUNTIME_ROOT")
 
 	cfg := Config{
-		RuntimeRoot:       "/tmp/nexus-runtime",
+		RuntimeRoot:       "/tmp/seshat-runtime",
 		Model:             "vertex:claude-3-5-sonnet@20241022",
 		ProviderProjectID: "project-123",
 		ProviderRegion:    "us-east5",
@@ -68,7 +68,7 @@ func TestApplyRuntimeEnvFromConfig(t *testing.T) {
 	if got := os.Getenv("CLOUD_ML_REGION"); got != "us-east5" {
 		t.Fatalf("unexpected region env: got %q", got)
 	}
-	if got := os.Getenv("SESHAT_RUNTIME_ROOT"); got != "/tmp/nexus-runtime" {
+	if got := os.Getenv("SESHAT_RUNTIME_ROOT"); got != "/tmp/seshat-runtime" {
 		t.Fatalf("unexpected runtime root env: got %q", got)
 	}
 }
@@ -149,14 +149,14 @@ func TestEffectiveSessionDBPathFallsBackToDBPath(t *testing.T) {
 }
 
 func TestEffectiveRuntimePathsUseUnifiedRoot(t *testing.T) {
-	cfg := Config{RuntimeRoot: "/tmp/nexus-runtime"}
-	if got := EffectiveRuntimeRoot(cfg); got != "/tmp/nexus-runtime" {
+	cfg := Config{RuntimeRoot: "/tmp/seshat-runtime"}
+	if got := EffectiveRuntimeRoot(cfg); got != "/tmp/seshat-runtime" {
 		t.Fatalf("unexpected runtime root: %q", got)
 	}
-	if got := EffectiveDBPath(cfg); got != "/tmp/nexus-runtime/seshat.db" {
+	if got := EffectiveDBPath(cfg); got != "/tmp/seshat-runtime/seshat.db" {
 		t.Fatalf("unexpected db path: %q", got)
 	}
-	if got := EffectiveStorageLocalPath(cfg); got != "/tmp/nexus-runtime/storage" {
+	if got := EffectiveStorageLocalPath(cfg); got != "/tmp/seshat-runtime/storage" {
 		t.Fatalf("unexpected storage path: %q", got)
 	}
 }
