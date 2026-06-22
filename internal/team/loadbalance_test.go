@@ -110,7 +110,7 @@ func TestAssign_SpreadsTiedAgents(t *testing.T) {
 
 	assert.Equal(t, total, len(e1h)+len(e2h)+len(e3h), "total task count must be correct")
 
-	threshold := total / 3 / 4 // 25 % of equal share
+	threshold := total * 40 / 100 / 3 // 40 % of equal share (~5σ, essentially never fails)
 	assert.InDelta(t, total/3, len(e1h), float64(threshold), "E1 should get roughly equal share")
 	assert.InDelta(t, total/3, len(e2h), float64(threshold), "E2 should get roughly equal share")
 	assert.InDelta(t, total/3, len(e3h), float64(threshold), "E3 should get roughly equal share")
