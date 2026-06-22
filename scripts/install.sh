@@ -1,88 +1,240 @@
 #!/usr/bin/env bash
+# install.sh — Seshat end-user installer
+#
+# Usage:
+#   curl -fsSL https://raw.githubusercontent.com/EngineerProjects/seshat/main/scripts/install.sh | bash
+#
+# Options (env vars):
+#   VERSION=v0.1.0       Install a specific version (default: latest)
+#   INSTALL_DIR=...      Binary destination (default: ~/.local/bin)
+#   NO_PYTHON=1          Skip uv + docling-serve setup
+#   DOCLING_EXTRAS=gpu   Install docling-serve[gpu] instead of the base package
+#   PYTHON_VERSION=3.12  Python version for the docling venv (default: 3.11)
+#
+# Developer / SDK usage (no installer needed):
+#   go install github.com/EngineerProjects/seshat/cmd/cli@latest
+#   go get     github.com/EngineerProjects/seshat@latest   # in your go.mod
+
 set -euo pipefail
 
 REPO="EngineerProjects/seshat"
 BINARY="seshat"
 INSTALL_DIR="${INSTALL_DIR:-$HOME/.local/bin}"
+NO_PYTHON="${NO_PYTHON:-0}"
+PYTHON_VERSION="${PYTHON_VERSION:-3.11}"
+DOCLING_EXTRAS="${DOCLING_EXTRAS:-}"
+
+# ── Colors ────────────────────────────────────────────────────────────────────
+if [ -t 1 ]; then
+    RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
+    BLUE='\033[0;34m'; BOLD='\033[1m'; NC='\033[0m'
+else
+    RED=''; GREEN=''; YELLOW=''; BLUE=''; BOLD=''; NC=''
+fi
+
+info()    { echo -e "${BLUE}[seshat]${NC} $*"; }
+success() { echo -e "${GREEN}[seshat]${NC} $*"; }
+warn()    { echo -e "${YELLOW}[seshat]${NC} $*"; }
+error()   { echo -e "${RED}[seshat]${NC} $*" >&2; }
+step()    { echo -e "\n${BOLD}▸ $*${NC}"; }
+
+# ── Runtime root (mirrors Go DefaultConfigDir logic) ──────────────────────────
+_runtime_root() {
+    if [ -n "${SESHAT_RUNTIME_ROOT:-}" ]; then echo "$SESHAT_RUNTIME_ROOT"; return; fi
+    if [ -n "${XDG_CONFIG_HOME:-}" ]; then echo "$XDG_CONFIG_HOME/seshat-cli"; return; fi
+    echo "$HOME/.config/seshat-cli"
+}
+RUNTIME_ROOT="$(_runtime_root)"
 
 # ── Detect OS / arch ──────────────────────────────────────────────────────────
+step "Detecting platform"
 
 OS="$(uname -s)"
 ARCH="$(uname -m)"
 
 case "$OS" in
-  Linux)  os="linux" ;;
-  Darwin) os="darwin" ;;
-  *)
-    echo "Unsupported OS: $OS" >&2
-    echo "Download a binary manually from: https://github.com/$REPO/releases" >&2
-    exit 1
-    ;;
+    Linux)  os="linux" ;;
+    Darwin) os="darwin" ;;
+    *)
+        error "Unsupported OS: $OS"
+        error "Download a binary manually: https://github.com/$REPO/releases"
+        exit 1
+        ;;
 esac
 
 case "$ARCH" in
-  x86_64|amd64) arch="amd64" ;;
-  arm64|aarch64) arch="arm64" ;;
-  *)
-    echo "Unsupported architecture: $ARCH" >&2
-    exit 1
-    ;;
+    x86_64|amd64)  arch="amd64" ;;
+    arm64|aarch64) arch="arm64" ;;
+    *)
+        error "Unsupported architecture: $ARCH"
+        exit 1
+        ;;
 esac
 
 SUFFIX="${os}-${arch}"
+info "Platform: $SUFFIX"
 
 # ── Resolve version ───────────────────────────────────────────────────────────
+step "Resolving version"
 
 if [ -z "${VERSION:-}" ]; then
-  echo "Fetching latest release..."
-  VERSION="$(curl -fsSL "https://api.github.com/repos/$REPO/releases/latest" \
-    | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
+    info "Fetching latest release..."
+    _dl() { command -v curl &>/dev/null && curl -fsSL "$1" || wget -qO- "$1"; }
+    VERSION="$(_dl "https://api.github.com/repos/$REPO/releases/latest" \
+        | grep '"tag_name"' | sed 's/.*"tag_name": *"\([^"]*\)".*/\1/')"
 fi
 
-if [ -z "$VERSION" ]; then
-  echo "Could not determine latest version. Set VERSION= explicitly." >&2
-  exit 1
-fi
+[ -z "$VERSION" ] && { error "Could not resolve version. Set VERSION=vX.Y.Z explicitly."; exit 1; }
+info "Version: $VERSION"
 
-echo "Installing seshat $VERSION ($SUFFIX)..."
-
-# ── Download ──────────────────────────────────────────────────────────────────
+# ── Download binary ───────────────────────────────────────────────────────────
+step "Downloading seshat $VERSION"
 
 BASE_URL="https://github.com/$REPO/releases/download/$VERSION"
-BIN_NAME="${BINARY}-${SUFFIX}"
+BIN_ASSET="${BINARY}-${SUFFIX}"
 TMP_DIR="$(mktemp -d)"
 trap 'rm -rf "$TMP_DIR"' EXIT
 
-curl -fsSL "$BASE_URL/$BIN_NAME" -o "$TMP_DIR/$BINARY"
-curl -fsSL "$BASE_URL/SHA256SUMS.txt" -o "$TMP_DIR/SHA256SUMS.txt"
+_dl() { command -v curl &>/dev/null && curl -fsSL "$1" -o "$2" || wget -qO "$2" "$1"; }
+
+info "Binary:    $BIN_ASSET"
+_dl "$BASE_URL/$BIN_ASSET"       "$TMP_DIR/$BINARY"
+_dl "$BASE_URL/SHA256SUMS.txt"   "$TMP_DIR/SHA256SUMS.txt"
 
 # ── Verify checksum ───────────────────────────────────────────────────────────
+step "Verifying checksum"
 
-(cd "$TMP_DIR" && grep "$BIN_NAME" SHA256SUMS.txt | sha256sum --check --status) || {
-  echo "Checksum verification failed." >&2
-  exit 1
-}
+(cd "$TMP_DIR" && grep "$BIN_ASSET" SHA256SUMS.txt | sha256sum --check --status) \
+    || { error "Checksum verification failed — aborting."; exit 1; }
+success "Checksum OK"
 
-# ── Install ───────────────────────────────────────────────────────────────────
+# ── Install binary ────────────────────────────────────────────────────────────
+step "Installing binary"
 
 mkdir -p "$INSTALL_DIR"
 chmod +x "$TMP_DIR/$BINARY"
 mv "$TMP_DIR/$BINARY" "$INSTALL_DIR/$BINARY"
+success "Installed: $INSTALL_DIR/$BINARY"
 
-echo ""
-echo "seshat $VERSION installed to $INSTALL_DIR/seshat"
+# ── Add to PATH in shell profile ──────────────────────────────────────────────
+step "Configuring PATH"
 
-# Warn if INSTALL_DIR is not in PATH
+_add_to_path() {
+    local profile="$1"
+    local line='export PATH="$HOME/.local/bin:$PATH"'
+    if [ -f "$profile" ] && grep -qF '.local/bin' "$profile"; then
+        info "$profile already exports ~/.local/bin — skipping"
+    else
+        echo "" >> "$profile"
+        echo "# Added by seshat installer" >> "$profile"
+        echo "$line" >> "$profile"
+        success "Added PATH export to $profile"
+    fi
+}
+
 case ":$PATH:" in
-  *":$INSTALL_DIR:"*) ;;
-  *)
-    echo ""
-    echo "  Note: $INSTALL_DIR is not in your PATH."
-    echo "  Add this to your shell profile (~/.bashrc, ~/.zshrc, ...):"
-    echo ""
-    echo "    export PATH=\"\$HOME/.local/bin:\$PATH\""
-    echo ""
-    ;;
+    *":$INSTALL_DIR:"*)
+        success "$INSTALL_DIR already in PATH"
+        RELOAD_NEEDED=0
+        ;;
+    *)
+        warn "$INSTALL_DIR not in PATH — adding to shell profile"
+        RELOAD_NEEDED=1
+
+        # Fish shell
+        if [ -n "${FISH_VERSION:-}" ] || echo "${SHELL:-}" | grep -q fish; then
+            FISH_DIR="${XDG_CONFIG_HOME:-$HOME/.config}/fish"
+            mkdir -p "$FISH_DIR"
+            FISH_CONF="$FISH_DIR/config.fish"
+            if grep -qF '.local/bin' "$FISH_CONF" 2>/dev/null; then
+                info "$FISH_CONF already exports ~/.local/bin — skipping"
+            else
+                echo "" >> "$FISH_CONF"
+                echo "# Added by seshat installer" >> "$FISH_CONF"
+                echo 'fish_add_path $HOME/.local/bin' >> "$FISH_CONF"
+                success "Added PATH to $FISH_CONF"
+            fi
+        else
+            # Bash
+            [ -f "$HOME/.bashrc" ] && _add_to_path "$HOME/.bashrc"
+            # Zsh
+            [ -f "$HOME/.zshrc"  ] && _add_to_path "$HOME/.zshrc"
+            # Fallback: .profile
+            if [ ! -f "$HOME/.bashrc" ] && [ ! -f "$HOME/.zshrc" ]; then
+                _add_to_path "$HOME/.profile"
+            fi
+        fi
+        ;;
 esac
 
-echo "Run: seshat version"
+# ── Python / docling setup ────────────────────────────────────────────────────
+if [ "$NO_PYTHON" = "1" ]; then
+    warn "Skipping Python setup (NO_PYTHON=1)"
+else
+    step "Setting up Python environment (uv + docling-serve)"
+    info "Runtime root: $RUNTIME_ROOT"
+
+    # Install uv if missing
+    if command -v uv &>/dev/null; then
+        success "uv already installed: $(uv --version)"
+    else
+        info "Installing uv..."
+        if command -v curl &>/dev/null; then
+            curl -LsSf https://astral.sh/uv/install.sh | sh
+        else
+            wget -qO- https://astral.sh/uv/install.sh | sh
+        fi
+        export PATH="$HOME/.cargo/bin:$HOME/.local/bin:$PATH"
+        command -v uv &>/dev/null || {
+            error "uv installed but not found on PATH — reopen your terminal and re-run."
+            exit 1
+        }
+        success "uv installed: $(uv --version)"
+    fi
+
+    # Create venv
+    VENV_DIR="$RUNTIME_ROOT/.venv"
+    mkdir -p "$RUNTIME_ROOT"
+
+    if [ -d "$VENV_DIR" ]; then
+        info "Python venv already exists — skipping creation"
+    else
+        info "Creating Python $PYTHON_VERSION venv at $VENV_DIR ..."
+        uv venv "$VENV_DIR" --python "$PYTHON_VERSION" --seed
+        success "Venv created"
+    fi
+
+    # Install docling-serve
+    PACKAGE="docling-serve"
+    [ -n "$DOCLING_EXTRAS" ] && PACKAGE="docling-serve[$DOCLING_EXTRAS]"
+    info "Installing $PACKAGE ..."
+    uv pip install --python "$VENV_DIR/bin/python" "$PACKAGE"
+
+    [ -x "$VENV_DIR/bin/docling-serve" ] \
+        || { error "docling-serve not found after install — check the output above."; exit 1; }
+    success "docling-serve ready"
+fi
+
+# ── Done ──────────────────────────────────────────────────────────────────────
+echo ""
+echo -e "${GREEN}${BOLD}✓ Seshat $VERSION installed successfully${NC}"
+echo ""
+echo "  Binary:       $INSTALL_DIR/seshat"
+echo "  Runtime:      $RUNTIME_ROOT  (DB + sessions created on first run)"
+if [ "$NO_PYTHON" != "1" ]; then
+echo "  Docling venv: $RUNTIME_ROOT/.venv"
+fi
+echo ""
+
+if [ "${RELOAD_NEEDED:-0}" = "1" ]; then
+    echo -e "${YELLOW}  Reload your shell to activate PATH:${NC}"
+    echo "    source ~/.bashrc   # or ~/.zshrc / open a new terminal"
+    echo ""
+fi
+
+echo "  Get started:"
+echo "    seshat config     # configure your AI provider + API key"
+echo "    seshat chat       # start chatting"
+echo ""
+echo "  Docs: https://github.com/$REPO"
+echo ""
