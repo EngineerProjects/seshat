@@ -11,7 +11,7 @@ import (
 var ErrMalformedTranscriptEntry = errors.New("malformed transcript entry")
 
 // Backend persists session artifacts independently from the higher-level store
-// logic so Nexus can support filesystem, in-memory, or database-backed
+// logic so Seshat can support filesystem, in-memory, or database-backed
 // implementations behind the same restore/save contract.
 type Backend interface {
 	SaveSession(sessionID types.SessionID, metadata *types.SessionMetadata) error

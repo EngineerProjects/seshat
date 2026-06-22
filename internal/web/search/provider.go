@@ -68,7 +68,7 @@ func (p *HTTPProvider) Search(input providers.SearchInput) (providers.ProviderOu
 		return providers.ProviderOutput{}, err
 	}
 	req.Header.Set("Accept", "application/json")
-	req.Header.Set("User-Agent", "NexusAI-WebSearch/1.0")
+	req.Header.Set("User-Agent", "SeshatAI-WebSearch/1.0")
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {

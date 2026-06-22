@@ -170,7 +170,7 @@ func (p *CommandPolicy) evaluateSingle(command string) DecisionResult {
 	return DecisionResult{Decision: DecisionAsk, Reason: "command type requires approval: " + cmd}
 }
 
-// ─── Known-safe classification (mirrors Codex + Nexus combined) ──────────────
+// ─── Known-safe classification (mirrors Codex + Seshat combined) ──────────────
 
 // isKnownSafeComposed checks that every segment of a composed command is safe.
 // Redirections (>, >>, <, |) make a command not auto-approvable.
@@ -306,7 +306,7 @@ func isSafeRg(args []string) bool {
 }
 
 // isSafeSed returns true only for `sed -n {N|M,N}p` (pure read, no in-place).
-// Mirrors Codex's is_valid_sed_n_arg + Nexus's isSafeSed.
+// Mirrors Codex's is_valid_sed_n_arg + Seshat's isSafeSed.
 func isSafeSed(args []string) bool {
 	if len(args) == 0 {
 		return false
@@ -333,7 +333,7 @@ func isSafeSed(args []string) bool {
 var sedPrintPattern = regexp.MustCompile(`^\d+(,\d+)?p$`)
 
 // isSafeGit checks git commands for unsafe global options and dangerous
-// subcommands. Merges Nexus's ValidateGitCommand and Codex's is_safe_git_command.
+// subcommands. Merges Seshat's ValidateGitCommand and Codex's is_safe_git_command.
 func isSafeGit(fields []string) bool {
 	if len(fields) == 0 || strings.ToLower(filepath.Base(fields[0])) != "git" {
 		return false

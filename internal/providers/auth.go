@@ -2,7 +2,7 @@
 //
 // LoginProvider, WaitForLogin, GetOAuthToken, SetAPIKey and LoginCommand are
 // designed for headless / CLI use. They store credentials in a local file
-// (~/.nexus/auth.json via internal/auth/store.FileStore) and are NOT suited
+// (~/.seshat/auth.json via internal/auth/store.FileStore) and are NOT suited
 // for multi-user server deployments.
 //
 // In server mode, pass credentials to the engine via sdk.ClientConfig.APIKey
@@ -47,7 +47,7 @@ func InitOAuth(clientID string) {
 }
 
 // LoginProvider starts the ChatGPT device-code flow and returns the user code
-// + URL to display. CLI-era: saves result to ~/.nexus/auth.json.
+// + URL to display. CLI-era: saves result to ~/.seshat/auth.json.
 func LoginProvider(ctx context.Context, provider string) (string, string, error) {
 	if oauthHandler == nil {
 		InitOAuth(os.Getenv("OPENAI_CLIENT_ID"))
@@ -60,7 +60,7 @@ func LoginProvider(ctx context.Context, provider string) (string, string, error)
 }
 
 // WaitForLogin polls Auth0 until the user completes authentication, then
-// persists the full token to ~/.nexus/auth.json. CLI-era.
+// persists the full token to ~/.seshat/auth.json. CLI-era.
 func WaitForLogin(ctx context.Context, provider string) error {
 	if oauthHandler == nil {
 		return fmt.Errorf("OAuth not initialized — call LoginProvider first")
@@ -121,7 +121,7 @@ func resolveOAuthToken(ctx context.Context, s store.Store, creds *authTypes.Cred
 	}
 
 	if t.RefreshToken == "" {
-		return "", fmt.Errorf("OAuth token expired and no refresh token available — run `nexus login`")
+		return "", fmt.Errorf("OAuth token expired and no refresh token available — run `seshat login`")
 	}
 
 	newToken, err := refreshAccessToken(ctx, t.RefreshToken)
@@ -200,7 +200,7 @@ func NewAuthClientWithConfig(ctx context.Context, config *Config) (*AuthClient, 
 }
 
 // getAPIKeyForProvider returns the API key (or OAuth access token) for a provider.
-// Resolution order: env var → FileStore (~/.nexus/auth.json). CLI-era.
+// Resolution order: env var → FileStore (~/.seshat/auth.json). CLI-era.
 // In server mode, use sdk.ClientConfig.CredentialResolver instead.
 func getAPIKeyForProvider(ctx context.Context, provider types.APIProvider) (string, error) {
 	// Environment variable always wins.
@@ -288,7 +288,7 @@ func defaultAuthPath() string {
 		return path
 	}
 	homeDir, _ := os.UserHomeDir()
-	return fmt.Sprintf("%s/.nexus/auth.json", homeDir)
+	return fmt.Sprintf("%s/.seshat/auth.json", homeDir)
 }
 
 // ============================================================================

@@ -16,7 +16,7 @@ package auto
 import "strings"
 
 // =============================================================================
-// PROMPT TEMPLATES FOR NEXUS AUTO MODE CLASSIFIER
+// PROMPT TEMPLATES FOR SESHAT AUTO MODE CLASSIFIER
 // =============================================================================
 // These templates define the security classifier behavior for auto mode.
 // They are aligned with OpenClaude's yolo-classifier-prompts system.
@@ -93,7 +93,7 @@ The following categories are generally SAFE to allow:
 
 When uncertain, ALWAYS err on the side of BLOCKING. It's safer to ask for permission than to allow potentially harmful operations.
 
-Consider the user's explicit instructions (from NEXUS.md) when making decisions—but verify that actions align with safety principles.
+Consider the user's explicit instructions (from SESHAT.md) when making decisions—but verify that actions align with safety principles.
 
 ## Output Format
 
@@ -406,7 +406,7 @@ func extractTaggedBullets(template, tagName string) []string {
 }
 
 // GetExternalTemplate returns the external permissions template string.
-// This is used for tools like "nexus auto-mode defaults" to show default rules.
+// This is used for tools like "seshat auto-mode defaults" to show default rules.
 func GetExternalTemplate() string {
 	return ExternalPermissionsTemplate
 }

@@ -65,7 +65,7 @@ func NewURLReader() *URLReader {
 			},
 		},
 		auth:      buildBasicAuth(),
-		userAgent: firstNonEmpty(os.Getenv("URL_READER_USER_AGENT"), os.Getenv("USER_AGENT"), "NexusAI-URLReader/2.0"),
+		userAgent: firstNonEmpty(os.Getenv("URL_READER_USER_AGENT"), os.Getenv("USER_AGENT"), "SeshatAI-URLReader/2.0"),
 		cache:     DefaultURLCache,
 	}
 }

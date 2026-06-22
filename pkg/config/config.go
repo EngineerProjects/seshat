@@ -111,16 +111,16 @@ type Config struct {
 	// Example: SESHAT_SKILL_REPO_HOSTS=github.com,mygitlab.company.com
 	SkillRepoHosts string `mapstructure:"skill_repo_hosts" yaml:"skill_repo_hosts,omitempty"`
 
-	// DefaultSkillRepo — git URL of the official Nexus skills collection cloned
-	// silently in the background on first boot. Defaults to the canonical nexus-skills
+	// DefaultSkillRepo — git URL of the official Seshat skills collection cloned
+	// silently in the background on first boot. Defaults to the canonical seshat-skills
 	// repo. Set to "none" to disable automatic install.
-	// Example: SESHAT_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/nexus-skills
+	// Example: SESHAT_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/seshat-skills
 	DefaultSkillRepo string `mapstructure:"default_skill_repo" yaml:"default_skill_repo,omitempty"`
 
 	// Hooks — user-defined shell commands that fire on lifecycle events.
 	// Currently supported event: pre_tool_use (fires before every tool call).
 	//
-	// Example .nexus.yaml:
+	// Example .seshat.yaml:
 	//   hooks:
 	//     pre_tool_use:
 	//       - command: "jq '.command' && exit 0"
@@ -194,13 +194,13 @@ func LoadInto(config *Config) error {
 
 	v := viper.New()
 	v.SetConfigType("yaml")
-	v.SetEnvPrefix("NEXUS")
+	v.SetEnvPrefix("SESHAT")
 
-	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/nexus by default).
-	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/nexus-cli before calling Load().
+	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/seshat by default).
+	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/seshat-cli before calling Load().
 	v.SetConfigName("config")
 	v.AddConfigPath(runtimepath.ResolveRoot(""))
-	// Fallback: legacy ~/.nexus.yaml for migration
+
 	v.AddConfigPath("$HOME")
 
 	v.BindEnv("runtime_root", runtimepath.EnvRuntimeRoot)
@@ -273,14 +273,7 @@ func LoadInto(config *Config) error {
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Primary config not found — try legacy ~/.nexus.yaml as a one-time fallback.
-			if home, herr := os.UserHomeDir(); herr == nil {
-				legacy := filepath.Join(home, ".nexus.yaml")
-				if _, serr := os.Stat(legacy); serr == nil {
-					v.SetConfigFile(legacy)
-					_ = v.ReadInConfig() //nolint:errcheck // best-effort legacy read
-				}
-			}
+			// Config not found — no fallback, config is optional.
 		} else {
 			return fmt.Errorf("failed to read config: %w", err)
 		}
@@ -293,7 +286,7 @@ func LoadInto(config *Config) error {
 	config.RuntimeRoot = runtimepath.ResolveRoot(config.RuntimeRoot)
 
 	// Evaluate any $(...) shell substitutions in credential fields.
-	// This allows api_key: "$(vault kv get -field=token secret/api)" in .nexus.yaml.
+	// This allows api_key: "$(vault kv get -field=token secret/api)" in .seshat.yaml.
 	ExpandShellValues(config)
 
 	ApplyRuntimeEnv(*config)

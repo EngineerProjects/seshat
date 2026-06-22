@@ -745,7 +745,7 @@ func TestNewClientUsesInjectedSessionBackend(t *testing.T) {
 func TestNewClientUsesSQLiteSessionBackend(t *testing.T) {
 	client, err := NewClient(&ClientConfig{
 		PersistSessions:   false,
-		SessionSQLitePath: filepath.Join(t.TempDir(), "nexus.sqlite"),
+		SessionSQLitePath: filepath.Join(t.TempDir(), "seshat.sqlite"),
 	})
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)
@@ -781,7 +781,7 @@ func TestNewClientUsesSQLiteSessionBackend(t *testing.T) {
 func TestClientCloseClosesOwnedSQLiteSessionBackend(t *testing.T) {
 	client, err := NewClient(&ClientConfig{
 		PersistSessions:   false,
-		SessionSQLitePath: filepath.Join(t.TempDir(), "nexus.sqlite"),
+		SessionSQLitePath: filepath.Join(t.TempDir(), "seshat.sqlite"),
 	})
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)

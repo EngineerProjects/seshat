@@ -88,7 +88,7 @@ func replaceNickname(s, nickname string) string {
 	return string(out)
 }
 
-// BuiltInProfiles returns the default team profiles shipped with Nexus.
+// BuiltInProfiles returns the default team profiles shipped with Seshat.
 // IDs are fixed UUIDs so they are stable across restarts and installs.
 // These are seeded into the registry on first use and can be overridden or
 // renamed by the user (change the Nickname without touching the ID).

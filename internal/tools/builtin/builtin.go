@@ -39,8 +39,8 @@ import (
 	toolSearchTool "github.com/EngineerProjects/seshat/internal/tools/special/tool_search"
 	worktreeTool "github.com/EngineerProjects/seshat/internal/tools/special/worktree"
 	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
-	nexusSkillTool "github.com/EngineerProjects/seshat/internal/tools/system/nexusskill"
 	planTool "github.com/EngineerProjects/seshat/internal/tools/system/plan"
+	seshatSkillTool "github.com/EngineerProjects/seshat/internal/tools/system/seshatskill"
 	skillTool "github.com/EngineerProjects/seshat/internal/tools/system/skills"
 	taskTool "github.com/EngineerProjects/seshat/internal/tools/task"
 	browsercore "github.com/EngineerProjects/seshat/internal/tools/web/browser"
@@ -141,9 +141,9 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		toolSearchTool.NewToolSearchTool(reg),
 		mcp.NewMCPTool(config.MCPManager),
 		skillRuntimeTool,
-		nexusSkillTool.NewListTool(),
-		nexusSkillTool.NewReadTool(),
-		nexusSkillTool.NewValidateTool(),
+		seshatSkillTool.NewListTool(),
+		seshatSkillTool.NewReadTool(),
+		seshatSkillTool.NewValidateTool(),
 		worktreeTool.NewEnterWorktreeTool(worktreeTool.DefaultEnterWorktreeConfig()),
 		worktreeTool.NewExitWorktreeTool(worktreeTool.DefaultExitWorktreeConfig()),
 		ragTool.NewSearchTool(config.RAGService),

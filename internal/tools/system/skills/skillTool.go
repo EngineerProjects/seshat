@@ -143,7 +143,7 @@ func (t *SkillTool) Call(ctx context.Context, input contract.CallInput, permissi
 // lookupSkill resolves a skill by name using the canonical priority order
 // (managed > project > user > builtin > repos > bundled). All callers go through
 // GetAllSkillsForUser so the deduplication logic is consistent with every other
-// resolution path (HTTP /skills, nexus_list_skills, resolveSkillPrompt).
+// resolution path (HTTP /skills, seshat_list_skills, resolveSkillPrompt).
 func (t *SkillTool) lookupSkill(name string) (*Skill, error) {
 	all, err := GetAllSkillsForUser(t.cwd, t.userID)
 	if err != nil {

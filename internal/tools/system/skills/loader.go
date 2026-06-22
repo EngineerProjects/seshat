@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	DefaultSkillDirectory    = ".nexus/skills"
-	DefaultCommandsDirectory = ".nexus/commands"
-	BundledSkillExtractDir   = ".nexus/bundled-skills"
+	DefaultSkillDirectory    = ".seshat/skills"
+	DefaultCommandsDirectory = ".seshat/commands"
+	BundledSkillExtractDir   = ".seshat/bundled-skills"
 )
 
 var sessionID string
@@ -443,7 +443,7 @@ func CreateSkillFromFrontmatter(frontmatter FrontmatterData, markdownContent str
 		Requires:                    requires,
 		GetPromptForCommand: func(cmdArgs string, _ context.Context) ([]ContentBlock, error) {
 			expanded := SubstituteArguments(capturedContent, cmdArgs, capturedArgNames)
-			expanded = SubstituteNexusVariables(expanded, capturedBaseDir, sessionID)
+			expanded = SubstituteSeshatVariables(expanded, capturedBaseDir, sessionID)
 			expanded = applyPreamble(expanded, capturedBaseDir, capturedTier)
 			if preflight := buildPreflightSection(capturedRequires, capturedBaseDir); preflight != "" {
 				expanded = preflight + "\n\n---\n\n" + expanded
@@ -583,7 +583,7 @@ func SubstituteArguments(content string, args string, argumentNames []string) st
 	return result
 }
 
-func SubstituteNexusVariables(content string, skillDir string, sessionID string) string {
+func SubstituteSeshatVariables(content string, skillDir string, sessionID string) string {
 	result := content
 	result = strings.ReplaceAll(result, "${SESHAT_SKILL_DIR}", skillDir)
 	result = strings.ReplaceAll(result, "${SESHAT_SESSION_ID}", sessionID)
@@ -597,7 +597,7 @@ func ExecuteSkillPrompt(skill Skill, args string, ctx context.Context) ([]Conten
 	}
 
 	content := SubstituteArguments(skill.Content, args, skill.ArgNames)
-	content = SubstituteNexusVariables(content, skill.SkillRoot, sessionID)
+	content = SubstituteSeshatVariables(content, skill.SkillRoot, sessionID)
 
 	return []ContentBlock{{Type: "text", Text: preamble + content}}, nil
 }

@@ -77,11 +77,11 @@ func SessionArtifactsAudioDir(sessionID string) string {
 
 // ─── Lifecycle helpers ────────────────────────────────────────────────────────
 
-// GlobalConfigPath returns the path to the global TUI config file (nexus.json).
+// GlobalConfigPath returns the path to the global TUI config file (seshat.json).
 func GlobalConfigPath() string { return filepath.Join(Root(), "seshat.json") }
 
 // EnsureAppDirs creates the top-level directories required at startup and
-// seeds nexus.json with an empty object if the file does not yet exist.
+// seeds seshat.json with an empty object if the file does not yet exist.
 // Safe to call multiple times (os.MkdirAll and the existence check are both idempotent).
 func EnsureAppDirs() error {
 	dirs := []string{

@@ -70,7 +70,7 @@ func (p *JinaProvider) Search(input SearchInput) (ProviderOutput, error) {
 	req.URL.RawQuery = q.Encode()
 
 	req.Header.Set("Authorization", "Bearer "+p.apiKey)
-	req.Header.Set("User-Agent", "NexusAI-WebSearch/1.0")
+	req.Header.Set("User-Agent", "SeshatAI-WebSearch/1.0")
 
 	resp, err := p.httpClient.Do(req)
 	if err != nil {

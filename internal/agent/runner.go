@@ -225,7 +225,7 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 	}
 
 	// Give the agent its own system prompt identity so it does not inherit the
-	// Nexus Core identity of the parent session. Without this, the agent's
+	// Seshat identity of the parent session. Without this, the agent's
 	// personality was injected only as the first user message, which meant the
 	// model still operated under the parent's rules and workflow sections.
 	if agentDef.GetSystemPrompt != nil {

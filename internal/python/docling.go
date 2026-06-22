@@ -1,4 +1,4 @@
-// Package python manages Nexus-owned Python subprocesses (docling-serve, …).
+// Package python manages Seshat-owned Python subprocesses (docling-serve, …).
 package python
 
 import (
@@ -55,10 +55,10 @@ func NewDoclingManager(venvDir, host string, port int) *DoclingManager {
 	}
 }
 
-// DefaultDoclingManager creates a manager using the Nexus runtime root venv.
+// DefaultDoclingManager creates a manager using the Seshat runtime root venv.
 // Returns nil if the venv or docling-serve binary is not installed.
-// On Linux/macOS the venv lives at ~/.config/nexus-cli/.venv (or
-// $SESHAT_RUNTIME_ROOT/.venv). On Windows: %APPDATA%\nexus-cli\.venv.
+// On Linux/macOS the venv lives at ~/.config/seshat-cli/.venv (or
+// $SESHAT_RUNTIME_ROOT/.venv). On Windows: %APPDATA%\seshat-cli\.venv.
 func DefaultDoclingManager() *DoclingManager {
 	venvDir := filepath.Join(runtimepath.ResolveRoot(""), ".venv")
 	bin := venvBin(venvDir)

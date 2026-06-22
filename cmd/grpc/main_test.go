@@ -11,7 +11,7 @@ import (
 
 	"github.com/EngineerProjects/seshat/internal/types"
 	appconfig "github.com/EngineerProjects/seshat/pkg/config"
-	pb "github.com/EngineerProjects/seshat/pkg/grpc/nexus"
+	pb "github.com/EngineerProjects/seshat/pkg/grpc/seshat"
 	"github.com/EngineerProjects/seshat/pkg/sdk"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
@@ -105,12 +105,12 @@ func (c *fakeSDKClient) Close() error {
 	return nil
 }
 
-func newBufconnNexusClient(t *testing.T, server *NexusServer) (pb.NexusServiceClient, func()) {
+func newBufconnSeshatClient(t *testing.T, server *SeshatServer) (pb.SeshatServiceClient, func()) {
 	t.Helper()
 
 	listener := bufconn.Listen(1024 * 1024)
 	grpcServer := grpc.NewServer()
-	pb.RegisterNexusServiceServer(grpcServer, server)
+	pb.RegisterSeshatServiceServer(grpcServer, server)
 
 	go func() {
 		_ = grpcServer.Serve(listener)
@@ -134,7 +134,7 @@ func newBufconnNexusClient(t *testing.T, server *NexusServer) (pb.NexusServiceCl
 		grpcServer.Stop()
 		_ = listener.Close()
 	}
-	return pb.NewNexusServiceClient(conn), cleanup
+	return pb.NewSeshatServiceClient(conn), cleanup
 }
 
 func TestStreamQuerySessionEmitsChunksRuntimeEventsAndFinalResponse(t *testing.T) {
@@ -284,7 +284,7 @@ func TestLatestResponseTextReturnsLatestAssistantOnly(t *testing.T) {
 }
 
 func TestHealthCheckReportsVersionAndElapsedUptime(t *testing.T) {
-	server := NewNexusServer(appconfig.DefaultConfig())
+	server := NewSeshatServer(appconfig.DefaultConfig())
 	server.version = "test-version"
 	server.startedAt = time.Now().Add(-3 * time.Second)
 
@@ -328,13 +328,13 @@ func TestQueryOverGRPCLoadsSessionFiltersToolsAndClosesResources(t *testing.T) {
 		},
 	}
 
-	server := NewNexusServer(appconfig.DefaultConfig())
+	server := NewSeshatServer(appconfig.DefaultConfig())
 	server.defaultModel = "anthropic:default-test"
 	server.clientFactory = func(req *pb.QueryRequest) (grpcSDKClient, error) {
 		return fakeClient, nil
 	}
 
-	client, cleanup := newBufconnNexusClient(t, server)
+	client, cleanup := newBufconnSeshatClient(t, server)
 	defer cleanup()
 
 	resp, err := client.Query(context.Background(), &pb.QueryRequest{
@@ -390,12 +390,12 @@ func TestQueryOverGRPCReturnsInvalidArgumentForUnknownTool(t *testing.T) {
 		createSession: session,
 	}
 
-	server := NewNexusServer(appconfig.DefaultConfig())
+	server := NewSeshatServer(appconfig.DefaultConfig())
 	server.clientFactory = func(req *pb.QueryRequest) (grpcSDKClient, error) {
 		return fakeClient, nil
 	}
 
-	client, cleanup := newBufconnNexusClient(t, server)
+	client, cleanup := newBufconnSeshatClient(t, server)
 	defer cleanup()
 
 	_, err := client.Query(context.Background(), &pb.QueryRequest{
@@ -466,13 +466,13 @@ func TestQueryStreamOverGRPCEmitsProtocolMessagesWithResolvedModel(t *testing.T)
 		createSession: session,
 	}
 
-	server := NewNexusServer(appconfig.DefaultConfig())
+	server := NewSeshatServer(appconfig.DefaultConfig())
 	server.defaultModel = "anthropic:default-stream"
 	server.clientFactory = func(req *pb.QueryRequest) (grpcSDKClient, error) {
 		return fakeClient, nil
 	}
 
-	client, cleanup := newBufconnNexusClient(t, server)
+	client, cleanup := newBufconnSeshatClient(t, server)
 	defer cleanup()
 
 	stream, err := client.QueryStream(context.Background(), &pb.QueryRequest{

@@ -15,7 +15,7 @@ import (
 	"github.com/EngineerProjects/seshat/internal/types"
 )
 
-// EnsureSession creates browser state for a Nexus session when needed.
+// EnsureSession creates browser state for a Seshat session when needed.
 func (m *RodManager) EnsureSession(ctx context.Context, sessionID types.SessionID) (SessionState, error) {
 	session, err := m.ensureSession(ctx, sessionID)
 	if err != nil {
@@ -370,7 +370,7 @@ func (m *RodManager) configureSessionDownloadsLocked(session *sessionState) erro
 	}
 	dir := m.config.DownloadDir
 	if strings.TrimSpace(dir) == "" {
-		dir = filepath.Join(os.TempDir(), "nexus-browser-downloads", strings.ReplaceAll(string(session.id), ":", "_"))
+		dir = filepath.Join(os.TempDir(), "seshat-browser-downloads", strings.ReplaceAll(string(session.id), ":", "_"))
 	} else {
 		dir = filepath.Join(dir, strings.ReplaceAll(string(session.id), ":", "_"))
 	}

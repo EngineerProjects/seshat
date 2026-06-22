@@ -25,7 +25,7 @@ type ExecuteConfig struct {
 	// ModelOverride specifies a different model for this execution only.
 	// Format: "provider:model". Empty means use RunnerConfig.Model.
 	ModelOverride string
-	// SystemPrompt replaces the entire Nexus default system prompt.
+	// SystemPrompt replaces the entire Seshat default system prompt.
 	// Empty means use the default.
 	SystemPrompt string
 }

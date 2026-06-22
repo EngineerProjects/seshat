@@ -15,7 +15,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-const landlockHelperArg = "--nexus-landlock-helper"
+const landlockHelperArg = "--seshat-landlock-helper"
 
 var landlockSupport = struct {
 	once sync.Once

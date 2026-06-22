@@ -62,7 +62,7 @@ func (t *CreateEntitiesTool) Definition() tool.Definition {
 					"items": map[string]any{
 						"type": "object",
 						"properties": map[string]any{
-							"name":         map[string]any{"type": "string", "description": "Unique entity name (e.g. \"user\", \"nexus-engine\")."},
+							"name":         map[string]any{"type": "string", "description": "Unique entity name (e.g. \"user\", \"seshat\")."},
 							"entity_type":  map[string]any{"type": "string", "description": "Category of the entity (e.g. \"person\", \"project\", \"concept\")."},
 							"observations": map[string]any{"type": "array", "items": map[string]any{"type": "string"}, "description": "Initial observations to attach."},
 						},

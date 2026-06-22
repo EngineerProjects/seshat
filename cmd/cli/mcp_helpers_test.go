@@ -39,7 +39,7 @@ func TestEnvSliceToMap(t *testing.T) {
 }
 
 func TestMCPTimeoutConversion(t *testing.T) {
-	// Verify duration math used in nexusMCPToSDK stays consistent.
+	// Verify duration math used in seshatMCPToSDK stays consistent.
 	cases := []struct {
 		secs int
 		want time.Duration

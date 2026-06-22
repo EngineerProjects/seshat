@@ -370,7 +370,7 @@ func GetMcpServerConfigByName(name string, cwd string) *ScopedMcpServerConfig {
 }
 
 func IsMcpServerDisabled(name string, cwd string) bool {
-	projectConfigPath := filepath.Join(cwd, ".nexus", "config.json")
+	projectConfigPath := filepath.Join(cwd, ".seshat", "config.json")
 	data, err := os.ReadFile(projectConfigPath)
 	if err != nil {
 		return false
@@ -395,7 +395,7 @@ func IsMcpServerDisabled(name string, cwd string) bool {
 }
 
 func SetMcpServerEnabled(name string, enabled bool, cwd string) error {
-	projectConfigPath := filepath.Join(cwd, ".nexus", "config.json")
+	projectConfigPath := filepath.Join(cwd, ".seshat", "config.json")
 
 	var config map[string]interface{}
 	data, err := os.ReadFile(projectConfigPath)

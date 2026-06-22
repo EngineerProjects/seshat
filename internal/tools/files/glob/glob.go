@@ -350,7 +350,7 @@ func (g *Tool) doGlob(ctx context.Context, searchDir string, pattern string) ([]
 	}
 
 	// Build ripgrep arguments. We list candidate files from the search root and
-	// apply Nexus' documented glob semantics ourselves so `*` does not cross path
+	// apply Seshat's documented glob semantics ourselves so `*` does not cross path
 	// separators while `**` remains recursive.
 	args := g.buildRipgrepArgs()
 

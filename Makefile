@@ -3,8 +3,11 @@ CMD_GRPC       := ./cmd/grpc
 CMD_SLACK_BOT  := ./cmd/slack-bot
 CMD_AUTOMATION := ./cmd/automation
 
-.PHONY: all build build-cli build-grpc build-slack-bot build-automation build_linux test test-race fmt vet lint tidy clean hooks \
-        setup install-python start-docling slack-bot
+# Make built binaries discoverable from the repo root.
+export PATH := $(CURDIR)/bin:$(PATH)
+
+.PHONY: all build build-cli build-grpc build-slack-bot build-automation build_linux test test-race fmt vet lint tidy \
+        clean clean-runtime clean-all hooks setup install-python start-docling slack-bot
 
 # ── Default ────────────────────────────────────────────────────────────────────
 
@@ -37,6 +40,7 @@ build: build-cli build-grpc build-slack-bot build-automation
 
 build-cli:
 	go build -o bin/seshat $(CMD_CLI)
+
 
 build-grpc:
 	go build -o bin/seshat-grpc $(CMD_GRPC)
@@ -80,8 +84,26 @@ tidy:
 
 # ── Maintenance ────────────────────────────────────────────────────────────────
 
+# Remove compiled binaries. Safe to run anytime.
 clean:
 	rm -rf bin/
+
+# Erase all seshat runtime data (DB, credentials, sessions, logs, venv).
+# WARNING: credentials and session history cannot be recovered — you will need
+# to re-run `seshat login` and `seshat config` afterwards.
+# Uses SESHAT_RUNTIME_ROOT if set, otherwise falls back to ~/.config/seshat-*.
+clean-runtime:
+	@confdir="$${SESHAT_RUNTIME_ROOT:-$${XDG_CONFIG_HOME:-$$HOME/.config}}" ; \
+	for d in seshat-cli seshat-tui seshat-slack ; do \
+	    target="$$confdir/$$d" ; \
+	    if [ -d "$$target" ]; then \
+	        rm -rf "$$target" && echo "  removed $$target" ; \
+	    fi ; \
+	done
+	@echo "Runtime data cleared."
+
+# Full wipe: binaries + all runtime data. Useful for a completely fresh start.
+clean-all: clean clean-runtime
 
 # (Re-)install git pre-commit hooks from .githooks/.
 hooks:

@@ -69,7 +69,7 @@ type FetchSystemPromptPartsInput struct {
 	ToolHints map[string]string `json:"-"`
 
 	// ProjectInstructions is the content of a project-level instructions file
-	// (e.g. NEXUS.md, AGENTS.md). Injected into the system prompt before the
+	// (e.g. SESHAT.md, AGENTS.md). Injected into the system prompt before the
 	// memory context section so it takes precedence over accumulated patterns.
 	ProjectInstructions string `json:"project_instructions,omitempty"`
 }
@@ -105,7 +105,7 @@ type CacheSafePrompt struct {
 	SystemPromptBlocks []types.SystemPromptBlock `json:"system_prompt_blocks,omitempty"`
 }
 
-// Nexus Core prompt sections and NexusCoreStablePrompt() are defined in nexuscore.go.
+// Seshat prompt sections and SeshatCoreStablePrompt() are defined in seshatcore.go.
 
 var dynamicBoundarySection = Section{
 	Type:            SectionTypeDefault,
@@ -136,7 +136,7 @@ var runtimeGuidanceSection = Section{
 }
 
 // projectInstructionsSection renders project-level instructions read from a
-// NEXUS.md (or equivalent) file in the working directory. Content is injected
+// SESHAT.md (or equivalent) file in the working directory. Content is injected
 // via {{project_instructions_block}} so it stays out of the stable prefix.
 var projectInstructionsSection = Section{
 	Type:      SectionTypeDynamic,
@@ -344,7 +344,7 @@ func BuildProviderToolDefinitionsWithHints(tools map[string]tool.Tool, hints map
 }
 
 // BuildProviderRequest converts a canonical prompt plus a tool map into the
-// provider-facing API request shape used by Nexus.
+// provider-facing API request shape used by Seshat.
 func BuildProviderRequest(
 	canonicalPrompt CacheSafePrompt,
 	model types.ModelIdentifier,

@@ -1,26 +1,26 @@
-# scripts/setup.ps1 — One-command setup for nexus-engine on Windows.
+# scripts/setup.ps1 — One-command setup for Seshat on Windows.
 #
 # What it does:
 #   1. Verifies Go 1.21+
 #   2. Installs ripgrep (winget / scoop / choco)
 #   3. Installs uv (Python manager — no system Python needed)
 #   4. Creates Python venv + installs docling-serve
-#   5. Builds nexus.exe and nexus-grpc.exe to bin\
+#   5. Builds seshat.exe and seshat-grpc.exe to bin\
 #   6. Installs git pre-commit hooks
 #
 # Usage:
 #   powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 #
 # NOTE: macOS and Windows support is not yet fully tested.
-# Report issues at https://github.com/EngineerProjects/nexus-engine/issues
+# Report issues at https://github.com/EngineerProjects/seshat/issues
 
 $ErrorActionPreference = "Stop"
 
 $RepoRoot = Split-Path -Parent (Split-Path -Parent $MyInvocation.MyCommand.Path)
 
 # ── Runtime root ──────────────────────────────────────────────────────────────
-if (-not $env:NEXUS_RUNTIME_ROOT) {
-    $env:NEXUS_RUNTIME_ROOT = Join-Path $env:APPDATA "nexus-cli"
+if (-not $env:SESHAT_RUNTIME_ROOT) {
+    $env:SESHAT_RUNTIME_ROOT = Join-Path $env:APPDATA "seshat-cli"
 }
 
 # ── Helpers ───────────────────────────────────────────────────────────────────
@@ -95,12 +95,12 @@ if ($env:SKIP_PYTHON -eq "1") {
 } else {
     Write-Step "Setting up Python environment..."
 
-    $venvDir = Join-Path $env:NEXUS_RUNTIME_ROOT ".venv"
+    $venvDir = Join-Path $env:SESHAT_RUNTIME_ROOT ".venv"
     $doclingBin = Join-Path $venvDir "Scripts\docling-serve.exe"
 
     if (-not (Test-Path $doclingBin)) {
         Write-Info "Creating venv at $venvDir..."
-        New-Item -ItemType Directory -Force -Path $env:NEXUS_RUNTIME_ROOT | Out-Null
+        New-Item -ItemType Directory -Force -Path $env:SESHAT_RUNTIME_ROOT | Out-Null
         uv venv $venvDir --python 3.11 --seed
 
         $pyBin = Join-Path $venvDir "Scripts\python.exe"
@@ -114,14 +114,14 @@ if ($env:SKIP_PYTHON -eq "1") {
 }
 
 # ── 5. Build ──────────────────────────────────────────────────────────────────
-Write-Step "Building nexus-engine..."
+Write-Step "Building Seshat..."
 
 Set-Location $RepoRoot
 New-Item -ItemType Directory -Force -Path bin | Out-Null
-go build -o "bin\nexus.exe" ".\cmd\cli"
-Write-Ok "bin\nexus.exe"
-go build -o "bin\nexus-grpc.exe" ".\cmd\grpc"
-Write-Ok "bin\nexus-grpc.exe"
+go build -o "bin\seshat.exe" ".\cmd\cli"
+Write-Ok "bin\seshat.exe"
+go build -o "bin\seshat-grpc.exe" ".\cmd\grpc"
+Write-Ok "bin\seshat-grpc.exe"
 
 # ── 6. Git hooks ──────────────────────────────────────────────────────────────
 Write-Step "Installing git hooks..."
@@ -138,14 +138,14 @@ if (Test-Path $hooksDir) {
 Write-Host ""
 Write-Host "  Setup complete!" -ForegroundColor Green
 Write-Host ""
-Write-Host "  Runtime data: $env:NEXUS_RUNTIME_ROOT"
+Write-Host "  Runtime data: $env:SESHAT_RUNTIME_ROOT"
 Write-Host ""
 Write-Host "  Add bin\ to your PATH (current session):"
 Write-Host "    `$env:PATH += `";$RepoRoot\bin`""
 Write-Host ""
 Write-Host "  Configure a provider:"
-Write-Host "    nexus config --provider anthropic --api-key sk-ant-..."
+Write-Host "    seshat config --provider anthropic --api-key sk-ant-..."
 Write-Host ""
 Write-Host "  Start chatting:"
-Write-Host "    nexus chat"
+Write-Host "    seshat chat"
 Write-Host ""

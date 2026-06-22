@@ -15,7 +15,7 @@ type Workflow interface {
 }
 
 // SystemPrompter is an optional interface a Workflow can implement to provide
-// a fully custom system prompt that replaces the Nexus default.
+// a fully custom system prompt that replaces the Seshat default.
 // When satisfied, the Executor builds a dedicated SDK client for that execution.
 type SystemPrompter interface {
 	SystemPrompt() string

@@ -14,7 +14,7 @@ import (
 
 // SearchMatch is one result returned by tool_search.
 // Mirrors Codex's LoadableToolSpec (with defer_loading) but includes
-// the full Nexus definition so the model can inspect the schema immediately.
+// the full Seshat definition so the model can inspect the schema immediately.
 type SearchMatch struct {
 	Name        string  `json:"name"`
 	Namespace   string  `json:"namespace"`
