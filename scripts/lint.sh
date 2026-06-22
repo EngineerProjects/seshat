@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# lint.sh - Lint script for Nexus Engine
+# lint.sh - Lint script for Seshat
 # This script runs Go linters and formatters
 
 set -e
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== Nexus Engine Lint Script ===${NC}"
+echo -e "${GREEN}=== Seshat Lint Script ===${NC}"
 
 # Get the project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"

@@ -15,18 +15,16 @@ import (
 	"github.com/EngineerProjects/seshat/internal/python"
 	mcptools "github.com/EngineerProjects/seshat/internal/seshattui/agent/tools/mcp"
 	tuiconfig "github.com/EngineerProjects/seshat/internal/seshattui/config"
-	crushcommon "github.com/EngineerProjects/seshat/internal/seshattui/ui/common"
+	tuicommon "github.com/EngineerProjects/seshat/internal/seshattui/ui/common"
 	uimodel "github.com/EngineerProjects/seshat/internal/seshattui/ui/model"
-	crushws "github.com/EngineerProjects/seshat/internal/seshattui/workspace"
+	tuiws "github.com/EngineerProjects/seshat/internal/seshattui/workspace"
 	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
 	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	"github.com/EngineerProjects/seshat/pkg/sdk"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 
-// runSeshatTUI starts the Crush-based TUI. It reuses the same
-// SDK configuration and session wiring as the original TUI but delegates
-// all rendering to the copied Crush UI layer.
+// runSeshatTUI starts the Seshat TUI.
 func runSeshatTUI(ctx context.Context, options runtimeOptions, initialSessionID string, continueLast bool) error {
 	ensureSeshatTUIRuntimeRoot()
 	// Create top-level dirs and seed seshat.json skeleton on first run.
@@ -61,7 +59,7 @@ func runSeshatTUI(ctx context.Context, options runtimeOptions, initialSessionID 
 		modelStr = string(options.Model.Provider) + ":" + options.Model.Model
 	}
 
-	ws := crushws.NewSeshatWorkspace(nil, options.WorkingDir, modelStr)
+	ws := tuiws.NewSeshatWorkspace(nil, options.WorkingDir, modelStr)
 	ws.SetStartupConfig(options.SQLitePath, options.PermissionMode, options.Monitoring)
 	if mcpStore, err := tuiconfig.LoadForMCP(options.WorkingDir); err == nil {
 		ws.SetMCPConfig(mcpStore.Config().MCP)
@@ -91,7 +89,7 @@ func runSeshatTUI(ctx context.Context, options runtimeOptions, initialSessionID 
 	// TUI starts immediately while provider detection completes concurrently.
 	go ws.DetectProviders()
 
-	com := crushcommon.DefaultCommon(ws)
+	com := tuicommon.DefaultCommon(ws)
 	uiModel := uimodel.New(com, initialSessionID, continueLast)
 
 	var env uv.Environ = os.Environ()

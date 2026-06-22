@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# test.sh - Test script for Nexus Engine
+# test.sh - Test script for Seshat
 # This script runs all tests in the project
 
 set -e
@@ -12,7 +12,7 @@ YELLOW='\033[1;33m'
 BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
-echo -e "${GREEN}=== Nexus Engine Test Script ===${NC}"
+echo -e "${GREEN}=== Seshat Test Script ===${NC}"
 
 # Get the project root
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
