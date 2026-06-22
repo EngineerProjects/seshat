@@ -194,7 +194,7 @@ func LoadInto(config *Config) error {
 
 	v := viper.New()
 	v.SetConfigType("yaml")
-	v.SetEnvPrefix("NEXUS")
+	v.SetEnvPrefix("SESHAT")
 
 	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/nexus by default).
 	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/nexus-cli before calling Load().

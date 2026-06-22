@@ -14,7 +14,7 @@ import (
 	"go.opentelemetry.io/otel/trace/noop"
 )
 
-const nexusTracerName = "nexus-engine"
+const nexusTracerName = "seshat"
 
 // InitTracer initialises the global OTel tracer provider.
 //
@@ -45,7 +45,7 @@ func InitTracer(ctx context.Context, serviceName string) (shutdown func(context.
 
 	res, _ := resource.New(ctx,
 		resource.WithAttributes(semconv.ServiceName(serviceName)),
-		resource.WithAttributes(attribute.String("service.version", "nexus-engine-v2")),
+		resource.WithAttributes(attribute.String("service.version", "seshat-v2")),
 	)
 
 	tp := sdktrace.NewTracerProvider(

@@ -19,8 +19,8 @@ import (
 type MemoryScope string
 
 const (
-	MemoryScopeProject MemoryScope = "project" // Per project (.nexus/)
-	MemoryScopeUser    MemoryScope = "user"    // Global user (~/.nexus/)
+	MemoryScopeProject MemoryScope = "project" // Per project (.seshat/)
+	MemoryScopeUser    MemoryScope = "user"    // Global user (~/.seshat/)
 	MemoryScopeSession MemoryScope = "session" // Current session
 )
 
@@ -253,7 +253,7 @@ func NewFileStore(basePath string) (*FileStore, error) {
 		if err != nil {
 			return nil, fmt.Errorf("get home dir: %w", err)
 		}
-		basePath = filepath.Join(homeDir, ".nexus", "memory")
+		basePath = filepath.Join(homeDir, ".seshat", "memory")
 	}
 
 	// Create directory if needed

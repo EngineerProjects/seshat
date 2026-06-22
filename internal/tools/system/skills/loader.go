@@ -14,9 +14,9 @@ import (
 )
 
 const (
-	DefaultSkillDirectory    = ".nexus/skills"
-	DefaultCommandsDirectory = ".nexus/commands"
-	BundledSkillExtractDir   = ".nexus/bundled-skills"
+	DefaultSkillDirectory    = ".seshat/skills"
+	DefaultCommandsDirectory = ".seshat/commands"
+	BundledSkillExtractDir   = ".seshat/bundled-skills"
 )
 
 var sessionID string

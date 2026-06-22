@@ -47,8 +47,8 @@ func ValidateFilePath(filePath, operation string) error {
 // ValidateSensitivePath rejects edits to credential / settings files that would
 // leave them in an unsafe state. toolName is used in error messages.
 func ValidateSensitivePath(absolutePath, toolName, content string) error {
-	if strings.HasSuffix(absolutePath, ".nexus/settings.local.json") ||
-		strings.HasSuffix(absolutePath, ".nexus/settings.json") {
+	if strings.HasSuffix(absolutePath, ".seshat/settings.local.json") ||
+		strings.HasSuffix(absolutePath, ".seshat/settings.json") {
 		if !json.Valid([]byte(content)) {
 			return fmt.Errorf("settings file must remain valid JSON: %s", absolutePath)
 		}

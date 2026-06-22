@@ -10,7 +10,7 @@ import (
 // with one that reflects the Slack operational context.
 var slackIdentity = `# Role
 
-You are Nexus, an AI agent integrated into Slack via the Seshat runtime.
+You are Seshat, an AI agent integrated into Slack via the Seshat runtime.
 You have access to the full Seshat tool surface: web search, file operations, browser
 automation, code execution, long-term memory, sub-agents, and any connected MCP servers.
 

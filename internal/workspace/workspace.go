@@ -196,5 +196,5 @@ func baseDir() (string, error) {
 	if err != nil {
 		return "", fmt.Errorf("resolve home dir: %w", err)
 	}
-	return filepath.Join(home, ".config", "nexus", "workspaces"), nil
+	return filepath.Join(home, ".config", "seshat", "workspaces"), nil
 }

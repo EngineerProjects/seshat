@@ -123,7 +123,7 @@ func TestValidateSensitivePath_SSHKeysBlocked(t *testing.T) {
 }
 
 func TestValidateSensitivePath_SettingsJSON(t *testing.T) {
-	path := "/project/.nexus/settings.json"
+	path := "/project/.seshat/settings.json"
 	// Invalid JSON must be rejected.
 	if err := ValidateSensitivePath(path, "writeTool", "{ bad json "); err == nil {
 		t.Error("expected invalid JSON settings to be rejected")
@@ -135,7 +135,7 @@ func TestValidateSensitivePath_SettingsJSON(t *testing.T) {
 }
 
 func TestValidateSensitivePath_LocalSettingsJSON(t *testing.T) {
-	path := "/project/.nexus/settings.local.json"
+	path := "/project/.seshat/settings.local.json"
 	if err := ValidateSensitivePath(path, "writeTool", "not json"); err == nil {
 		t.Error("expected invalid JSON local settings to be rejected")
 	}

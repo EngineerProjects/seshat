@@ -121,7 +121,7 @@ func resolveOAuthToken(ctx context.Context, s store.Store, creds *authTypes.Cred
 	}
 
 	if t.RefreshToken == "" {
-		return "", fmt.Errorf("OAuth token expired and no refresh token available — run `nexus login`")
+		return "", fmt.Errorf("OAuth token expired and no refresh token available — run `seshat login`")
 	}
 
 	newToken, err := refreshAccessToken(ctx, t.RefreshToken)
