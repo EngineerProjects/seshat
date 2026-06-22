@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"sort"
 
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // --- callbacks ---

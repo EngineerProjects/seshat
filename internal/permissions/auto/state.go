@@ -8,7 +8,7 @@ package auto
 import (
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 var (

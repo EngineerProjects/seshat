@@ -3,8 +3,8 @@ package providers
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/model"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/model"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type ProviderInfo struct {

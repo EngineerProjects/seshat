@@ -10,7 +10,7 @@ import (
 	"github.com/charmbracelet/x/ansi"
 	xstrings "github.com/charmbracelet/x/exp/strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/notification"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/notification"
 )
 
 // Capabilities define different terminal capabilities supported.

@@ -7,7 +7,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // helper: write a temp file and return its path

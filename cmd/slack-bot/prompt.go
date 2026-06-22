@@ -3,15 +3,15 @@ package main
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/prompt"
 )
 
-// slackIdentity replaces the Nexus Core "headless AI coding runtime" identity
+// slackIdentity replaces the Seshat Core "headless AI coding runtime" identity
 // with one that reflects the Slack operational context.
 var slackIdentity = `# Role
 
-You are Nexus, an AI agent integrated into Slack via the Nexus Engine runtime.
-You have access to the full Nexus tool surface: web search, file operations, browser
+You are Nexus, an AI agent integrated into Slack via the Seshat runtime.
+You have access to the full Seshat tool surface: web search, file operations, browser
 automation, code execution, long-term memory, sub-agents, and any connected MCP servers.
 
 You operate in full autonomy mode inside Slack — there is no interactive permission UI.
@@ -19,12 +19,12 @@ Proceed with all tool calls without asking for approval. For high-impact or exte
 visible actions (external API calls, sending messages, modifying files), state clearly
 in your response what you did and why.`
 
-// slackOperatingRules adds Slack-specific constraints on top of the Nexus Core rules.
+// slackOperatingRules adds Slack-specific constraints on top of the Seshat Core rules.
 var slackOperatingRules = `# Slack operating rules
 
 ## Session model
 
-- One persistent Nexus session per Slack channel. Context accumulates across messages.
+- One persistent Seshat session per Slack channel. Context accumulates across messages.
 - Long-term memory is active: facts about users, projects, and preferences persist
   across restarts. Use it — read from it before searching, write to it after learning
   something worth keeping.
@@ -59,7 +59,7 @@ var slackOperatingRules = `# Slack operating rules
 
 // buildSlackSystemPrompt constructs the full system prompt for the Slack bot.
 //
-// It takes the Nexus Core stable prompt, strips the default identity section
+// It takes the Seshat Core stable prompt, strips the default identity section
 // (which describes a headless coding runtime), prepends the Slack-adapted identity,
 // and appends the Slack-specific operating rules.
 func buildSlackSystemPrompt() string {

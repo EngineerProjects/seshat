@@ -18,13 +18,13 @@ import (
 	"testing"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/hyper"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/env"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/filepathext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/hyper"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/env"
+	"github.com/EngineerProjects/seshat/internal/nexustui/filepathext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	powernapConfig "github.com/charmbracelet/x/powernap/pkg/config"
 	"github.com/qjebbs/go-jsons"
 	"github.com/tidwall/gjson"
@@ -146,12 +146,12 @@ func mustMarshalConfig(cfg *Config) []byte {
 func PushPopNexusEnv() func() {
 	var found []string
 	for _, ev := range os.Environ() {
-		if strings.HasPrefix(ev, "NEXUS_") {
+		if strings.HasPrefix(ev, "SESHAT_") {
 			pair := strings.SplitN(ev, "=", 2)
 			if len(pair) != 2 {
 				continue
 			}
-			found = append(found, strings.TrimPrefix(pair[0], "NEXUS_"))
+			found = append(found, strings.TrimPrefix(pair[0], "SESHAT_"))
 		}
 	}
 	backups := make(map[string]string)
@@ -160,7 +160,7 @@ func PushPopNexusEnv() func() {
 	}
 
 	for _, ev := range found {
-		os.Setenv(ev, os.Getenv("NEXUS_"+ev))
+		os.Setenv(ev, os.Getenv("SESHAT_"+ev))
 	}
 
 	restore := func() {
@@ -481,11 +481,11 @@ func (c *Config) setDefaults(workingDir, dataDir string) {
 	// Project specific skills dirs.
 	c.Options.SkillsPaths = append(c.Options.SkillsPaths, ProjectSkillsDir(workingDir)...)
 
-	if str, ok := os.LookupEnv("NEXUS_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
+	if str, ok := os.LookupEnv("SESHAT_DISABLE_PROVIDER_AUTO_UPDATE"); ok {
 		c.Options.DisableProviderAutoUpdate, _ = strconv.ParseBool(str)
 	}
 
-	if str, ok := os.LookupEnv("NEXUS_DISABLE_DEFAULT_PROVIDERS"); ok {
+	if str, ok := os.LookupEnv("SESHAT_DISABLE_DEFAULT_PROVIDERS"); ok {
 		c.Options.DisableDefaultProviders, _ = strconv.ParseBool(str)
 	}
 
@@ -989,7 +989,7 @@ func configFileName() string { return fmt.Sprintf("%s.json", appName) }
 
 // GlobalConfig returns the global configuration file path for the application.
 func GlobalConfig() string {
-	if nexusGlobal := os.Getenv("NEXUS_GLOBAL_CONFIG"); nexusGlobal != "" {
+	if nexusGlobal := os.Getenv("SESHAT_GLOBAL_CONFIG"); nexusGlobal != "" {
 		return filepath.Join(nexusGlobal, configFileName())
 	}
 	return runtimepath.Join("", configFileName())
@@ -998,7 +998,7 @@ func GlobalConfig() string {
 // GlobalCacheDir returns the path to the global cache directory for the
 // application.
 func GlobalCacheDir() string {
-	if nexusCache := os.Getenv("NEXUS_CACHE_DIR"); nexusCache != "" {
+	if nexusCache := os.Getenv("SESHAT_CACHE_DIR"); nexusCache != "" {
 		return nexusCache
 	}
 	return runtimepath.CacheDir("")
@@ -1012,7 +1012,7 @@ func ProjectConfigs(cwd string) []string {
 // GlobalConfigData returns the runtime-root data config path for the application.
 // This config is used when the app overrides configurations instead of updating the global config.
 func GlobalConfigData() string {
-	if nexusData := os.Getenv("NEXUS_GLOBAL_DATA"); nexusData != "" {
+	if nexusData := os.Getenv("SESHAT_GLOBAL_DATA"); nexusData != "" {
 		return filepath.Join(nexusData, configFileName())
 	}
 	return runtimepath.Join("", configFileName())
@@ -1088,7 +1088,7 @@ func projectBoundary(dir string) string {
 // Skills in these directories are auto-discovered and their files can be read
 // without permission prompts.
 func GlobalSkillsDirs() []string {
-	if nexusSkills := os.Getenv("NEXUS_SKILLS_DIR"); nexusSkills != "" {
+	if nexusSkills := os.Getenv("SESHAT_SKILLS_DIR"); nexusSkills != "" {
 		return []string{nexusSkills}
 	}
 

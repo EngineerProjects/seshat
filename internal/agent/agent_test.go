@@ -3,8 +3,8 @@ package agent
 import (
 	"context"
 	"fmt"
-	skills "github.com/EngineerProjects/nexus-engine/internal/tools/system/skills"
-	publicskills "github.com/EngineerProjects/nexus-engine/pkg/skills"
+	skills "github.com/EngineerProjects/seshat/internal/tools/system/skills"
+	publicskills "github.com/EngineerProjects/seshat/pkg/skills"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"os"
@@ -1384,7 +1384,7 @@ func TestAgentRegistry_Register_Override(t *testing.T) {
 }
 
 func TestAgentRegistry_LoadFromSkills_AddsAgentSkills(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 
 	// Create a user skill with agent: field
 	userID := "test-user-registry"
@@ -1422,7 +1422,7 @@ func TestAgentRegistry_LoadFromSkills_AddsAgentSkills(t *testing.T) {
 }
 
 func TestAgentRegistry_LoadFromSkills_DoesNotOverrideBuiltIns(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 
 	userID := "test-user-no-override"
 	userSkillDir := filepath.Join(publicskills.UserPath(userID), "explore-override")

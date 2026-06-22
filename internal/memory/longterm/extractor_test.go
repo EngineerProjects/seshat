@@ -9,8 +9,8 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	longterm "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	longterm "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ─── Fake LLM caller ─────────────────────────────────────────────────────────
@@ -178,11 +178,11 @@ func conversation(pairs ...string) []types.Message {
 // ─── ParseLLMResponse ─────────────────────────────────────────────────────────
 
 func TestParseLLMResponse_ValidJSON(t *testing.T) {
-	raw := `{"entities":[{"name":"nexus-engine","entity_type":"project","observations":["Written in Go","Uses RAG pipeline"]}]}`
+	raw := `{"entities":[{"name":"seshat","entity_type":"project","observations":["Written in Go","Uses RAG pipeline"]}]}`
 	entities, err := longterm.ParseLLMResponse(raw)
 	require.NoError(t, err)
 	require.Len(t, entities, 1)
-	require.Equal(t, "nexus-engine", entities[0].Name)
+	require.Equal(t, "seshat", entities[0].Name)
 	require.Equal(t, "project", entities[0].EntityType)
 	require.Len(t, entities[0].Observations, 2)
 }
@@ -277,7 +277,7 @@ func TestExtractor_StoresExtractedEntities(t *testing.T) {
 	store := newTestStore(t)
 	caller := &fakeLLMCaller{
 		response: `{"entities":[` +
-			`{"name":"nexus-engine","entity_type":"project","observations":["backend in Go","uses FTS5 hybrid search"]},` +
+			`{"name":"seshat","entity_type":"project","observations":["backend in Go","uses FTS5 hybrid search"]},` +
 			`{"name":"user","entity_type":"person","observations":["prefers Go over Python"]}` +
 			`]}`,
 	}
@@ -297,7 +297,7 @@ func TestExtractor_StoresExtractedEntities(t *testing.T) {
 	graph, err := store.SearchNodes(context.Background(), "user-store", "nexus")
 	require.NoError(t, err)
 	require.Len(t, graph.Entities, 1)
-	require.Equal(t, "nexus-engine", graph.Entities[0].Name)
+	require.Equal(t, "seshat", graph.Entities[0].Name)
 	require.Contains(t, graph.Entities[0].Observations, "backend in Go")
 }
 

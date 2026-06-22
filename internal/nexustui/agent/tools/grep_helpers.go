@@ -19,7 +19,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
 )
 
 type grepMatch struct {

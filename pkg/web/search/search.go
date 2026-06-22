@@ -1,8 +1,8 @@
 package search
 
 import (
-	internalsearch "github.com/EngineerProjects/nexus-engine/internal/web/search"
-	internalproviders "github.com/EngineerProjects/nexus-engine/internal/web/search/providers"
+	internalsearch "github.com/EngineerProjects/seshat/internal/web/search"
+	internalproviders "github.com/EngineerProjects/seshat/internal/web/search/providers"
 )
 
 type (

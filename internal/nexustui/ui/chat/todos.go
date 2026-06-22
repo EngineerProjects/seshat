@@ -4,8 +4,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 )
 

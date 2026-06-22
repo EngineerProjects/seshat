@@ -3,11 +3,11 @@ package chat
 import (
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	planTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/plan"
-	skillsTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/skills"
-	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	planTool "github.com/EngineerProjects/seshat/internal/tools/system/plan"
+	skillsTool "github.com/EngineerProjects/seshat/internal/tools/system/skills"
+	taskTool "github.com/EngineerProjects/seshat/internal/tools/task"
 )
 
 func TestExtractMessageItemsSkipsHiddenPlanModeTools(t *testing.T) {

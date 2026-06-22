@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // StopHook is the post-turn extension point for runtime policy checks.

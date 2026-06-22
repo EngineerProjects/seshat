@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/db"
-	"github.com/EngineerProjects/nexus-engine/internal/mailbox"
-	"github.com/EngineerProjects/nexus-engine/internal/team"
+	"github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/db"
+	"github.com/EngineerProjects/seshat/internal/mailbox"
+	"github.com/EngineerProjects/seshat/internal/team"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )

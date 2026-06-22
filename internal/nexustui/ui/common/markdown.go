@@ -5,8 +5,8 @@ import (
 	"sync"
 
 	"charm.land/glamour/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/xchroma"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/xchroma"
 	"github.com/alecthomas/chroma/v2/formatters"
 )
 

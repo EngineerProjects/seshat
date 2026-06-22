@@ -14,7 +14,7 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/filepathext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/filepathext"
 	"mvdan.cc/sh/v3/expand"
 	"mvdan.cc/sh/v3/interp"
 	"mvdan.cc/sh/v3/syntax"

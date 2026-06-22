@@ -3,7 +3,7 @@ package common
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 // Scrollbar renders a vertical scrollbar based on content and viewport size.

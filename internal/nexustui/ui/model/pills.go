@@ -6,9 +6,9 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/chat"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/chat"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 // pillStyle returns the appropriate style for a pill based on focus state.

@@ -9,7 +9,7 @@ import (
 	"runtime"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/version"
+	"github.com/EngineerProjects/seshat/internal/nexustui/version"
 	"github.com/posthog/posthog-go"
 )
 

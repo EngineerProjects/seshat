@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Config is the transport-facing provider configuration subset.

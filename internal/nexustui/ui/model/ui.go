@@ -26,36 +26,36 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/catwalk/pkg/catwalk"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/hyper"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/notify"
-	agenttools "github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/app"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/commands"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/history"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/permission"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/planreview"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/stringext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/anim"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/attachments"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/chat"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/completions"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/dialog"
-	fimage "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/image"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/logo"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/notification"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/util"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/version"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/workspace"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/hyper"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/notify"
+	agenttools "github.com/EngineerProjects/seshat/internal/nexustui/agent/tools"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/tools/mcp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/app"
+	"github.com/EngineerProjects/seshat/internal/nexustui/commands"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/history"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/permission"
+	"github.com/EngineerProjects/seshat/internal/nexustui/planreview"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/skills"
+	"github.com/EngineerProjects/seshat/internal/nexustui/stringext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/anim"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/attachments"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/chat"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/completions"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/dialog"
+	fimage "github.com/EngineerProjects/seshat/internal/nexustui/ui/image"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/logo"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/notification"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/version"
+	"github.com/EngineerProjects/seshat/internal/nexustui/workspace"
 	uv "github.com/charmbracelet/ultraviolet"
 	"github.com/charmbracelet/ultraviolet/layout"
 	"github.com/charmbracelet/ultraviolet/screen"
@@ -2610,7 +2610,7 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	// double-pass above; the local var may be one pass behind).
 	layout = m.layout
 
-	if os.Getenv("NEXUS_LAYOUT_DEBUG") != "" {
+	if os.Getenv("SESHAT_LAYOUT_DEBUG") != "" {
 		if f, err := os.OpenFile("/tmp/nexus_layout.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644); err == nil {
 			taH := m.textarea.Height()
 			taW := m.textarea.Width()
@@ -2697,7 +2697,7 @@ func (m *UI) Draw(scr uv.Screen, area uv.Rectangle) *tea.Cursor {
 	}
 
 	// Debugging rendering (visually see when the tui rerenders)
-	if os.Getenv("NEXUS_UI_DEBUG") == "true" {
+	if os.Getenv("SESHAT_UI_DEBUG") == "true" {
 		debugView := lipgloss.NewStyle().Background(lipgloss.ANSIColor(rand.Intn(256))).Width(4).Height(2)
 		debug := uv.NewStyledString(debugView.String())
 		debug.Draw(scr, image.Rectangle{

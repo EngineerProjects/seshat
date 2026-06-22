@@ -11,7 +11,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/EngineerProjects/nexus-engine/internal/image"
+	"github.com/EngineerProjects/seshat/internal/image"
 )
 
 const (

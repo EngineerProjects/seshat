@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"strings"
 
-	fetchcore "github.com/EngineerProjects/nexus-engine/internal/web/fetch"
+	fetchcore "github.com/EngineerProjects/seshat/internal/web/fetch"
 )
 
 // parseInput validates the raw tool payload and normalizes optional routing hints.

@@ -9,9 +9,9 @@ import (
 var useGoCoreUtils bool
 
 func init() {
-	// If NEXUS_CORE_UTILS is set to either true or false, respect that.
+	// If SESHAT_CORE_UTILS is set to either true or false, respect that.
 	// By default, enable on Windows only.
-	if v, err := strconv.ParseBool(os.Getenv("NEXUS_CORE_UTILS")); err == nil {
+	if v, err := strconv.ParseBool(os.Getenv("SESHAT_CORE_UTILS")); err == nil {
 		useGoCoreUtils = v
 	} else {
 		useGoCoreUtils = runtime.GOOS == "windows"

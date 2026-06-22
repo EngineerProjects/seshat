@@ -1,4 +1,4 @@
-module github.com/EngineerProjects/nexus-engine
+module github.com/EngineerProjects/seshat
 
 go 1.26.4
 

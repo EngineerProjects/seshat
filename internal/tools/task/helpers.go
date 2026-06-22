@@ -3,7 +3,7 @@ package task
 import (
 	"fmt"
 
-	bashTool "github.com/EngineerProjects/nexus-engine/internal/tools/bash"
+	bashTool "github.com/EngineerProjects/seshat/internal/tools/bash"
 )
 
 // statusToString converts TaskStatus to string

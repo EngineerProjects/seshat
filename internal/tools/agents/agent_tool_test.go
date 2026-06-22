@@ -8,16 +8,16 @@ import (
 	"strings"
 	"testing"
 
-	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/permissions"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	compact "github.com/EngineerProjects/nexus-engine/internal/runtime/memory"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	registry "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	coreagent "github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/permissions"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	compact "github.com/EngineerProjects/seshat/internal/runtime/memory"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	registry "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ---------------------------------------------------------------------------

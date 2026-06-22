@@ -6,9 +6,9 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type learnedDirective struct {

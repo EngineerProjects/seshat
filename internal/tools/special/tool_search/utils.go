@@ -5,7 +5,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/tools/contract"
 )
 
 func GetToolSearchMode() ToolSearchMode {

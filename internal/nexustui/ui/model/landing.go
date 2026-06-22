@@ -4,8 +4,8 @@ import (
 	"strings"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/modes"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/workspace"
+	"github.com/EngineerProjects/seshat/internal/modes"
+	"github.com/EngineerProjects/seshat/internal/nexustui/workspace"
 )
 
 // nexusBrailleLogo is the braille-art rendering of the Nexus logo.

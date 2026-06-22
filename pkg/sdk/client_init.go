@@ -5,17 +5,17 @@ import (
 	"log"
 	"strings"
 
-	audioproviders "github.com/EngineerProjects/nexus-engine/internal/audio/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/audio/stt"
-	"github.com/EngineerProjects/nexus-engine/internal/audio/tts"
-	"github.com/EngineerProjects/nexus-engine/internal/image"
-	imageproviders "github.com/EngineerProjects/nexus-engine/internal/image/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/builtin"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	audioproviders "github.com/EngineerProjects/seshat/internal/audio/providers"
+	"github.com/EngineerProjects/seshat/internal/audio/stt"
+	"github.com/EngineerProjects/seshat/internal/audio/tts"
+	"github.com/EngineerProjects/seshat/internal/image"
+	imageproviders "github.com/EngineerProjects/seshat/internal/image/providers"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	"github.com/EngineerProjects/seshat/internal/monitoring"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/tools/builtin"
+	"github.com/EngineerProjects/seshat/internal/tools/registry"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 func initArtifactStore(config *ClientConfig) ArtifactStore {

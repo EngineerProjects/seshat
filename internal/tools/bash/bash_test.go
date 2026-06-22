@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 	"golang.org/x/sys/unix"
 )
 
@@ -68,7 +68,7 @@ func TestCommandWithLandlockUsesCurrentExecutableWhenAvailable(t *testing.T) {
 	if len(args) < 3 || args[0] != landlockHelperArg || args[1] != "/bin/sh" {
 		t.Fatalf("unexpected helper args: %v", args)
 	}
-	wantEnv := "NEXUS_LANDLOCK_WORKSPACE=" + filepath.Clean(root)
+	wantEnv := "SESHAT_LANDLOCK_WORKSPACE=" + filepath.Clean(root)
 	if len(env) != 1 || env[0] != wantEnv {
 		t.Fatalf("unexpected helper env: %v", env)
 	}

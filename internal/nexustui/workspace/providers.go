@@ -9,9 +9,9 @@ import (
 	"time"
 
 	"charm.land/catwalk/pkg/catwalk"
-	"github.com/EngineerProjects/nexus-engine/internal/db"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/internal/db"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 // SetStartupConfig stores the options needed to rebuild the SDK client when

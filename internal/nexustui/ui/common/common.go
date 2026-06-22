@@ -6,10 +6,10 @@ import (
 	"os"
 
 	tea "charm.land/bubbletea/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/util"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/workspace"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/workspace"
 	"github.com/atotto/clipboard"
 	uv "github.com/charmbracelet/ultraviolet"
 )

@@ -2,10 +2,10 @@ package webfetch
 
 import (
 	"context"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
-	fetchcore "github.com/EngineerProjects/nexus-engine/internal/web/fetch"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
+	fetchcore "github.com/EngineerProjects/seshat/internal/web/fetch"
 	"strings"
 	"testing"
 	"time"

@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 // HTTPClient defines the HTTP client interface

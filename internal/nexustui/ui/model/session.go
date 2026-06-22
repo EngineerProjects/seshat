@@ -10,13 +10,13 @@ import (
 
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/diff"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/fsext"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/history"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/session"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/util"
+	"github.com/EngineerProjects/seshat/internal/nexustui/diff"
+	"github.com/EngineerProjects/seshat/internal/nexustui/fsext"
+	"github.com/EngineerProjects/seshat/internal/nexustui/history"
+	"github.com/EngineerProjects/seshat/internal/nexustui/session"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/util"
 	"github.com/charmbracelet/x/ansi"
 )
 

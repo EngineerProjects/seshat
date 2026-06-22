@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // streamAnthropicResponse consumes an Anthropic SSE response and forwards

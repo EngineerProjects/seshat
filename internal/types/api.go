@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/model"
-	"github.com/EngineerProjects/nexus-engine/internal/schema"
-	toolschema "github.com/EngineerProjects/nexus-engine/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/model"
+	"github.com/EngineerProjects/seshat/internal/schema"
+	toolschema "github.com/EngineerProjects/seshat/internal/tools/schema"
 )
 
 // APIProvider represents the API provider being used

@@ -6,9 +6,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 func TestOnChunkStartsNewAssistantMessageAfterMessageStop(t *testing.T) {

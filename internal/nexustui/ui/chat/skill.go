@@ -3,8 +3,8 @@ package chat
 import (
 	"encoding/json"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	"github.com/charmbracelet/x/ansi"
 )
 

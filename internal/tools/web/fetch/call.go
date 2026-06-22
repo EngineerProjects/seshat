@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	fetchcore "github.com/EngineerProjects/nexus-engine/internal/web/fetch"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	fetchcore "github.com/EngineerProjects/seshat/internal/web/fetch"
 )
 
 // Call executes the tool end-to-end while keeping the orchestration logic separate from the fetch backends.

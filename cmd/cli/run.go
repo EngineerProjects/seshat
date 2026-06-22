@@ -11,9 +11,9 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 func runOnce(ctx context.Context, args []string, stdin io.Reader, stdout, stderr io.Writer) error {
@@ -32,7 +32,7 @@ func runOnce(ctx context.Context, args []string, stdin io.Reader, stdout, stderr
 
 	prompt := strings.TrimSpace(strings.Join(flags.Args(), " "))
 	if prompt == "" {
-		return fmt.Errorf("missing prompt: use `nexus run \"prompt\"`")
+		return fmt.Errorf("missing prompt: use `seshat run \"prompt\"`")
 	}
 
 	options, err := loadRuntimeOptions(runtimeOverrides{
@@ -217,11 +217,11 @@ func loadChatSession(ctx context.Context, client *sdk.Client, sessionID string) 
 }
 
 func printChatBanner(out io.Writer, options runtimeOptions, session *sdk.Session, showThinking bool) {
-	fmt.Fprintf(out, "Nexus dev chat\n")
+	fmt.Fprintf(out, "Seshat dev chat\n")
 	fmt.Fprintf(out, "workspace: %s\n", options.WorkingDir)
 	modelLabel := options.Model.String()
 	if options.Model.Provider == "" {
-		modelLabel = "(not configured — run `nexus config`)"
+		modelLabel = "(not configured — run `seshat config`)"
 	}
 	fmt.Fprintf(out, "model: %s\n", modelLabel)
 	fmt.Fprintf(out, "permission: %s\n", options.PermissionMode)
@@ -305,7 +305,7 @@ func validateProviderSetup(options runtimeOptions) error {
 	config.Model = options.Model.String()
 	config.APIKey = options.APIKey
 	if validateErr := engineconfig.ValidateProviderSetup(config, options.Model.Provider); validateErr != nil {
-		return fmt.Errorf("%w; run `nexus config` first", validateErr)
+		return fmt.Errorf("%w; run `seshat config` first", validateErr)
 	}
 	return nil
 }

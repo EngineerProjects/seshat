@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	internalproviders "github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	internalproviders "github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 type ProviderSetupField struct {

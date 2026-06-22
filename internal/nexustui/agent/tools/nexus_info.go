@@ -7,11 +7,11 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/lsp"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/skills"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/tools/mcp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/lsp"
+	"github.com/EngineerProjects/seshat/internal/nexustui/skills"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
 )
 
 const NexusInfoToolName = "nexus_info"

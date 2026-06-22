@@ -12,8 +12,8 @@ import (
 	"context"
 	"math/rand"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ClassifierAPI interface defines the contract for classifier API clients.

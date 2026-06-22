@@ -7,8 +7,8 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // ─── mock classifier for e2e tests ───────────────────────────────────────────
@@ -23,7 +23,7 @@ func (c *e2eClassifier) Classify(_ context.Context, _ string, _ map[string]any) 
 }
 
 func TestResolverUsesPromptFnApproval(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	if err := engine.AddRule(PermissionRule{
 		Value:    PermissionRuleValue{ToolName: "bash", RuleContent: "echo *"},
@@ -77,7 +77,7 @@ func TestResolverUsesPromptFnApproval(t *testing.T) {
 // TestIntegratorAutoModeClassifierAllows verifies the full path:
 // engine + auto-mode + mock classifier → allow decision.
 func TestIntegratorAutoModeClassifierAllows(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	engine.SetClassifier(&e2eClassifier{allowed: true, reason: "safe operation"})
 
@@ -103,7 +103,7 @@ func TestIntegratorAutoModeClassifierAllows(t *testing.T) {
 // TestIntegratorAutoModeClassifierDenies verifies the full path:
 // engine + auto-mode + mock classifier → deny decision.
 func TestIntegratorAutoModeClassifierDenies(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	engine.SetClassifier(&e2eClassifier{allowed: false, reason: "dangerous command"})
 
@@ -129,7 +129,7 @@ func TestIntegratorAutoModeClassifierDenies(t *testing.T) {
 // TestIntegratorDenyRuleTakesPrecedenceOverAutoMode verifies that an explicit
 // deny rule fires before the auto-mode classifier is consulted.
 func TestIntegratorDenyRuleTakesPrecedenceOverAutoMode(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	// Classifier would allow, but deny rule should win.
 	engine.SetClassifier(&e2eClassifier{allowed: true, reason: "would allow"})
@@ -163,7 +163,7 @@ func TestIntegratorDenyRuleTakesPrecedenceOverAutoMode(t *testing.T) {
 }
 
 func TestResolverUsesPromptFnDenial(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	if err := engine.AddRule(PermissionRule{
 		Value:    PermissionRuleValue{ToolName: "bash", RuleContent: "echo *"},
@@ -201,7 +201,7 @@ func TestResolverUsesPromptFnDenial(t *testing.T) {
 }
 
 func TestResolverSessionAutoApproval(t *testing.T) {
-	t.Setenv("NEXUS_RUNTIME_ROOT", t.TempDir())
+	t.Setenv("SESHAT_RUNTIME_ROOT", t.TempDir())
 	engine := NewEngine()
 	if err := engine.AddRule(PermissionRule{
 		Value:    PermissionRuleValue{ToolName: "bash", RuleContent: "echo *"},
@@ -285,7 +285,7 @@ func TestResolverSessionAutoApproval(t *testing.T) {
 
 func TestResolverSessionAutoApprovalPersistence(t *testing.T) {
 	tempRoot := t.TempDir()
-	t.Setenv("NEXUS_RUNTIME_ROOT", tempRoot)
+	t.Setenv("SESHAT_RUNTIME_ROOT", tempRoot)
 
 	engine := NewEngine()
 	integrator := NewIntegrator(engine)

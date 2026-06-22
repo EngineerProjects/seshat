@@ -11,8 +11,8 @@
 // Example:
 //
 //	import (
-//	    "github.com/EngineerProjects/nexus-engine/internal/fim"
-//	    fimproviders "github.com/EngineerProjects/nexus-engine/internal/fim/providers"
+//	    "github.com/EngineerProjects/seshat/internal/fim"
+//	    fimproviders "github.com/EngineerProjects/seshat/internal/fim/providers"
 //	)
 //
 //	client := fimproviders.NewMistral(

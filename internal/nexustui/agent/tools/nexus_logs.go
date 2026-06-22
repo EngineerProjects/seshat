@@ -14,7 +14,7 @@ import (
 	"strings"
 	"time"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
 )
 
 const NexusLogsToolName = "nexus_logs"

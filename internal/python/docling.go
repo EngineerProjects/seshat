@@ -11,7 +11,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 const (
@@ -58,7 +58,7 @@ func NewDoclingManager(venvDir, host string, port int) *DoclingManager {
 // DefaultDoclingManager creates a manager using the Nexus runtime root venv.
 // Returns nil if the venv or docling-serve binary is not installed.
 // On Linux/macOS the venv lives at ~/.config/nexus-cli/.venv (or
-// $NEXUS_RUNTIME_ROOT/.venv). On Windows: %APPDATA%\nexus-cli\.venv.
+// $SESHAT_RUNTIME_ROOT/.venv). On Windows: %APPDATA%\nexus-cli\.venv.
 func DefaultDoclingManager() *DoclingManager {
 	venvDir := filepath.Join(runtimepath.ResolveRoot(""), ".venv")
 	bin := venvBin(venvDir)
@@ -116,8 +116,8 @@ func (m *DoclingManager) Start(ctx context.Context) error {
 		"--port", fmt.Sprintf("%d", m.port),
 		"--workers", "1",
 	)
-	// Silence output unless NEXUS_DOCLING_VERBOSE is set.
-	if os.Getenv("NEXUS_DOCLING_VERBOSE") == "" {
+	// Silence output unless SESHAT_DOCLING_VERBOSE is set.
+	if os.Getenv("SESHAT_DOCLING_VERBOSE") == "" {
 		logPath := filepath.Join(runtimepath.ResolveRoot(""), "logs", "docling.log")
 		_ = os.MkdirAll(filepath.Dir(logPath), 0o755)
 		if f, err := os.OpenFile(logPath, os.O_CREATE|os.O_APPEND|os.O_WRONLY, 0o644); err == nil {

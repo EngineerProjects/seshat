@@ -6,7 +6,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
 )
 
 // Lookup searches for a target files or directories starting from dir

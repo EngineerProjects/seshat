@@ -1,8 +1,8 @@
 package engine
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // DetectTurnStage examines the messages generated after the initial user message

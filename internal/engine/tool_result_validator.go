@@ -43,7 +43,7 @@ var injectionSignatures = []injectionSignature{
 }
 
 const (
-	injectionWarningPrefix = "[NEXUS_SECURITY: potential prompt injection detected in tool result — content quarantined]\n<quarantined>\n"
+	injectionWarningPrefix = "[SESHAT_SECURITY: potential prompt injection detected in tool result — content quarantined]\n<quarantined>\n"
 	injectionWarningSuffix = "\n</quarantined>"
 )
 

@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent"
-	"github.com/EngineerProjects/nexus-engine/internal/mailbox"
+	"github.com/EngineerProjects/seshat/internal/agent"
+	"github.com/EngineerProjects/seshat/internal/mailbox"
 )
 
 // MessageHandler is called by TeamBus when a message arrives for an agent.

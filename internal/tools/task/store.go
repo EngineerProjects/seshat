@@ -7,7 +7,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/db"
+	"github.com/EngineerProjects/seshat/internal/db"
 )
 
 // Task represents a task in the task list.

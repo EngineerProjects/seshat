@@ -5,8 +5,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/files/shared"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/files/shared"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // AcceptEditsWriteCommands are commands auto-allowed in AcceptEdits mode.

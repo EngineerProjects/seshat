@@ -1,21 +1,21 @@
 package sdk
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	longterm "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	"github.com/EngineerProjects/nexus-engine/internal/modes"
-	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
-	"github.com/EngineerProjects/nexus-engine/internal/rag"
-	"github.com/EngineerProjects/nexus-engine/internal/runtime/state"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/builtin"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	websearchtool "github.com/EngineerProjects/nexus-engine/internal/tools/web/search"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	longterm "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	"github.com/EngineerProjects/seshat/internal/modes"
+	"github.com/EngineerProjects/seshat/internal/monitoring"
+	"github.com/EngineerProjects/seshat/internal/rag"
+	"github.com/EngineerProjects/seshat/internal/runtime/state"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/tools/builtin"
+	"github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	websearchtool "github.com/EngineerProjects/seshat/internal/tools/web/search"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Public aliases keep the SDK consumable without forcing callers onto internal packages.

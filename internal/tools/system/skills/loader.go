@@ -10,7 +10,7 @@ import (
 	"strings"
 	"syscall"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 const (
@@ -22,14 +22,14 @@ const (
 var sessionID string
 
 func init() {
-	sessionID = os.Getenv("NEXUS_SESSION_ID")
+	sessionID = os.Getenv("SESHAT_SESSION_ID")
 	if sessionID == "" {
 		sessionID = "default"
 	}
 }
 
 // GetManagedSkillsPath returns the directory for admin-managed (policy) skills.
-// Respects NEXUS_RUNTIME_ROOT so the path moves with the deployment.
+// Respects SESHAT_RUNTIME_ROOT so the path moves with the deployment.
 func GetManagedSkillsPath() string {
 	return filepath.Join(runtimepath.SkillsDir(""), "managed")
 }
@@ -296,7 +296,7 @@ func (l *FileSkillLoader) loadSkillFile(path string, source SettingSource) (Skil
 
 	// For collection loaders the AI needs the repo root to resolve relative
 	// paths (data/, scripts/, …).  Pass it as the effective base dir so it
-	// becomes the value of ${NEXUS_SKILL_DIR} and is injected as a header.
+	// becomes the value of ${SESHAT_SKILL_DIR} and is injected as a header.
 	baseDir := filepath.Dir(path)
 	if l.CollectionRoot != "" {
 		baseDir = l.CollectionRoot
@@ -485,7 +485,7 @@ func buildPreflightSection(reqs []SkillRequirement, skillDir string) string {
 			b.WriteString(fmt.Sprintf("- **Check**: `%s`\n", r.Check))
 		}
 		if r.InstallCmd != "" {
-			installCmd := strings.ReplaceAll(r.InstallCmd, "${NEXUS_SKILL_DIR}", skillDir)
+			installCmd := strings.ReplaceAll(r.InstallCmd, "${SESHAT_SKILL_DIR}", skillDir)
 			b.WriteString(fmt.Sprintf("- **Install** (only with user permission): `%s`\n", installCmd))
 		}
 	}
@@ -585,8 +585,8 @@ func SubstituteArguments(content string, args string, argumentNames []string) st
 
 func SubstituteNexusVariables(content string, skillDir string, sessionID string) string {
 	result := content
-	result = strings.ReplaceAll(result, "${NEXUS_SKILL_DIR}", skillDir)
-	result = strings.ReplaceAll(result, "${NEXUS_SESSION_ID}", sessionID)
+	result = strings.ReplaceAll(result, "${SESHAT_SKILL_DIR}", skillDir)
+	result = strings.ReplaceAll(result, "${SESHAT_SESSION_ID}", sessionID)
 	return result
 }
 

@@ -5,7 +5,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // providerAdapter encapsulates the provider-specific wire format behind a

@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
 )
 
 func TestMemoryStoreSearchRanksByCosineSimilarity(t *testing.T) {
@@ -36,9 +36,9 @@ func TestMemoryStoreSearchRanksByCosineSimilarity(t *testing.T) {
 
 func openPgVectorTestDB(t *testing.T) *dbpkg.DB {
 	t.Helper()
-	dsn := os.Getenv("NEXUS_TEST_POSTGRES_DSN")
+	dsn := os.Getenv("SESHAT_TEST_POSTGRES_DSN")
 	if dsn == "" {
-		t.Skip("NEXUS_TEST_POSTGRES_DSN not set")
+		t.Skip("SESHAT_TEST_POSTGRES_DSN not set")
 	}
 	database, err := dbpkg.Open(context.Background(), dbpkg.DefaultPostgresConfig(dsn))
 	if err != nil {
@@ -141,9 +141,9 @@ func TestPgVectorStore_UpsertSearchDeleteNamespace(t *testing.T) {
 }
 
 func TestPgVectorStore_SeparateDatabaseHandleWithoutBackendMigrations(t *testing.T) {
-	dsn := os.Getenv("NEXUS_TEST_POSTGRES_DSN")
+	dsn := os.Getenv("SESHAT_TEST_POSTGRES_DSN")
 	if dsn == "" {
-		t.Skip("NEXUS_TEST_POSTGRES_DSN not set")
+		t.Skip("SESHAT_TEST_POSTGRES_DSN not set")
 	}
 
 	database, err := dbpkg.Open(context.Background(), dbpkg.Config{

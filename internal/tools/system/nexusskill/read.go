@@ -8,10 +8,10 @@ import (
 	"sort"
 	"strings"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	skills "github.com/EngineerProjects/nexus-engine/internal/tools/system/skills"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	skills "github.com/EngineerProjects/seshat/internal/tools/system/skills"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ReadTool implements nexus_read_skill.

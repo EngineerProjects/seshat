@@ -3,7 +3,7 @@ package fetch
 import (
 	"time"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 // CacheEntry represents a cached URL response.

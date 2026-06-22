@@ -3,7 +3,7 @@ package fastmode
 import (
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // TaskType classifies the urgency/cost profile of a task so the manager

@@ -5,7 +5,7 @@ import (
 	"testing"
 
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/message"
+	"github.com/EngineerProjects/seshat/internal/nexustui/message"
 )
 
 func TestHandleClickRemovesAttachmentAtDeleteChip(t *testing.T) {

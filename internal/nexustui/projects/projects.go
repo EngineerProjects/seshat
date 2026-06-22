@@ -8,7 +8,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
 )
 
 const projectsFileName = "projects.json"

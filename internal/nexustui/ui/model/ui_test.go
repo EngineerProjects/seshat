@@ -5,9 +5,9 @@ import (
 
 	"charm.land/bubbles/v2/textarea"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/attachments"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/attachments"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 )
 
 func TestRenderEditorViewKeepsTextareaWrapWidth(t *testing.T) {

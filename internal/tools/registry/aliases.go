@@ -3,8 +3,8 @@ package registry
 import (
 	"context"
 
-	contract "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	contract "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type Tool = contract.Tool

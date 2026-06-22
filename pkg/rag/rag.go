@@ -1,9 +1,9 @@
 package rag
 
 import (
-	internalrag "github.com/EngineerProjects/nexus-engine/internal/rag"
-	publicstorage "github.com/EngineerProjects/nexus-engine/pkg/storage"
-	publicvector "github.com/EngineerProjects/nexus-engine/pkg/vector"
+	internalrag "github.com/EngineerProjects/seshat/internal/rag"
+	publicstorage "github.com/EngineerProjects/seshat/pkg/storage"
+	publicvector "github.com/EngineerProjects/seshat/pkg/vector"
 )
 
 type (

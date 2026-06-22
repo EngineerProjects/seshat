@@ -5,8 +5,8 @@ import (
 	"encoding/json"
 	"fmt"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func (o *Orchestrator) prepareToolUses(ctx context.Context, req ExecuteRequest) []preparedToolUse {

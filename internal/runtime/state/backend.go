@@ -3,7 +3,7 @@ package state
 import (
 	"errors"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ErrMalformedTranscriptEntry indicates a persisted transcript entry could not

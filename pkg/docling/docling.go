@@ -1,6 +1,6 @@
 package docling
 
-import internaldocling "github.com/EngineerProjects/nexus-engine/internal/docling"
+import internaldocling "github.com/EngineerProjects/seshat/internal/docling"
 
 type (
 	Client           = internaldocling.Client

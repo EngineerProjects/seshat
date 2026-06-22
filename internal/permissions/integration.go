@@ -8,12 +8,12 @@ import (
 	"path/filepath"
 	"sync"
 
-	automode "github.com/EngineerProjects/nexus-engine/internal/permissions/auto"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/internal/utils"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	automode "github.com/EngineerProjects/seshat/internal/permissions/auto"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/internal/utils"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // Integrator integrates permission checking with tool execution.

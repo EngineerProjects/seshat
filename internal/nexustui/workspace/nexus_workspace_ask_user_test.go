@@ -6,10 +6,10 @@ import (
 	"testing"
 	"time"
 
-	agenttools "github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/tools"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/pubsub"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	agenttools "github.com/EngineerProjects/seshat/internal/nexustui/agent/tools"
+	"github.com/EngineerProjects/seshat/internal/nexustui/pubsub"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 func TestPromptAskUserBuffersSurveyAnswers(t *testing.T) {

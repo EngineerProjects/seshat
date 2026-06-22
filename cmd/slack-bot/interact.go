@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	slackgo "github.com/slack-go/slack"
 )
 
@@ -49,7 +49,7 @@ func (b *bot) makeSlackPromptFn() sdk.PromptFn {
 
 // promptChoice posts a Block Kit actions message and waits for a button click.
 func (b *bot) promptChoice(ctx context.Context, ch channelCtxVal, req sdk.PromptRequest) (sdk.PromptResponse, error) {
-	blockID := fmt.Sprintf("nexus_q_%d", time.Now().UnixNano())
+	blockID := fmt.Sprintf("seshat_q_%d", time.Now().UnixNano())
 
 	header := slackgo.NewSectionBlock(
 		slackgo.NewTextBlockObject("mrkdwn", fmt.Sprintf("❓ *%s*", req.Message), false, false),

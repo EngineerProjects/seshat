@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	coreagent "github.com/EngineerProjects/nexus-engine/internal/agent"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	coreagent "github.com/EngineerProjects/seshat/internal/agent"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const sendAgentMessageName = "send_agent_message"

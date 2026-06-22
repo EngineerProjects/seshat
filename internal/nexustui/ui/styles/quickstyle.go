@@ -10,7 +10,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"charm.land/glamour/v2/ansi"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/diffview"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/diffview"
 	"github.com/charmbracelet/x/exp/charmtone"
 )
 

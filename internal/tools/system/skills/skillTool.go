@@ -8,9 +8,9 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type SkillInput struct {
@@ -261,5 +261,5 @@ Important:
 - When a skill matches the user's request, invoke the relevant Skill tool BEFORE generating any other response about the task
 - NEVER mention a skill without actually calling this tool
 - Do not invoke a skill that is already running
-- Skill prompts support ${NEXUS_SKILL_DIR} and ${NEXUS_SESSION_ID} substitution`
+- Skill prompts support ${SESHAT_SKILL_DIR} and ${SESHAT_SESSION_ID} substitution`
 }

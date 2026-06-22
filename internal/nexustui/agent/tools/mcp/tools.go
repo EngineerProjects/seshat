@@ -10,8 +10,8 @@ import (
 	"slices"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/config"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/csync"
+	"github.com/EngineerProjects/seshat/internal/nexustui/config"
+	"github.com/EngineerProjects/seshat/internal/nexustui/csync"
 	"github.com/modelcontextprotocol/go-sdk/mcp"
 )
 

@@ -6,8 +6,8 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/list"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/styles"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/list"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/styles"
 	"github.com/sahilm/fuzzy"
 )
 

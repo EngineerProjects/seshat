@@ -14,9 +14,9 @@ import (
 	"charm.land/bubbles/v2/key"
 	tea "charm.land/bubbletea/v2"
 	"charm.land/lipgloss/v2"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/home"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/common"
-	fimage "github.com/EngineerProjects/nexus-engine/internal/nexustui/ui/image"
+	"github.com/EngineerProjects/seshat/internal/nexustui/home"
+	"github.com/EngineerProjects/seshat/internal/nexustui/ui/common"
+	fimage "github.com/EngineerProjects/seshat/internal/nexustui/ui/image"
 	uv "github.com/charmbracelet/ultraviolet"
 )
 

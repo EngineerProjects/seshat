@@ -10,9 +10,9 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/db"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/internal/db"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 // credentialKey constants — these are the keys used in the credentials table.
@@ -267,7 +267,7 @@ func printConfigSummary(out io.Writer, config engineconfig.Config, model sdk.Mod
 		}
 	}
 	if !anySearch {
-		fmt.Fprintf(out, "  (none configured — run `nexus config --search` to add)\n")
+		fmt.Fprintf(out, "  (none configured — run `seshat config --search` to add)\n")
 	}
 
 	if database != nil {
@@ -422,7 +422,7 @@ func loadCredsIntoConfig(database *db.DB, config *engineconfig.Config) {
 		return val
 	}
 	// loadCredScoped checks the per-provider scoped key first (written by the
-	// TUI config panel), then falls back to the global key (written by `nexus config`).
+	// TUI config panel), then falls back to the global key (written by `seshat config`).
 	loadCredScoped := func(fieldKey, providerID string) string {
 		if providerID != "" {
 			// Normalize providerID to ensure consistent lookups (e.g. "zai" -> "z-ai").
@@ -497,8 +497,8 @@ func stripRuntimeSecrets(config engineconfig.Config) engineconfig.Config {
 	config.TavilyAPIKey = ""
 	config.ExaAPIKey = ""
 	config.JinaAPIKey = ""
-	// RuntimeRoot is always re-computed at startup from NEXUS_RUNTIME_ROOT or
-	// the XDG default (~/.config/nexus-cli). Never persist it so the YAML stays
+	// RuntimeRoot is always re-computed at startup from SESHAT_RUNTIME_ROOT or
+	// the XDG default (~/.config/seshat-cli). Never persist it so the YAML stays
 	// portable and doesn't hard-code absolute paths.
 	config.RuntimeRoot = ""
 	return config

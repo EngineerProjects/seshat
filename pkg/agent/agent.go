@@ -1,6 +1,6 @@
 package agent
 
-import internalagent "github.com/EngineerProjects/nexus-engine/internal/agent"
+import internalagent "github.com/EngineerProjects/seshat/internal/agent"
 
 type (
 	AgentDefinition = internalagent.AgentDefinition

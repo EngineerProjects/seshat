@@ -525,7 +525,7 @@ func TestIntegrationManager_ToolUsagePatternLearning(t *testing.T) {
 // ─── Learner ─────────────────────────────────────────────────────────────────
 
 func TestNewLearnerCreatesWithLoadedMemory(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "session-1")
 	if err != nil {
@@ -537,7 +537,7 @@ func TestNewLearnerCreatesWithLoadedMemory(t *testing.T) {
 }
 
 func TestLearnerOnToolUse_RecordsStats(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "session-1")
 	if err != nil {
@@ -561,7 +561,7 @@ func TestLearnerOnToolUse_RecordsStats(t *testing.T) {
 }
 
 func TestLearnerOnToolUse_LearnPatternAfterThirdUse(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "session-learn")
 	if err != nil {
@@ -595,7 +595,7 @@ func TestLearnerOnToolUse_LearnPatternAfterThirdUse(t *testing.T) {
 }
 
 func TestLearnerOnToolUse_TracksFailures(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "sess-fail")
 	if err != nil {
@@ -612,7 +612,7 @@ func TestLearnerOnToolUse_TracksFailures(t *testing.T) {
 }
 
 func TestLearnerAddUserPreference(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "sess-pref")
 	if err != nil {
@@ -638,7 +638,7 @@ func TestLearnerAddUserPreference(t *testing.T) {
 }
 
 func TestLearnerAddInstruction_RequiresProjectLoaded(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	l, err := NewLearner("/tmp/proj", "sess-instr")
 	if err != nil {
@@ -666,7 +666,7 @@ func TestLearnerAddInstruction_RequiresProjectLoaded(t *testing.T) {
 
 func TestLearnerFlush_PersistsToStore(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("NEXUS_MEMORY_PATH", dir)
+	t.Setenv("SESHAT_MEMORY_PATH", dir)
 
 	l, err := NewLearner("/tmp/proj", "sess-flush")
 	if err != nil {
@@ -706,7 +706,7 @@ func TestLearnerFlush_PersistsToStore(t *testing.T) {
 // ─── ErrorLearner ────────────────────────────────────────────────────────────
 
 func TestNewErrorLearner(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	el, err := NewErrorLearner("/tmp/proj")
 	if err != nil {
@@ -718,7 +718,7 @@ func TestNewErrorLearner(t *testing.T) {
 }
 
 func TestErrorLearnerOnError_NilIsNoOp(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	el, err := NewErrorLearner("/tmp/proj")
 	if err != nil {
@@ -730,7 +730,7 @@ func TestErrorLearnerOnError_NilIsNoOp(t *testing.T) {
 }
 
 func TestErrorLearnerOnError_TracksSingleError(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	el, err := NewErrorLearner("/tmp/proj")
 	if err != nil {
@@ -750,7 +750,7 @@ func TestErrorLearnerOnError_TracksSingleError(t *testing.T) {
 
 func TestErrorLearnerOnError_LearnsSuggestionAfterRepeat(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("NEXUS_MEMORY_PATH", dir)
+	t.Setenv("SESHAT_MEMORY_PATH", dir)
 
 	el, err := NewErrorLearner("/tmp/proj-err")
 	if err != nil {
@@ -814,7 +814,7 @@ func TestGetSuggestion_AllTypes(t *testing.T) {
 // ─── ContextBuilder ──────────────────────────────────────────────────────────
 
 func TestNewContextBuilder(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	cb, err := NewContextBuilder("/tmp/proj")
 	if err != nil {
@@ -827,7 +827,7 @@ func TestNewContextBuilder(t *testing.T) {
 
 func TestContextBuilder_BuildReturnsContext(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("NEXUS_MEMORY_PATH", dir)
+	t.Setenv("SESHAT_MEMORY_PATH", dir)
 
 	// Pre-seed user memory with a high-confidence preference
 	mgr, err := NewManagerWithPath(dir)
@@ -862,7 +862,7 @@ func TestContextBuilder_BuildReturnsContext(t *testing.T) {
 
 func TestContextBuilder_BuildWithCrossSessionPatterns(t *testing.T) {
 	dir := t.TempDir()
-	t.Setenv("NEXUS_MEMORY_PATH", dir)
+	t.Setenv("SESHAT_MEMORY_PATH", dir)
 
 	// Pre-seed cross-session with a frequent pattern
 	mgr, err := NewManagerWithPath(dir)
@@ -1320,7 +1320,7 @@ func TestTruncateMemoryLine(t *testing.T) {
 }
 
 func TestNewServiceAndNewServiceWithPath(t *testing.T) {
-	t.Setenv("NEXUS_MEMORY_PATH", t.TempDir())
+	t.Setenv("SESHAT_MEMORY_PATH", t.TempDir())
 
 	svc, err := NewService()
 	if err != nil {

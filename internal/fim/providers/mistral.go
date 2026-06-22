@@ -12,7 +12,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/fim"
+	"github.com/EngineerProjects/seshat/internal/fim"
 )
 
 const mistralDefaultBaseURL = "https://api.mistral.ai/v1/fim/completions"

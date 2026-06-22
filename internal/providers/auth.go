@@ -16,10 +16,10 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/oauth"
-	"github.com/EngineerProjects/nexus-engine/internal/auth/store"
-	authTypes "github.com/EngineerProjects/nexus-engine/internal/auth/types"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/auth/oauth"
+	"github.com/EngineerProjects/seshat/internal/auth/store"
+	authTypes "github.com/EngineerProjects/seshat/internal/auth/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ============================================================================
@@ -284,7 +284,7 @@ func providerEnvVar(provider types.APIProvider) string {
 }
 
 func defaultAuthPath() string {
-	if path := os.Getenv("NEXUS_AUTH_PATH"); path != "" {
+	if path := os.Getenv("SESHAT_AUTH_PATH"); path != "" {
 		return path
 	}
 	homeDir, _ := os.UserHomeDir()

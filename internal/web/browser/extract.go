@@ -9,8 +9,8 @@ import (
 
 	"github.com/go-rod/rod"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Snapshot returns a compact text + element snapshot of the selected page.

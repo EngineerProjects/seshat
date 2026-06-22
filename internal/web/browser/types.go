@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Manager owns browser lifecycle, per-session isolation, and page operations.

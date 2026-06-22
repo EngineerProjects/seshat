@@ -3,7 +3,7 @@ package search
 import (
 	"time"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 // Cache is a search-specific view over the shared web TTL cache.

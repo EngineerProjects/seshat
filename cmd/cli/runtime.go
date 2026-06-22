@@ -9,15 +9,15 @@ import (
 	"strings"
 	"time"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
-	longtermStore "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	internalrag "github.com/EngineerProjects/nexus-engine/internal/rag"
-	"github.com/EngineerProjects/nexus-engine/internal/rag/embedder"
-	"github.com/EngineerProjects/nexus-engine/internal/vector"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
+	longtermStore "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	internalrag "github.com/EngineerProjects/seshat/internal/rag"
+	"github.com/EngineerProjects/seshat/internal/rag/embedder"
+	"github.com/EngineerProjects/seshat/internal/vector"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 type runtimeOptions struct {

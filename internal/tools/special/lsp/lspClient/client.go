@@ -81,7 +81,7 @@ func (c *Client) Initialize(ctx context.Context, rootPath string) (*InitializeRe
 	params := InitializeParams{
 		ProcessID:  int64(os.Getpid()),
 		RootURI:    URIFromPath(rootPath),
-		ClientInfo: ClientInfo{Name: "Nexus AI", Version: "1.0.0"},
+		ClientInfo: ClientInfo{Name: "Seshat", Version: "1.0.0"},
 		Capabilities: ClientCapabilities{
 			TextDocument: TextDocumentClientCapabilities{
 				Synchronization: &SynchronizationCapabilities{

@@ -4,7 +4,7 @@ import (
 	"context"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type surfaceTestTool struct {

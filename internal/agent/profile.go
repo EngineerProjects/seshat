@@ -97,7 +97,7 @@ func BuiltInProfiles() []AgentProfile {
 	return []AgentProfile{
 		{
 			ID:       "00000000-0000-0000-0000-000000000001",
-			Nickname: "Nexus",
+			Nickname: "Seshat",
 			Role:     "manager",
 			SystemPromptTemplate: `You coordinate the team. Break the goal into focused sub-tasks,
 delegate each to the right team member via the mailbox, track progress,

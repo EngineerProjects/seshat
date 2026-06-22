@@ -2,7 +2,7 @@ package mcp
 
 import (
 	"context"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
 	"net/http"
 	"net/http/httptest"
 	"strings"

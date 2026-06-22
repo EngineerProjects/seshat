@@ -17,7 +17,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/types"
+	"github.com/EngineerProjects/seshat/internal/auth/types"
 )
 
 // encryptedEnvelope is the on-disk format for encrypted credentials.
@@ -30,7 +30,7 @@ type encryptedEnvelope struct {
 // EncryptedFileStore stores credentials encrypted with AES-256-GCM.
 //
 // Key precedence:
-//  1. NEXUS_MASTER_KEY env var (64 hex chars = 32 bytes)
+//  1. SESHAT_MASTER_KEY env var (64 hex chars = 32 bytes)
 //  2. Machine-derived key (SHA-256 of machine ID + constant)
 //
 // Existing plaintext files are read transparently and re-encrypted on the
@@ -211,12 +211,12 @@ func (s *EncryptedFileStore) ListProviders(ctx context.Context) ([]string, error
 }
 
 // deriveKey returns a 32-byte AES key.
-// Priority: NEXUS_MASTER_KEY env var → machine-derived key.
+// Priority: SESHAT_MASTER_KEY env var → machine-derived key.
 func deriveKey() ([]byte, error) {
-	if keyHex := os.Getenv("NEXUS_MASTER_KEY"); keyHex != "" {
+	if keyHex := os.Getenv("SESHAT_MASTER_KEY"); keyHex != "" {
 		raw, err := hexDecode32(keyHex)
 		if err != nil {
-			return nil, fmt.Errorf("NEXUS_MASTER_KEY must be 64 hex characters (32 bytes): %w", err)
+			return nil, fmt.Errorf("SESHAT_MASTER_KEY must be 64 hex characters (32 bytes): %w", err)
 		}
 		return raw, nil
 	}

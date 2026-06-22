@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Executor handles hook execution with timeout and error handling.

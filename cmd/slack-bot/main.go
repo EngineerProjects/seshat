@@ -13,13 +13,13 @@ import (
 	"syscall"
 	"time"
 
-	dbpkg "github.com/EngineerProjects/nexus-engine/internal/db"
-	longtermStore "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	dbpkg "github.com/EngineerProjects/seshat/internal/db"
+	longtermStore "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	slackgo "github.com/slack-go/slack"
 	"github.com/slack-go/slack/slackevents"
 	"github.com/slack-go/slack/socketmode"
@@ -78,18 +78,18 @@ type bot struct {
 
 func main() {
 	// Give the bot its own isolated runtime root so session artifacts,
-	// cache, and logs go to ~/.config/nexus-slack/ and don't mix with
-	// the CLI's ~/.config/nexus-cli/.
+	// cache, and logs go to ~/.config/seshat-slack/ and don't mix with
+	// the CLI's ~/.config/seshat-cli/.
 	if os.Getenv(runtimepath.EnvRuntimeRoot) == "" {
-		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("nexus-slack"))
+		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("seshat-slack"))
 	}
 
-	botToken := mustEnv("NEXUS_SLACK_BOT_TOKEN")
-	appToken := mustEnv("NEXUS_SLACK_APP_TOKEN")
+	botToken := mustEnv("SESHAT_SLACK_BOT_TOKEN")
+	appToken := mustEnv("SESHAT_SLACK_APP_TOKEN")
 
 	cfg, err := engineconfig.Load()
 	if err != nil {
-		log.Fatalf("[nexus-bot] config: %v", err)
+		log.Fatalf("[seshat-bot] config: %v", err)
 	}
 	if strings.TrimSpace(cfg.Model) == "" {
 		cfg.Model = defaultModel
@@ -112,14 +112,14 @@ func main() {
 	memDBPath := memoryDBPath()
 	if ltDB, err := dbpkg.Open(context.Background(), dbpkg.DefaultSQLiteConfig(memDBPath)); err == nil {
 		ltMemory = longtermStore.NewSQLiteStore(ltDB.SQL())
-		log.Printf("[nexus-bot] long-term memory: %s", memDBPath)
+		log.Printf("[seshat-bot] long-term memory: %s", memDBPath)
 	} else {
-		log.Printf("[nexus-bot] long-term memory unavailable: %v", err)
+		log.Printf("[seshat-bot] long-term memory unavailable: %v", err)
 	}
 
 	mcpServers := loadMCPServers(workdir())
 	if len(mcpServers) > 0 {
-		log.Printf("[nexus-bot] loaded %d MCP server(s)", len(mcpServers))
+		log.Printf("[seshat-bot] loaded %d MCP server(s)", len(mcpServers))
 	}
 
 	maxTokens := cfg.MaxTokens
@@ -154,27 +154,27 @@ func main() {
 			SystemPrompt: &sysPrompt,
 		},
 		OnSessionTitled: func(id sdk.SessionID, title string) {
-			log.Printf("[nexus-bot] session %s titled: %s", id, title)
+			log.Printf("[seshat-bot] session %s titled: %s", id, title)
 		},
 	})
 	if err != nil {
-		log.Fatalf("[nexus-bot] nexus client: %v", err)
+		log.Fatalf("[seshat-bot] seshat client: %v", err)
 	}
 	defer nexusClient.Close()
 	b.nexus = nexusClient
 
 	// Register the slack_search tool (Real-Time Search API).
-	// Prefers a user token (NEXUS_SLACK_USER_TOKEN) which avoids the action_token
+	// Prefers a user token (SESHAT_SLACK_USER_TOKEN) which avoids the action_token
 	// requirement. Falls back to the bot token for public-channel content.
 	searchAPI := b.api
-	if userToken := os.Getenv("NEXUS_SLACK_USER_TOKEN"); userToken != "" {
+	if userToken := os.Getenv("SESHAT_SLACK_USER_TOKEN"); userToken != "" {
 		searchAPI = slackgo.New(userToken)
-		log.Printf("[nexus-bot] slack_search: using user token for Real-Time Search API")
+		log.Printf("[seshat-bot] slack_search: using user token for Real-Time Search API")
 	} else {
-		log.Printf("[nexus-bot] slack_search: using bot token (set NEXUS_SLACK_USER_TOKEN for full access)")
+		log.Printf("[seshat-bot] slack_search: using bot token (set SESHAT_SLACK_USER_TOKEN for full access)")
 	}
 	if err := nexusClient.RegisterTool(&slackSearchTool{api: searchAPI}); err != nil {
-		log.Printf("[nexus-bot] warning: slack_search registration failed: %v", err)
+		log.Printf("[seshat-bot] warning: slack_search registration failed: %v", err)
 	}
 
 	sm := socketmode.New(b.api)
@@ -185,9 +185,9 @@ func main() {
 	go handleSignals(cancel)
 	go b.handleEvents(ctx, sm)
 
-	log.Printf("[nexus-bot] ready — model: %s/%s  max_tokens: %d", model.Provider, model.Model, maxTokens)
+	log.Printf("[seshat-bot] ready — model: %s/%s  max_tokens: %d", model.Provider, model.Model, maxTokens)
 	if err := sm.RunContext(ctx); err != nil && err != context.Canceled {
-		log.Fatalf("[nexus-bot] socket mode: %v", err)
+		log.Fatalf("[seshat-bot] socket mode: %v", err)
 	}
 }
 
@@ -207,7 +207,7 @@ func (b *bot) handleEvents(ctx context.Context, sm *socketmode.Client) {
 				socketmode.EventTypeHello,
 				socketmode.EventTypeInvalidAuth,
 				socketmode.EventTypeDisconnect:
-				log.Printf("[nexus-bot] socket: %s", evt.Type)
+				log.Printf("[seshat-bot] socket: %s", evt.Type)
 
 			case socketmode.EventTypeEventsAPI:
 				ev, ok := evt.Data.(slackevents.EventsAPIEvent)
@@ -215,7 +215,7 @@ func (b *bot) handleEvents(ctx context.Context, sm *socketmode.Client) {
 					continue
 				}
 				if err := sm.Ack(*evt.Request); err != nil {
-					log.Printf("[nexus-bot] ack error: %v", err)
+					log.Printf("[seshat-bot] ack error: %v", err)
 				}
 				b.dispatch(ctx, ev)
 
@@ -225,14 +225,14 @@ func (b *bot) handleEvents(ctx context.Context, sm *socketmode.Client) {
 					continue
 				}
 				if err := sm.Ack(*evt.Request); err != nil {
-					log.Printf("[nexus-bot] ack error (interactive): %v", err)
+					log.Printf("[seshat-bot] ack error (interactive): %v", err)
 				}
 				b.handleInteraction(callback)
 
 			default:
 				if evt.Request != nil {
 					if err := sm.Ack(*evt.Request); err != nil {
-						log.Printf("[nexus-bot] ack error: %v", err)
+						log.Printf("[seshat-bot] ack error: %v", err)
 					}
 				}
 			}
@@ -295,15 +295,15 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 		return
 	}
 
-	log.Printf("[nexus-bot] message channel=%s query=%q", channel, query)
+	log.Printf("[seshat-bot] message channel=%s query=%q", channel, query)
 
 	_, thinkTS, err := b.api.PostMessageContext(ctx, channel,
-		slackgo.MsgOptionText(":hourglass_flowing_sand: _Nexus is thinking..._", false),
+		slackgo.MsgOptionText(":hourglass_flowing_sand: _Seshat is thinking..._", false),
 		slackgo.MsgOptionTS(replyTS),
 		slackgo.MsgOptionDisableLinkUnfurl(),
 	)
 	if err != nil {
-		log.Printf("[nexus-bot] post placeholder: %v", err)
+		log.Printf("[seshat-bot] post placeholder: %v", err)
 		return
 	}
 
@@ -334,7 +334,7 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 					msg = tp.ToolName + "..."
 				}
 				state.setStatus(fmt.Sprintf("%s _%s_", icon, msg))
-				log.Printf("[nexus-bot] tool: %s — %s", tp.ToolName, msg)
+				log.Printf("[seshat-bot] tool: %s — %s", tp.ToolName, msg)
 			}
 
 		case sdk.RuntimeEventTypePlanSubmitted:
@@ -400,10 +400,10 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 	}
 
 	elapsed := time.Since(startTime).Round(time.Millisecond)
-	footer := fmt.Sprintf("\n\n_— Nexus for Slack · %dms_", elapsed.Milliseconds())
+	footer := fmt.Sprintf("\n\n_— Seshat for Slack · %dms_", elapsed.Milliseconds())
 
 	if tools := extractToolsUsed(resp); len(tools) > 0 {
-		log.Printf("[nexus-bot] tools used: %s", strings.Join(tools, ", "))
+		log.Printf("[seshat-bot] tools used: %s", strings.Join(tools, ", "))
 		footer += fmt.Sprintf(" · 🔧 _%s_", strings.Join(tools, ", "))
 	}
 
@@ -415,7 +415,7 @@ func (b *bot) onMessage(ctx context.Context, channel, replyTS, text string) {
 			slackgo.MsgOptionTS(replyTS),
 			slackgo.MsgOptionDisableLinkUnfurl(),
 		); err != nil {
-			log.Printf("[nexus-bot] post continuation: %v", err)
+			log.Printf("[seshat-bot] post continuation: %v", err)
 		}
 	}
 
@@ -433,12 +433,12 @@ func (b *bot) getOrCreateSession(ctx context.Context, channelID string) (*sdk.Se
 		if err == nil {
 			return s, nil
 		}
-		log.Printf("[nexus-bot] reload session %s failed (%v) — creating new", sessionID, err)
+		log.Printf("[seshat-bot] reload session %s failed (%v) — creating new", sessionID, err)
 	}
 
 	s, err := b.nexus.CreateSessionWithAdditional(ctx, map[string]any{
 		"slack_channel": channelID,
-		"source":        "nexus-slack-bot",
+		"source":        "seshat-slack-bot",
 	})
 	if err != nil {
 		return nil, err
@@ -456,7 +456,7 @@ func (b *bot) getOrCreateSession(ctx context.Context, channelID string) (*sdk.Se
 	b.sessions[channelID] = s.GetID()
 	b.mu.Unlock()
 
-	log.Printf("[nexus-bot] new session %s for channel %s workspace: %s", s.GetID(), channelID, workspace)
+	log.Printf("[seshat-bot] new session %s for channel %s workspace: %s", s.GetID(), channelID, workspace)
 	return s, nil
 }
 
@@ -466,7 +466,7 @@ func (b *bot) updateMsg(ctx context.Context, channel, ts, text string) {
 		slackgo.MsgOptionDisableLinkUnfurl(),
 	)
 	if err != nil {
-		log.Printf("[nexus-bot] update message: %v", err)
+		log.Printf("[seshat-bot] update message: %v", err)
 	}
 }
 
@@ -638,14 +638,14 @@ func resolveModel(cfg engineconfig.Config) sdk.ModelIdentifier {
 }
 
 // loadMCPServers reads MCP configs and converts them to sdk.MCPServerConfig.
-// It loads from the bot runtime root (NEXUS_RUNTIME_ROOT = ~/.config/nexus-slack/)
-// and falls back to the CLI config (~/.config/nexus-cli/mcp.json) so users
+// It loads from the bot runtime root (SESHAT_RUNTIME_ROOT = ~/.config/seshat-slack/)
+// and falls back to the CLI config (~/.config/seshat-cli/mcp.json) so users
 // don't have to duplicate their MCP setup for the bot.
 func loadMCPServers(cwd string) []sdk.MCPServerConfig {
 	result := mcp.LoadMcpConfigs(cwd)
 
 	// Pull in the CLI's mcp.json for servers not already defined in the bot config.
-	cliMcpPath := filepath.Join(runtimepath.DefaultConfigDir("nexus-cli"), "mcp.json")
+	cliMcpPath := filepath.Join(runtimepath.DefaultConfigDir("seshat-cli"), "mcp.json")
 	if cliCfg, _ := mcp.ParseMcpConfigFromFile(cliMcpPath); len(cliCfg.MCPServers) > 0 {
 		for name, srv := range cliCfg.MCPServers {
 			if _, exists := result.Servers[name]; !exists {
@@ -681,7 +681,7 @@ func loadMCPServers(cwd string) []sdk.MCPServerConfig {
 }
 
 func nexusDBPath() string {
-	if p := os.Getenv("NEXUS_SLACK_DB_PATH"); p != "" {
+	if p := os.Getenv("SESHAT_SLACK_DB_PATH"); p != "" {
 		return p
 	}
 	return runtimepath.Join("", "sessions.db")
@@ -699,7 +699,7 @@ func workdir() string {
 func mustEnv(key string) string {
 	v := os.Getenv(key)
 	if v == "" {
-		log.Fatalf("[nexus-bot] required env var %s is not set", key)
+		log.Fatalf("[seshat-bot] required env var %s is not set", key)
 	}
 	return v
 }
@@ -708,6 +708,6 @@ func handleSignals(cancel context.CancelFunc) {
 	ch := make(chan os.Signal, 1)
 	signal.Notify(ch, syscall.SIGINT, syscall.SIGTERM)
 	<-ch
-	log.Println("[nexus-bot] shutting down...")
+	log.Println("[seshat-bot] shutting down...")
 	cancel()
 }

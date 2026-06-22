@@ -4,9 +4,9 @@ import (
 	"context"
 	"os"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/store"
-	"github.com/EngineerProjects/nexus-engine/internal/auth/types"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/internal/auth/store"
+	"github.com/EngineerProjects/seshat/internal/auth/types"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // ============================================================================
@@ -127,7 +127,7 @@ func (l *Loader) ListProviders(ctx context.Context) ([]string, error) {
 var defaultLoader *Loader
 
 // Default returns the default auth loader backed by an encrypted file store.
-// Set NEXUS_MASTER_KEY (64 hex chars) to control the encryption key explicitly;
+// Set SESHAT_MASTER_KEY (64 hex chars) to control the encryption key explicitly;
 // otherwise a machine-derived key is used automatically.
 func Default() (*Loader, error) {
 	if defaultLoader != nil {
@@ -146,7 +146,7 @@ func Default() (*Loader, error) {
 
 // DefaultConfigPath returns the default config path
 func DefaultConfigPath() string {
-	if path := os.Getenv("NEXUS_AUTH_PATH"); path != "" {
+	if path := os.Getenv("SESHAT_AUTH_PATH"); path != "" {
 		return path
 	}
 

@@ -13,9 +13,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/agent/hyper"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/event"
-	"github.com/EngineerProjects/nexus-engine/internal/nexustui/oauth"
+	"github.com/EngineerProjects/seshat/internal/nexustui/agent/hyper"
+	"github.com/EngineerProjects/seshat/internal/nexustui/event"
+	"github.com/EngineerProjects/seshat/internal/nexustui/oauth"
 )
 
 // DeviceAuthResponse contains the response from the device authorization endpoint.

@@ -3,7 +3,7 @@ package memory
 import (
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // MessagePreparer prepares messages for compaction

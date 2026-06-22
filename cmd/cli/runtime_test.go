@@ -4,8 +4,8 @@ import (
 	"strings"
 	"testing"
 
-	engineconfig "github.com/EngineerProjects/nexus-engine/pkg/config"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	engineconfig "github.com/EngineerProjects/seshat/pkg/config"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 func TestResolveModelKeepsExplicitProviderPrefix(t *testing.T) {

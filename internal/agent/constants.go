@@ -10,7 +10,7 @@ const SearchHintAgent = "run a sub-agent to complete a task independently"
 const DescriptionAgent = "Runs a sub-agent to complete a focused task. Each agent type runs with its configured tool surface and can execute across multiple turns."
 
 // Agent types (built-in)
-const AgentTypeNexusCore = "nexus-core"
+const AgentTypeNexusCore = "seshat-core"
 const AgentTypeGeneralPurpose = "general-purpose"
 const AgentTypeExplore = "explore"
 const AgentTypeBrowse = "browse"

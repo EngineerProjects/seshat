@@ -3,7 +3,7 @@ package contract
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Tool represents a tool that can be called by the AI.

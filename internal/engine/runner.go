@@ -3,14 +3,14 @@ package engine
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	"github.com/EngineerProjects/nexus-engine/internal/permissions"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	compact "github.com/EngineerProjects/nexus-engine/internal/runtime/memory"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	"github.com/EngineerProjects/seshat/internal/permissions"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	compact "github.com/EngineerProjects/seshat/internal/runtime/memory"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Runner executes a single turn through the canonical query loop.

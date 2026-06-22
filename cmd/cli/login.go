@@ -6,7 +6,7 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/providers"
 )
 
 // runLogin implements: nexus login [--provider openai] [--client-id ID]
