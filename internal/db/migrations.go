@@ -8,7 +8,7 @@ import (
 	"gorm.io/gorm"
 )
 
-const migrationTableName = "nexus_schema_migrations"
+const migrationTableName = "seshat_schema_migrations"
 
 const migrationScopeCoreSQLite = "core_sqlite"
 

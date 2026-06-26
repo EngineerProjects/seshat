@@ -11,7 +11,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 // validMCPServerNameRe validates MCP server names: letters, digits, hyphens, underscores only.
@@ -370,7 +370,7 @@ func GetMcpServerConfigByName(name string, cwd string) *ScopedMcpServerConfig {
 }
 
 func IsMcpServerDisabled(name string, cwd string) bool {
-	projectConfigPath := filepath.Join(cwd, ".nexus", "config.json")
+	projectConfigPath := filepath.Join(cwd, ".seshat", "config.json")
 	data, err := os.ReadFile(projectConfigPath)
 	if err != nil {
 		return false
@@ -395,7 +395,7 @@ func IsMcpServerDisabled(name string, cwd string) bool {
 }
 
 func SetMcpServerEnabled(name string, enabled bool, cwd string) error {
-	projectConfigPath := filepath.Join(cwd, ".nexus", "config.json")
+	projectConfigPath := filepath.Join(cwd, ".seshat", "config.json")
 
 	var config map[string]interface{}
 	data, err := os.ReadFile(projectConfigPath)
@@ -488,11 +488,11 @@ type MCPOAuthConfig struct {
 
 func GetOAuthConfig() *MCPOAuthConfig {
 	return &MCPOAuthConfig{
-		ClientID:     os.Getenv("NEXUS_MCP_CLIENT_ID"),
-		ClientSecret: os.Getenv("NEXUS_MCP_CLIENT_SECRET"),
-		AuthURL:      os.Getenv("NEXUS_MCP_AUTH_URL"),
-		TokenURL:     os.Getenv("NEXUS_MCP_TOKEN_URL"),
-		Scopes:       strings.Split(os.Getenv("NEXUS_MCP_SCOPES"), ","),
+		ClientID:     os.Getenv("SESHAT_MCP_CLIENT_ID"),
+		ClientSecret: os.Getenv("SESHAT_MCP_CLIENT_SECRET"),
+		AuthURL:      os.Getenv("SESHAT_MCP_AUTH_URL"),
+		TokenURL:     os.Getenv("SESHAT_MCP_TOKEN_URL"),
+		Scopes:       strings.Split(os.Getenv("SESHAT_MCP_SCOPES"), ","),
 	}
 }
 

@@ -7,10 +7,10 @@ import (
 	"sort"
 	"strings"
 
-	auto "github.com/EngineerProjects/nexus-engine/internal/permissions/auto"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/internal/utils"
+	auto "github.com/EngineerProjects/seshat/internal/permissions/auto"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/internal/utils"
 )
 
 // Engine checks permissions for tool usage.

@@ -5,15 +5,15 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/permissions"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	registry "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	toolsearch "github.com/EngineerProjects/nexus-engine/internal/tools/special/tool_search"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	"github.com/EngineerProjects/seshat/internal/permissions"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	registry "github.com/EngineerProjects/seshat/internal/tools/registry"
+	toolsearch "github.com/EngineerProjects/seshat/internal/tools/special/tool_search"
+	"github.com/EngineerProjects/seshat/internal/types"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 	"net/http"
@@ -265,7 +265,7 @@ func TestSessionBuildAPIRequestUsesConfiguredSystemPromptTemplate(t *testing.T) 
 	if !strings.Contains(req.SystemPrompt, "Custom runtime contract") {
 		t.Fatalf("expected configured system prompt template in runtime request, got %q", req.SystemPrompt)
 	}
-	if strings.Contains(req.SystemPrompt, "You are Nexus Core") {
+	if strings.Contains(req.SystemPrompt, "You are Seshat") {
 		t.Fatalf("expected configured system prompt template to override default stable prompt, got %q", req.SystemPrompt)
 	}
 	if !strings.Contains(req.SystemPrompt, "# Runtime context") {
@@ -2741,10 +2741,10 @@ func assertProviderToolNames(t *testing.T, defs []types.APIToolDefinition, want 
 	}
 }
 
-func TestReadProjectInstructionsNEXUSmd(t *testing.T) {
+func TestReadProjectInstructionsSESHATmd(t *testing.T) {
 	dir := t.TempDir()
 	content := "# My project\n\nAlways use tabs, never spaces."
-	if err := os.WriteFile(filepath.Join(dir, "NEXUS.md"), []byte(content), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "SESHAT.md"), []byte(content), 0644); err != nil {
 		t.Fatal(err)
 	}
 	got := readProjectInstructions(dir)
@@ -2765,23 +2765,23 @@ func TestReadProjectInstructionsAGENTSmd(t *testing.T) {
 	}
 }
 
-func TestReadProjectInstructionsNEXUSTakesPriorityOverAGENTS(t *testing.T) {
+func TestReadProjectInstructionsSESHATTakesPriorityOverAGENTS(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "NEXUS.md"), []byte("nexus instructions"), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "SESHAT.md"), []byte("seshat instructions"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(dir, "AGENTS.md"), []byte("agents instructions"), 0644); err != nil {
 		t.Fatal(err)
 	}
 	got := readProjectInstructions(dir)
-	if got != "nexus instructions" {
-		t.Errorf("expected NEXUS.md to take priority, got %q", got)
+	if got != "seshat instructions" {
+		t.Errorf("expected SESHAT.md to take priority, got %q", got)
 	}
 }
 
 func TestReadProjectInstructionsSubdirFile(t *testing.T) {
 	dir := t.TempDir()
-	subdir := filepath.Join(dir, ".nexus")
+	subdir := filepath.Join(dir, ".seshat")
 	if err := os.MkdirAll(subdir, 0755); err != nil {
 		t.Fatal(err)
 	}
@@ -2805,7 +2805,7 @@ func TestReadProjectInstructionsEmptyDir(t *testing.T) {
 
 func TestReadProjectInstructionsEmptyFile(t *testing.T) {
 	dir := t.TempDir()
-	if err := os.WriteFile(filepath.Join(dir, "NEXUS.md"), []byte("   \n  "), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "SESHAT.md"), []byte("   \n  "), 0644); err != nil {
 		t.Fatal(err)
 	}
 	got := readProjectInstructions(dir)
@@ -2818,7 +2818,7 @@ func TestReadProjectInstructionsTruncatesLargeFile(t *testing.T) {
 	dir := t.TempDir()
 	// Write a file larger than the 32KB cap.
 	large := strings.Repeat("A line of instructions.\n", 2000) // ~46KB
-	if err := os.WriteFile(filepath.Join(dir, "NEXUS.md"), []byte(large), 0644); err != nil {
+	if err := os.WriteFile(filepath.Join(dir, "SESHAT.md"), []byte(large), 0644); err != nil {
 		t.Fatal(err)
 	}
 	got := readProjectInstructions(dir)

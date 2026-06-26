@@ -5,7 +5,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/workspace"
+	"github.com/EngineerProjects/seshat/internal/workspace"
 )
 
 // Context carries the execution boundary relevant to sandbox decisions.

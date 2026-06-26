@@ -1,4 +1,4 @@
-// Package browser provides the shared local browser runtime used by Nexus tools and sessions.
+// Package browser provides the shared local browser runtime used by Seshat tools and sessions.
 package browser
 
 import (
@@ -8,7 +8,7 @@ import (
 
 	"github.com/go-rod/rod"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const defaultBlankURL = "about:blank"

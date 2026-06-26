@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/storage"
 )
 
 func (s *sessionState) upsertDownloadLocked(entry DownloadEntry) {

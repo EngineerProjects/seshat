@@ -3,7 +3,7 @@ package storage
 import (
 	"context"
 
-	internalstorage "github.com/EngineerProjects/nexus-engine/internal/storage"
+	internalstorage "github.com/EngineerProjects/seshat/internal/storage"
 )
 
 type (

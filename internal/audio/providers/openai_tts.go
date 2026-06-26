@@ -11,7 +11,7 @@ import (
 	"io"
 	"net/http"
 
-	"github.com/EngineerProjects/nexus-engine/internal/audio/tts"
+	"github.com/EngineerProjects/seshat/internal/audio/tts"
 )
 
 const (

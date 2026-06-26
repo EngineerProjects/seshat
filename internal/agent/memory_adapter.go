@@ -3,7 +3,7 @@ package agent
 import (
 	"time"
 
-	corememory "github.com/EngineerProjects/nexus-engine/internal/memory"
+	corememory "github.com/EngineerProjects/seshat/internal/memory"
 )
 
 // ---------------------------------------------------------------------------

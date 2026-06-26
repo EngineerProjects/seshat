@@ -6,15 +6,15 @@ import (
 	"fmt"
 	"io"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
+	"github.com/EngineerProjects/seshat/internal/providers"
 )
 
-// runLogin implements: nexus login [--provider openai] [--client-id ID]
+// runLogin implements: seshat login [--provider openai] [--client-id ID]
 //
 // Flow:
 //  1. Start Auth0 device-code flow → get user code + URL
 //  2. Print both to stdout so the user can authenticate in a browser
-//  3. Poll Auth0 until the token arrives, then persist it to ~/.nexus/auth.json
+//  3. Poll Auth0 until the token arrives, then persist it to ~/.seshat/auth.json
 func runLogin(ctx context.Context, args []string, stdout, stderr io.Writer) error {
 	fs := flag.NewFlagSet("login", flag.ContinueOnError)
 	fs.SetOutput(stderr)
@@ -52,7 +52,7 @@ func runLogin(ctx context.Context, args []string, stdout, stderr io.Writer) erro
 		return fmt.Errorf("authentication failed: %w", err)
 	}
 
-	fmt.Fprintf(stdout, "\nAuthenticated! Your token is saved to ~/.nexus/auth.json\n")
-	fmt.Fprintf(stdout, "You can now use: nexus chat --model openai:gpt-5.5\n\n")
+	fmt.Fprintf(stdout, "\nAuthenticated! Your token is saved to ~/.seshat/auth.json\n")
+	fmt.Fprintf(stdout, "You can now use: seshat chat --model openai:gpt-5.5\n\n")
 	return nil
 }

@@ -1,6 +1,6 @@
 package providers
 
-import internalproviders "github.com/EngineerProjects/nexus-engine/internal/web/search/providers"
+import internalproviders "github.com/EngineerProjects/seshat/internal/web/search/providers"
 
 type (
 	ProviderMode   = internalproviders.ProviderMode
@@ -75,4 +75,8 @@ func NewSearXNGProvider() *internalproviders.SearXNGProvider {
 
 func NewSearXNGProviderWithBaseURL(baseURL string) *internalproviders.SearXNGProvider {
 	return internalproviders.NewSearXNGProviderWithBaseURL(baseURL)
+}
+
+func NewSearXNGProviderWithConfig(baseURL, username, password string) *internalproviders.SearXNGProvider {
+	return internalproviders.NewSearXNGProviderWithConfig(baseURL, username, password)
 }

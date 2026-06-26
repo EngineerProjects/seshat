@@ -7,9 +7,9 @@ import (
 	"sort"
 	"strings"
 
-	internalproviders "github.com/EngineerProjects/nexus-engine/internal/providers"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	internalproviders "github.com/EngineerProjects/seshat/internal/providers"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 )
 
 type ProviderSetupField struct {
@@ -117,7 +117,7 @@ func ProviderCredentialEnvVars(provider sdk.APIProvider) []string {
 	case sdk.APIProviderOpenAI:
 		return []string{"OPENAI_API_KEY"}
 	case sdk.APIProviderCodex:
-		return []string{"CODEX_API_KEY"}
+		return []string{"CODEX_API_KEY", "CODEX_ACCESS_TOKEN"}
 	case sdk.APIProviderGemini:
 		return []string{"GOOGLE_API_KEY", "GOOGLE_GEMINI_API_KEY"}
 	case sdk.APIProviderZAi:

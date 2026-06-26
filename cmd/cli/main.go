@@ -6,14 +6,17 @@ import (
 	"os"
 	"os/signal"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
+// version is set at build time via -ldflags "-X main.version=v1.2.3".
+var version = "dev"
+
 func main() {
-	// Pin the CLI runtime root to the platform config dir (nexus-cli),
-	// isolated from the nexus-product backend (nexus). NEXUS_RUNTIME_ROOT takes precedence.
+	// Pin the CLI runtime root to the platform config dir (seshat-cli),
+	// isolated from the seshat-product backend (seshat). SESHAT_RUNTIME_ROOT takes precedence.
 	if os.Getenv(runtimepath.EnvRuntimeRoot) == "" {
-		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("nexus-cli"))
+		os.Setenv(runtimepath.EnvRuntimeRoot, runtimepath.DefaultConfigDir("seshat-cli"))
 	}
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt)

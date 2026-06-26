@@ -6,7 +6,7 @@ import (
 	"path/filepath"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func TestCommandPolicyAsksForDangerousCommand(t *testing.T) {
@@ -19,7 +19,7 @@ func TestCommandPolicyAsksForDangerousCommand(t *testing.T) {
 
 func TestCommandPolicyAsksForSafeAbsoluteTmpRemoval(t *testing.T) {
 	policy := NewDefaultCommandPolicy()
-	result := policy.Evaluate("rm -rf /tmp/nexus-scratch")
+	result := policy.Evaluate("rm -rf /tmp/seshat-scratch")
 	if result.Decision != DecisionAsk {
 		t.Fatalf("expected ask, got %s", result.Decision)
 	}

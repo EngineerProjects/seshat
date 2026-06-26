@@ -8,8 +8,8 @@ import (
 	"strings"
 	"testing"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 	"golang.org/x/sys/unix"
 )
 
@@ -68,7 +68,7 @@ func TestCommandWithLandlockUsesCurrentExecutableWhenAvailable(t *testing.T) {
 	if len(args) < 3 || args[0] != landlockHelperArg || args[1] != "/bin/sh" {
 		t.Fatalf("unexpected helper args: %v", args)
 	}
-	wantEnv := "NEXUS_LANDLOCK_WORKSPACE=" + filepath.Clean(root)
+	wantEnv := "SESHAT_LANDLOCK_WORKSPACE=" + filepath.Clean(root)
 	if len(env) != 1 || env[0] != wantEnv {
 		t.Fatalf("unexpected helper env: %v", env)
 	}
@@ -106,14 +106,14 @@ func TestValidateWorkspaceAllowsAbsolutePathInsideWorkspace(t *testing.T) {
 
 func TestValidateWorkspaceAllowsAbsoluteWritePathOutsideWorkspace(t *testing.T) {
 	validator := NewSecurityValidator()
-	if got := validator.ValidateWorkspace("rm -rf /tmp/nexus-scratch", t.TempDir()); got != nil {
+	if got := validator.ValidateWorkspace("rm -rf /tmp/seshat-scratch", t.TempDir()); got != nil {
 		t.Fatalf("expected safe absolute write path to reach approval flow, got %v", got)
 	}
 }
 
 func TestValidateWorkspaceRejectsProtectedAbsoluteWritePath(t *testing.T) {
 	validator := NewSecurityValidator()
-	if got := validator.ValidateWorkspace("rm -rf /etc/nexus", t.TempDir()); got == nil {
+	if got := validator.ValidateWorkspace("rm -rf /etc/seshat", t.TempDir()); got == nil {
 		t.Fatal("expected protected system write path to be rejected")
 	}
 }
@@ -189,7 +189,7 @@ func TestCheckPermissions_AsksForSafeAbsoluteRemoval(t *testing.T) {
 	tl := NewTool(DefaultToolConfig())
 	result := tl.CheckPermissions(
 		t.Context(),
-		map[string]any{"command": "rm -rf /tmp/nexus-scratch"},
+		map[string]any{"command": "rm -rf /tmp/seshat-scratch"},
 		tool.ToolUseContext{},
 	)
 	if result.Behavior != types.PermissionBehaviorAsk {
@@ -201,7 +201,7 @@ func TestCheckPermissions_DeniesProtectedSystemRemoval(t *testing.T) {
 	tl := NewTool(DefaultToolConfig())
 	result := tl.CheckPermissions(
 		t.Context(),
-		map[string]any{"command": "rm -rf /etc/nexus"},
+		map[string]any{"command": "rm -rf /etc/seshat"},
 		tool.ToolUseContext{},
 	)
 	if result.Behavior != types.PermissionBehaviorDeny {

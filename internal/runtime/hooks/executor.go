@@ -3,7 +3,7 @@ package hooks
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 type PreExecutionResult struct {

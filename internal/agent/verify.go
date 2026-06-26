@@ -5,7 +5,7 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // VerifyAgent is a security and validation agent
@@ -23,7 +23,7 @@ var VerifyAgent = BuiltInAgentDefinition{
 	Source:    AgentSourceBuiltIn,
 	BaseDir:   "built-in",
 	GetSystemPrompt: func() string {
-		return `You are a Verify agent for Nexus_AI. Your role is to validate agent integrity and security.
+		return `You are a Verify agent for Seshat. Your role is to validate agent integrity and security.
 
 You analyze and validate WITHOUT making any modifications:
 - Agent definitions are syntactically valid

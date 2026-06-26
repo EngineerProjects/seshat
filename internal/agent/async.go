@@ -9,7 +9,7 @@ import (
 	"sync/atomic"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ---------------------------------------------------------------------------
@@ -731,7 +731,7 @@ func (a *AsyncAgent) dequeuePendingMessage() string {
 	return msg
 }
 
-// CollabStatus maps Nexus AgentStatus to the Codex CollabAgentStatus vocabulary
+// CollabStatus maps Seshat AgentStatus to the Codex CollabAgentStatus vocabulary
 // ("pendingInit" | "running" | "interrupted" | "completed" | "errored" | "shutdown" | "notFound").
 func (a *AsyncAgent) CollabStatus() string {
 	a.stateMu.RLock()

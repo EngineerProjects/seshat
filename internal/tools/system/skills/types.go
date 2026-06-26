@@ -119,7 +119,7 @@ type SkillRequirement struct {
 	// Example: "node --version", "python3 -c 'import pptx'"
 	Check string `yaml:"check"`
 	// InstallCmd is run (with user permission) when Check fails.
-	// Supports ${NEXUS_SKILL_DIR} substitution.
+	// Supports ${SESHAT_SKILL_DIR} substitution.
 	InstallCmd string `yaml:"install-cmd"`
 	// Packages lists the packages for display purposes only.
 	Packages []string `yaml:"packages,omitempty"`

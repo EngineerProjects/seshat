@@ -3,7 +3,7 @@ package execution
 import (
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func clonePermissionResult(result types.PermissionResult) types.PermissionResult {

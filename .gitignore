@@ -8,8 +8,14 @@
 *.so
 *.dylib
 
-# Compiled CLI binary at repo root (use make build → bin/)
+# Compiled binaries at repo root or in bin/
 /cli
+/slack-bot
+/seshat
+/seshat-grpc
+/seshat-slack
+/seshat-auto
+bin/
 
 # Test binary, built with `go test -c`
 *.test

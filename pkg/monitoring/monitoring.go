@@ -3,7 +3,7 @@ package monitoring
 import (
 	"context"
 
-	internalmonitoring "github.com/EngineerProjects/nexus-engine/internal/monitoring"
+	internalmonitoring "github.com/EngineerProjects/seshat/internal/monitoring"
 )
 
 type (

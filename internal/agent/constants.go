@@ -10,7 +10,7 @@ const SearchHintAgent = "run a sub-agent to complete a task independently"
 const DescriptionAgent = "Runs a sub-agent to complete a focused task. Each agent type runs with its configured tool surface and can execute across multiple turns."
 
 // Agent types (built-in)
-const AgentTypeNexusCore = "nexus-core"
+const AgentTypeSeshatCore = "seshat-core"
 const AgentTypeGeneralPurpose = "general-purpose"
 const AgentTypeExplore = "explore"
 const AgentTypeBrowse = "browse"
@@ -30,7 +30,7 @@ const DefaultSubAgentMaxTurns = 20
 // tool call is rejected. Prevents infinite delegation chains (A→B→C→…).
 //
 // Reference values: Codex = 1 (strict), OpenClaude = 2 (hooks only).
-// Nexus default = 3: supports A→B→C structures which cover real multi-agent
+// Seshat default = 3: supports A→B→C structures which cover real multi-agent
 // patterns (orchestrator → specialist → helper) while blocking runaway chains.
 //
 // This default can be overridden per-user via UserPreferences.MaxSubAgentDepth
@@ -49,6 +49,6 @@ const MaxAbsoluteSubAgentDepth = 5
 // only fire for pathological cases, which is why it is set to 30 minutes.
 //
 // Reference values: Codex = 30s, OpenClaude = 60s. Those codebases use short
-// values because their sub-agents do shorter tasks. Nexus targets complex
+// values because their sub-agents do shorter tasks. Seshat targets complex
 // autonomous coding tasks that legitimately need several minutes per sub-agent.
 const DefaultSubAgentTimeout = 30 * 60 // 30 minutes, in seconds

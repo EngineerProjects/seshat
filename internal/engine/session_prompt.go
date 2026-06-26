@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // buildAPIRequest builds the provider-facing request data for the current turn.

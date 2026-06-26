@@ -3,8 +3,8 @@ package contract
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/internal/workspace"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/internal/workspace"
 )
 
 // PermissionRuleMatcherKey is the metadata key used to pass a prepared matcher through runtime metadata.

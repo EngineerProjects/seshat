@@ -50,7 +50,7 @@ func NewClient(config ServerConfig) (*Client, error) {
 }
 
 // Start starts the underlying transport but intentionally leaves the client in
-// the pending state. Nexus only treats the connection as fully ready after the
+// the pending state. Seshat only treats the connection as fully ready after the
 // explicit MCP initialize handshake succeeds.
 func (c *Client) Start(ctx context.Context) error {
 	if err := c.transport.Start(ctx); err != nil {
@@ -180,7 +180,7 @@ func (c *Client) Initialize(ctx context.Context) (*InitializeResult, error) {
 				"elicitation": map[string]any{},
 			},
 			"clientInfo": map[string]any{
-				"name":    "nexus-core",
+				"name":    "seshat-core",
 				"version": "1.0.0",
 			},
 		},
@@ -568,7 +568,7 @@ func (c *Client) CallToolWithProgress(
 		"arguments": arguments,
 	}
 	if onProgress != nil {
-		token := fmt.Sprintf("nexus-%d", c.nextRequestID())
+		token := fmt.Sprintf("seshat-%d", c.nextRequestID())
 		params["_meta"] = map[string]any{"progressToken": token}
 		c.registerProgressHandler(token, onProgress)
 		defer c.unregisterProgressHandler(token)

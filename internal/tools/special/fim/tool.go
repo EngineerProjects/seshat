@@ -1,4 +1,4 @@
-// Package fimtool exposes Fill-in-the-Middle code completion as a Nexus tool.
+// Package fimtool exposes Fill-in-the-Middle code completion as a Seshat tool.
 package fimtool
 
 import (
@@ -6,10 +6,10 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/fim"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/fim"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 const (

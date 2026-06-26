@@ -6,10 +6,10 @@ import (
 	"os"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/files/shared"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/tools/files/shared"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // FileMetadata is the structured metadata returned by GetMetadataTool.

@@ -1,6 +1,6 @@
 package oauth
 
-import internaloauth "github.com/EngineerProjects/nexus-engine/internal/auth/oauth"
+import internaloauth "github.com/EngineerProjects/seshat/internal/auth/oauth"
 
 type (
 	Client             = internaloauth.Client
@@ -9,6 +9,11 @@ type (
 	Token              = internaloauth.Token
 	TokenResponse      = internaloauth.TokenResponse
 	TokenType          = internaloauth.TokenType
+)
+
+const (
+	TokenTypeAccess  = internaloauth.TokenTypeAccess
+	TokenTypeRefresh = internaloauth.TokenTypeRefresh
 )
 
 func DefaultOpenAIConfig() *Config {

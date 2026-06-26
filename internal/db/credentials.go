@@ -12,7 +12,7 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 	"gorm.io/gorm"
 	"gorm.io/gorm/clause"
 )
@@ -91,9 +91,8 @@ func (db *DB) ListCredentialKeys(ctx context.Context) ([]string, error) {
 // ─── Encryption helpers ────────────────────────────────────────────────────────
 
 // loadOrCreateEncryptionKey returns the 32-byte AES key from the runtime root
-// secret.key file (for the TUI this defaults to ~/.config/nexus-tui/secret.key),
-// creating and writing it with mode 0600 on first use. Falls back to migrating
-// the legacy ~/.nexus_secret key on first run.
+// secret.key file (for the TUI this defaults to ~/.config/seshat-tui/secret.key),
+// creating and writing it with mode 0600 on first use.
 func loadOrCreateEncryptionKey() ([]byte, error) {
 	path, err := encryptionKeyPath()
 	if err != nil {
@@ -103,20 +102,6 @@ func loadOrCreateEncryptionKey() ([]byte, error) {
 	data, err := os.ReadFile(path)
 	if err == nil && len(data) == 32 {
 		return data, nil
-	}
-
-	// Migrate legacy key from ~/.nexus_secret if it exists, then remove it so
-	// the plaintext credential is not left on disk indefinitely.
-	if home, herr := os.UserHomeDir(); herr == nil {
-		legacy := filepath.Join(home, ".nexus_secret")
-		if legacyData, lerr := os.ReadFile(legacy); lerr == nil && len(legacyData) == 32 {
-			if merr := os.MkdirAll(filepath.Dir(path), 0o700); merr == nil {
-				if werr := os.WriteFile(path, legacyData, 0o600); werr == nil {
-					_ = os.Remove(legacy)
-					return legacyData, nil
-				}
-			}
-		}
 	}
 
 	// Generate a new key.

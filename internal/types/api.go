@@ -4,9 +4,9 @@ import (
 	"encoding/json"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/model"
-	"github.com/EngineerProjects/nexus-engine/internal/schema"
-	toolschema "github.com/EngineerProjects/nexus-engine/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/model"
+	"github.com/EngineerProjects/seshat/internal/schema"
+	toolschema "github.com/EngineerProjects/seshat/internal/tools/schema"
 )
 
 // APIProvider represents the API provider being used
@@ -108,7 +108,7 @@ type SystemPromptBlock struct {
 	CacheControl *PromptCacheControl `json:"cache_control,omitempty"`
 }
 
-// APIToolDefinition is the stable provider-facing tool schema used by Nexus.
+// APIToolDefinition is the stable provider-facing tool schema used by Seshat.
 type APIToolDefinition struct {
 	Name        string                `json:"name"`
 	Description string                `json:"description"`

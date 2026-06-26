@@ -5,16 +5,16 @@ import (
 	"context"
 	"os"
 
-	"github.com/EngineerProjects/nexus-engine/internal/audio/stt"
-	"github.com/EngineerProjects/nexus-engine/internal/audio/tts"
-	"github.com/EngineerProjects/nexus-engine/internal/fim"
-	"github.com/EngineerProjects/nexus-engine/internal/image"
-	longterm "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	"github.com/EngineerProjects/nexus-engine/internal/rag"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	"github.com/EngineerProjects/seshat/internal/audio/stt"
+	"github.com/EngineerProjects/seshat/internal/audio/tts"
+	"github.com/EngineerProjects/seshat/internal/fim"
+	"github.com/EngineerProjects/seshat/internal/image"
+	longterm "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	"github.com/EngineerProjects/seshat/internal/rag"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 // PlanStore is the minimal interface the submit_plan tool needs to persist plan documents.

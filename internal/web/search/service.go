@@ -3,8 +3,8 @@ package search
 import (
 	"context"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
-	"github.com/EngineerProjects/nexus-engine/internal/web/search/providers"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
+	"github.com/EngineerProjects/seshat/internal/web/search/providers"
 )
 
 var _ webcore.SearchService = (*Service)(nil)

@@ -4,9 +4,9 @@ import (
 	"fmt"
 	"strings"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 func browserProgressForResult(toolUse types.ToolUseContent, result tool.CallResult) *types.ToolProgress {

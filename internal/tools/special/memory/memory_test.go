@@ -8,10 +8,10 @@ import (
 
 	"github.com/stretchr/testify/require"
 
-	longterm "github.com/EngineerProjects/nexus-engine/internal/memory/longterm"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	memtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	longterm "github.com/EngineerProjects/seshat/internal/memory/longterm"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	memtool "github.com/EngineerProjects/seshat/internal/tools/special/memory"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ─── fakeStore ────────────────────────────────────────────────────────────────
@@ -130,7 +130,7 @@ func TestCreateEntitiesTool_BasicFlow(t *testing.T) {
 
 	result := callTool(t, tl, ctx, map[string]any{
 		"entities": []any{
-			map[string]any{"name": "nexus-engine", "entity_type": "project", "observations": []any{"Written in Go"}},
+			map[string]any{"name": "seshat", "entity_type": "project", "observations": []any{"Written in Go"}},
 			map[string]any{"name": "user", "entity_type": "person"},
 		},
 	})
@@ -139,7 +139,7 @@ func TestCreateEntitiesTool_BasicFlow(t *testing.T) {
 	var created []longterm.Entity
 	require.NoError(t, json.Unmarshal([]byte(result.Content), &created))
 	require.Len(t, created, 2)
-	require.Equal(t, "nexus-engine", created[0].Name)
+	require.Equal(t, "seshat", created[0].Name)
 	require.Equal(t, []string{"Written in Go"}, created[0].Observations)
 }
 
@@ -199,18 +199,18 @@ func TestSearchNodesTool_FindsEntityByName(t *testing.T) {
 	ctx := ctxWithUser("user-3")
 	callTool(t, memtool.NewCreateEntitiesTool(store), ctx, map[string]any{
 		"entities": []any{
-			map[string]any{"name": "nexus", "entity_type": "project"},
+			map[string]any{"name": "seshat", "entity_type": "project"},
 			map[string]any{"name": "other", "entity_type": "misc"},
 		},
 	})
 
-	result := callTool(t, memtool.NewSearchNodesTool(store), ctx, map[string]any{"query": "nexus"})
+	result := callTool(t, memtool.NewSearchNodesTool(store), ctx, map[string]any{"query": "seshat"})
 	require.False(t, result.IsError())
 
 	var graph longterm.Graph
 	require.NoError(t, json.Unmarshal([]byte(result.Content), &graph))
 	require.Len(t, graph.Entities, 1)
-	require.Equal(t, "nexus", graph.Entities[0].Name)
+	require.Equal(t, "seshat", graph.Entities[0].Name)
 }
 
 func TestOpenNodesTool_ExactLookup(t *testing.T) {

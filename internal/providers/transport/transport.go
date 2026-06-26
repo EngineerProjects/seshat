@@ -10,7 +10,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Config is the transport-facing provider configuration subset.
@@ -132,7 +132,7 @@ func (t *BedrockTransport) signRequest(req *http.Request, creds *awsCredentials,
 		// AWS_BEARER_TOKEN_BEDROCK will produce unsigned requests that AWS
 		// rejects with HTTP 403. Rather than silently failing, we inject a
 		// header that makes the misconfiguration visible in logs.
-		req.Header.Set("X-Nexus-Bedrock-Auth-Warning", "SigV4-not-implemented: set AWS_BEARER_TOKEN_BEDROCK or remove AWS credentials")
+		req.Header.Set("X-Seshat-Bedrock-Auth-Warning", "SigV4-not-implemented: set AWS_BEARER_TOKEN_BEDROCK or remove AWS credentials")
 	}
 }
 

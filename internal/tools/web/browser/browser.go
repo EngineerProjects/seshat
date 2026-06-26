@@ -5,10 +5,10 @@ import (
 	"context"
 	"fmt"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 const (
@@ -142,7 +142,7 @@ func (t *openTool) Definition() tool.Definition {
 		Name:        ToolNameOpen,
 		DisplayName: "BrowserOpen",
 		SearchHint:  "open a browser page in an isolated browser session",
-		Description: "Open a new browser page in the current Nexus session. Use this to start browser-based exploration or interaction. Prefer it before browser_navigate when no page exists yet.",
+		Description: "Open a new browser page in the current Seshat session. Use this to start browser-based exploration or interaction. Prefer it before browser_navigate when no page exists yet.",
 		Category:    "browser",
 		InputSchema: schema.FromMap(map[string]any{
 			"type": "object",

@@ -4,10 +4,10 @@ import (
 	"context"
 	"testing"
 
-	execution "github.com/EngineerProjects/nexus-engine/internal/modes/execution"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	execution "github.com/EngineerProjects/seshat/internal/modes/execution"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 func TestEnterPlanModeEmitsExecutionModeChangedEvent(t *testing.T) {

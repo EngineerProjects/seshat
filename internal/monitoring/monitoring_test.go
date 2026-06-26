@@ -259,7 +259,7 @@ func TestLoggerTextFormat(t *testing.T) {
 }
 
 func TestLoggerWithFileOutput(t *testing.T) {
-	tempFile := "/tmp/test_nexus.log"
+	tempFile := "/tmp/test_seshat.log"
 	defer os.Remove(tempFile)
 
 	config := &LoggerConfig{
@@ -399,7 +399,7 @@ func TestLoggerFallbackOnUnwritableFile(t *testing.T) {
 	config := &LoggerConfig{
 		Level:    LogLevelInfo,
 		Output:   "file",
-		FilePath: "/proc/nonexistent_readonly_dir/nexus_test.log",
+		FilePath: "/proc/nonexistent_readonly_dir/seshat_test.log",
 		Format:   "text",
 	}
 	logger := NewLoggerWithConfig(config)

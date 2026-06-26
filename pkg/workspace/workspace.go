@@ -1,6 +1,6 @@
 package workspace
 
-import internalworkspace "github.com/EngineerProjects/nexus-engine/internal/workspace"
+import internalworkspace "github.com/EngineerProjects/seshat/internal/workspace"
 
 const (
 	SubdirUploads   = internalworkspace.SubdirUploads

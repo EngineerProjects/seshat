@@ -11,7 +11,7 @@ import (
 
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ============================================================================
@@ -56,7 +56,7 @@ func (c *Client) buildCodexRequestBody(req types.APIRequest) (io.Reader, error) 
 	return bytes.NewReader(data), nil
 }
 
-// buildCodexInput converts Nexus messages to the Responses API input item list.
+// buildCodexInput converts Seshat messages to the Responses API input item list.
 // The Responses API uses a flat list of typed items:
 //   - user/assistant text: {"type":"message","role":"user|assistant","content":[{"type":"input_text|output_text","text":"..."}]}
 //   - function call (assistant):  {"type":"function_call","call_id":"...","name":"...","arguments":"..."}
@@ -134,7 +134,7 @@ func (c *Client) buildCodexInput(req types.APIRequest) []map[string]any {
 	return items
 }
 
-// codexTools converts Nexus tool definitions to the Responses API flat tool format.
+// codexTools converts Seshat tool definitions to the Responses API flat tool format.
 func codexTools(tools []types.APIToolDefinition) []map[string]any {
 	defs := make([]map[string]any, 0, len(tools))
 	for _, t := range tools {

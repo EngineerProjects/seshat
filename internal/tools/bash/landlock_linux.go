@@ -15,7 +15,7 @@ import (
 	"golang.org/x/sys/unix"
 )
 
-const landlockHelperArg = "--nexus-landlock-helper"
+const landlockHelperArg = "--seshat-landlock-helper"
 
 var landlockSupport = struct {
 	once sync.Once
@@ -31,7 +31,7 @@ func init() {
 
 func runLandlockHelper() {
 	runtime.LockOSThread()
-	workspaceRoot := os.Getenv("NEXUS_LANDLOCK_WORKSPACE")
+	workspaceRoot := os.Getenv("SESHAT_LANDLOCK_WORKSPACE")
 	if workspaceRoot != "" {
 		if err := applyLandlock(workspaceRoot); err != nil && !isLandlockUnavailable(err) {
 			_, _ = fmt.Fprintf(os.Stderr, "failed to apply landlock sandbox: %v\n", err)
@@ -98,7 +98,7 @@ func commandWithLandlock(shell string, args []string, workspaceRoot string) (str
 		target = resolved
 	}
 	helperArgs := append([]string{landlockHelperArg, target}, args...)
-	return exe, helperArgs, []string{"NEXUS_LANDLOCK_WORKSPACE=" + workspaceRoot}, true
+	return exe, helperArgs, []string{"SESHAT_LANDLOCK_WORKSPACE=" + workspaceRoot}, true
 }
 
 func applyLandlock(workspaceRoot string) error {

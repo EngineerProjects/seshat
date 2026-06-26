@@ -4,8 +4,8 @@ import (
 	"context"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Manager owns browser lifecycle, per-session isolation, and page operations.
@@ -78,7 +78,7 @@ func DefaultConfig() *Config {
 	}
 }
 
-// SessionState describes the browser state attached to one Nexus session.
+// SessionState describes the browser state attached to one Seshat session.
 type SessionState struct {
 	SessionID    types.SessionID `json:"session_id"`
 	ActivePageID string          `json:"active_page_id,omitempty"`

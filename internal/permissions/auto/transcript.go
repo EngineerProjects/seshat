@@ -1,7 +1,7 @@
 // Package auto - Transcript building for classifier.
 //
 // This module handles building the conversation transcript that gets sent
-// to the classifier. It converts Nexus messages into a compact format that
+// to the classifier. It converts Seshat messages into a compact format that
 // includes user messages and tool use blocks, while respecting character limits.
 //
 // Key Features:
@@ -15,7 +15,7 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Tool interface defines the contract for tool input encoding.

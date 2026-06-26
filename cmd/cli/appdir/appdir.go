@@ -1,12 +1,12 @@
 // Package appdir is the single source of truth for the CLI's filesystem layout.
 //
-// All persistent data lives under Root() (~/.config/nexus-tui/ by default, or
-// the value of NEXUS_RUNTIME_ROOT). Session-scoped data is isolated under
+// All persistent data lives under Root() (~/.config/seshat-tui/ by default, or
+// the value of SESHAT_RUNTIME_ROOT). Session-scoped data is isolated under
 // sessions/{session_id}/ so deleting a session is a single os.RemoveAll call.
 //
 // Directory layout:
 //
-//	~/.config/nexus-tui/
+//	~/.config/seshat-tui/
 //	├── logs/
 //	├── documents/          ← user-uploaded PDFs and docs (global, persistent)
 //	├── rag/                ← RAG-indexed documents (global, persistent)
@@ -29,11 +29,11 @@ import (
 	"os"
 	"path/filepath"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
-// Root returns the application root directory, resolved via NEXUS_RUNTIME_ROOT
-// or the platform default (~/.config/nexus-tui/ on Linux/macOS).
+// Root returns the application root directory, resolved via SESHAT_RUNTIME_ROOT
+// or the platform default (~/.config/seshat-tui/ on Linux/macOS).
 func Root() string { return runtimepath.ResolveRoot("") }
 
 // ─── Global directories ───────────────────────────────────────────────────────
@@ -77,11 +77,11 @@ func SessionArtifactsAudioDir(sessionID string) string {
 
 // ─── Lifecycle helpers ────────────────────────────────────────────────────────
 
-// GlobalConfigPath returns the path to the global TUI config file (nexus.json).
-func GlobalConfigPath() string { return filepath.Join(Root(), "nexus.json") }
+// GlobalConfigPath returns the path to the global TUI config file (seshat.json).
+func GlobalConfigPath() string { return filepath.Join(Root(), "seshat.json") }
 
 // EnsureAppDirs creates the top-level directories required at startup and
-// seeds nexus.json with an empty object if the file does not yet exist.
+// seeds seshat.json with an empty object if the file does not yet exist.
 // Safe to call multiple times (os.MkdirAll and the existence check are both idempotent).
 func EnsureAppDirs() error {
 	dirs := []string{

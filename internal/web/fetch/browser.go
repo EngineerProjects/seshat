@@ -6,9 +6,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	"github.com/EngineerProjects/seshat/internal/types"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 // BrowserSnapshotTextLimit bounds the browser-rendered text payload returned to fetch callers.

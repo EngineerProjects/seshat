@@ -12,9 +12,9 @@ import (
 )
 
 const (
-	qdrantPayloadKeyText    = "_text"
-	qdrantPayloadKeyNexusNS = "_nexus_ns"
-	qdrantPayloadKeyNexusID = "_nexus_id"
+	qdrantPayloadKeyText     = "_text"
+	qdrantPayloadKeySeshatNS = "_seshat_ns"
+	qdrantPayloadKeySeshatID = "_seshat_id"
 )
 
 // QdrantConfig holds connection parameters for the Qdrant gRPC client.
@@ -28,10 +28,10 @@ type QdrantConfig struct {
 
 // QdrantStore is a vector.Store backed by Qdrant (gRPC).
 //
-// Namespace mapping: each Nexus namespace becomes a Qdrant collection named
-// "{prefix}{namespace}". Nexus string keys are converted to deterministic
+// Namespace mapping: each Seshat namespace becomes a Qdrant collection named
+// "{prefix}{namespace}". Seshat string keys are converted to deterministic
 // uint64 point IDs via SHA-256 (first 8 bytes), with the original key stored
-// in the point payload under _nexus_id so it can be round-tripped.
+// in the point payload under _seshat_id so it can be round-tripped.
 //
 // Metadata is stored in the point payload as individual string fields (Qdrant
 // does not support nested JSONB natively in gRPC filters).
@@ -103,9 +103,9 @@ func (s *QdrantStore) Upsert(ctx context.Context, records []Record) error {
 				return fmt.Errorf("qdrant upsert: namespace, key and vector are required")
 			}
 			payload := map[string]*qdrant.Value{
-				qdrantPayloadKeyText:    qdrant.NewValueString(r.Text),
-				qdrantPayloadKeyNexusNS: qdrant.NewValueString(r.Namespace),
-				qdrantPayloadKeyNexusID: qdrant.NewValueString(r.Key),
+				qdrantPayloadKeyText:     qdrant.NewValueString(r.Text),
+				qdrantPayloadKeySeshatNS: qdrant.NewValueString(r.Namespace),
+				qdrantPayloadKeySeshatID: qdrant.NewValueString(r.Key),
 			}
 			for k, v := range r.Metadata {
 				payload[k] = qdrant.NewValueString(v)
@@ -159,12 +159,12 @@ func (s *QdrantStore) Search(ctx context.Context, query Query) ([]SearchResult, 
 	for _, pt := range scored {
 		r := Record{
 			Namespace: query.Namespace,
-			Key:       stringPayload(pt.Payload, qdrantPayloadKeyNexusID),
+			Key:       stringPayload(pt.Payload, qdrantPayloadKeySeshatID),
 			Text:      stringPayload(pt.Payload, qdrantPayloadKeyText),
 			Metadata:  make(map[string]string),
 		}
 		for k, v := range pt.Payload {
-			if k == qdrantPayloadKeyText || k == qdrantPayloadKeyNexusID || k == qdrantPayloadKeyNexusNS {
+			if k == qdrantPayloadKeyText || k == qdrantPayloadKeySeshatID || k == qdrantPayloadKeySeshatNS {
 				continue
 			}
 			if sv := v.GetStringValue(); sv != "" {
@@ -211,12 +211,12 @@ func (s *QdrantStore) Get(ctx context.Context, namespace string, keys []string) 
 	for _, pt := range pts {
 		r := Record{
 			Namespace: namespace,
-			Key:       stringPayload(pt.Payload, qdrantPayloadKeyNexusID),
+			Key:       stringPayload(pt.Payload, qdrantPayloadKeySeshatID),
 			Text:      stringPayload(pt.Payload, qdrantPayloadKeyText),
 			Metadata:  make(map[string]string),
 		}
 		for k, v := range pt.Payload {
-			if k == qdrantPayloadKeyText || k == qdrantPayloadKeyNexusID || k == qdrantPayloadKeyNexusNS {
+			if k == qdrantPayloadKeyText || k == qdrantPayloadKeySeshatID || k == qdrantPayloadKeySeshatNS {
 				continue
 			}
 			if sv := v.GetStringValue(); sv != "" {

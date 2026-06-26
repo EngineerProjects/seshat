@@ -1,7 +1,7 @@
 package agent
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // AgentSource indicates where the agent definition comes from

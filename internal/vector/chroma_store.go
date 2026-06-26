@@ -28,10 +28,10 @@ type ChromaConfig struct {
 
 // ChromaStore is a vector.Store backed by the Chroma HTTP API (v2).
 //
-// Namespace mapping: each Nexus namespace becomes a Chroma collection.
+// Namespace mapping: each Seshat namespace becomes a Chroma collection.
 // Collection IDs (UUIDs) are cached in-memory after first use.
 //
-// Chroma stores the original Nexus key as the document id.
+// Chroma stores the original Seshat key as the document id.
 // Text and metadata are stored as Chroma document + metadata fields.
 type ChromaStore struct {
 	cfg    ChromaConfig
@@ -85,7 +85,7 @@ func (s *ChromaStore) Upsert(ctx context.Context, records []Record) error {
 			for k, v := range r.Metadata {
 				m[k] = v
 			}
-			m["_nexus_ns"] = r.Namespace
+			m["_seshat_ns"] = r.Namespace
 			metas[i] = m
 		}
 		body := map[string]any{
@@ -362,7 +362,7 @@ func parseChromaQueryResponse(namespace string, resp map[string]any) ([]SearchRe
 		if i < len(metas) {
 			if m, ok := metas[i].(map[string]any); ok {
 				for k, v := range m {
-					if k == "_nexus_ns" {
+					if k == "_seshat_ns" {
 						continue
 					}
 					r.Metadata[k] = fmt.Sprintf("%v", v)
@@ -401,7 +401,7 @@ func parseChromaGetResponse(namespace string, resp map[string]any) ([]Record, er
 		if i < len(metasRaw) {
 			if m, ok := metasRaw[i].(map[string]any); ok {
 				for k, v := range m {
-					if k == "_nexus_ns" {
+					if k == "_seshat_ns" {
 						continue
 					}
 					r.Metadata[k] = fmt.Sprintf("%v", v)

@@ -2,40 +2,50 @@ package builtin
 
 import (
 	"context"
+	"fmt"
 
-	bashTool "github.com/EngineerProjects/nexus-engine/internal/tools/bash"
-	editTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/edit"
-	fsTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/fs"
-	globTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/glob"
-	grepTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/grep"
-	notebookTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/notebook"
-	patchTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/patch"
-	fileReadTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/read"
-	readURLTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/read_url"
-	writeTool "github.com/EngineerProjects/nexus-engine/internal/tools/files/write"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	agentsTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/agents"
-	askUserQuestionTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/ask_user"
-	fimtool "github.com/EngineerProjects/nexus-engine/internal/tools/special/fim"
-	goalTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/goal"
-	imagegenTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/imagegen"
-	lspTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/lsp"
-	memoryTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/memory"
-	monitorTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/monitor"
-	ragTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/rag"
-	requestPermissionsTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/request_permissions"
-	stttool "github.com/EngineerProjects/nexus-engine/internal/tools/special/stt"
-	toolSearchTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/tool_search"
-	ttstool "github.com/EngineerProjects/nexus-engine/internal/tools/special/tts"
-	worktreeTool "github.com/EngineerProjects/nexus-engine/internal/tools/special/worktree"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
-	nexusSkillTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/nexusskill"
-	planTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/plan"
-	skillTool "github.com/EngineerProjects/nexus-engine/internal/tools/system/skills"
-	taskTool "github.com/EngineerProjects/nexus-engine/internal/tools/task"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/tools/web/browser"
-	webfetchTool "github.com/EngineerProjects/nexus-engine/internal/tools/web/fetch"
-	webSearchTool "github.com/EngineerProjects/nexus-engine/internal/tools/web/search"
+	agentsTool "github.com/EngineerProjects/seshat/internal/tools/agents"
+	bashTool "github.com/EngineerProjects/seshat/internal/tools/bash"
+	editTool "github.com/EngineerProjects/seshat/internal/tools/files/edit"
+	fsTool "github.com/EngineerProjects/seshat/internal/tools/files/fs"
+	globTool "github.com/EngineerProjects/seshat/internal/tools/files/glob"
+	grepTool "github.com/EngineerProjects/seshat/internal/tools/files/grep"
+	patchTool "github.com/EngineerProjects/seshat/internal/tools/files/patch"
+	fileReadTool "github.com/EngineerProjects/seshat/internal/tools/files/read"
+	readURLTool "github.com/EngineerProjects/seshat/internal/tools/files/read_url"
+	writeTool "github.com/EngineerProjects/seshat/internal/tools/files/write"
+	gitTool "github.com/EngineerProjects/seshat/internal/tools/git"
+	calculatorTool "github.com/EngineerProjects/seshat/internal/tools/math/calculator"
+	financialTool "github.com/EngineerProjects/seshat/internal/tools/math/financial"
+	statisticsTool "github.com/EngineerProjects/seshat/internal/tools/math/statistics"
+	unitsTool "github.com/EngineerProjects/seshat/internal/tools/math/units"
+	multimediaTool "github.com/EngineerProjects/seshat/internal/tools/multimedia"
+	notebookTool "github.com/EngineerProjects/seshat/internal/tools/notebook"
+	discordTool "github.com/EngineerProjects/seshat/internal/tools/notifications/discord"
+	emailTool "github.com/EngineerProjects/seshat/internal/tools/notifications/email"
+	slackTool "github.com/EngineerProjects/seshat/internal/tools/notifications/slack"
+	telegramTool "github.com/EngineerProjects/seshat/internal/tools/notifications/telegram"
+	whatsappTool "github.com/EngineerProjects/seshat/internal/tools/notifications/whatsapp"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	devtoTool "github.com/EngineerProjects/seshat/internal/tools/social/devto"
+	hnTool "github.com/EngineerProjects/seshat/internal/tools/social/hackernews"
+	askUserQuestionTool "github.com/EngineerProjects/seshat/internal/tools/special/ask_user"
+	fimtool "github.com/EngineerProjects/seshat/internal/tools/special/fim"
+	goalTool "github.com/EngineerProjects/seshat/internal/tools/special/goal"
+	lspTool "github.com/EngineerProjects/seshat/internal/tools/special/lsp"
+	memoryTool "github.com/EngineerProjects/seshat/internal/tools/special/memory"
+	ragTool "github.com/EngineerProjects/seshat/internal/tools/special/rag"
+	requestPermissionsTool "github.com/EngineerProjects/seshat/internal/tools/special/request_permissions"
+	toolSearchTool "github.com/EngineerProjects/seshat/internal/tools/special/tool_search"
+	worktreeTool "github.com/EngineerProjects/seshat/internal/tools/special/worktree"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
+	planTool "github.com/EngineerProjects/seshat/internal/tools/system/plan"
+	seshatSkillTool "github.com/EngineerProjects/seshat/internal/tools/system/seshatskill"
+	skillTool "github.com/EngineerProjects/seshat/internal/tools/system/skills"
+	taskTool "github.com/EngineerProjects/seshat/internal/tools/task"
+	browsercore "github.com/EngineerProjects/seshat/internal/tools/web/browser"
+	webfetchTool "github.com/EngineerProjects/seshat/internal/tools/web/fetch"
+	webSearchTool "github.com/EngineerProjects/seshat/internal/tools/web/search"
 )
 
 // RegisterBuiltinTools registers all built-in tools in the registry
@@ -90,9 +100,13 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		fsTool.NewGetMetadataTool(config.WorkingDir),
 		fsTool.NewListDirectoryTool(config.WorkingDir),
 		fsTool.NewRemoveTool(config.WorkingDir),
-		notebookTool.NewEditTool(),
 		notebookTool.NewCreateTool(),
+		notebookTool.NewReadTool(),
 		notebookTool.NewWriteTool(),
+		notebookTool.NewEditTool(),
+		notebookTool.NewExecuteTool(),
+		notebookTool.NewRunTool(),
+		notebookTool.NewKernelTool(),
 		askUserQuestionTool.NewTool(askUserConfig),
 		webfetchTool.NewTool(webFetchConfig),
 		webSearchTool.NewTool(),
@@ -115,7 +129,7 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		browsercore.NewWaitTool(config.BrowserManager),
 		browsercore.NewScreenshotTool(config.BrowserManager),
 		lspTool.NewLspTool(config.WorkingDir),
-		monitorTool.NewMonitorTool(config.WorkingDir),
+		bashTool.NewMonitorTool(config.WorkingDir),
 		taskTool.NewTaskStopTool(),
 		taskTool.NewTaskListTool(),
 		taskTool.NewTaskGetTool(),
@@ -127,16 +141,16 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		toolSearchTool.NewToolSearchTool(reg),
 		mcp.NewMCPTool(config.MCPManager),
 		skillRuntimeTool,
-		nexusSkillTool.NewListTool(),
-		nexusSkillTool.NewReadTool(),
-		nexusSkillTool.NewValidateTool(),
+		seshatSkillTool.NewListTool(),
+		seshatSkillTool.NewReadTool(),
+		seshatSkillTool.NewValidateTool(),
 		worktreeTool.NewEnterWorktreeTool(worktreeTool.DefaultEnterWorktreeConfig()),
 		worktreeTool.NewExitWorktreeTool(worktreeTool.DefaultExitWorktreeConfig()),
 		ragTool.NewSearchTool(config.RAGService),
 		ragTool.NewIngestTool(config.RAGService),
-		imagegenTool.NewTool(config.ImageGenerator),
-		ttstool.NewTool(config.TTSGenerator),
-		stttool.NewTool(config.STTTranscriber),
+		multimediaTool.NewImageGenTool(config.ImageGenerator),
+		multimediaTool.NewTTSTool(config.TTSGenerator),
+		multimediaTool.NewSTTTool(config.STTTranscriber),
 		fimtool.New(config.FIMCompleter),
 		requestPermissionsTool.NewTool(),
 		memoryTool.NewCreateEntitiesTool(config.LongTermMemory),
@@ -154,6 +168,29 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 		agentsTool.NewSendAgentMessageTool(),
 		agentsTool.NewCloseAgentTool(),
 		// agentTool (synchronous): registered separately in sdk/client.go after engine creation.
+
+		// VCS — git tools (stubs, IsEnabled=false until implemented via os/exec)
+		gitTool.NewStatusTool(),
+		gitTool.NewLogTool(),
+		gitTool.NewDiffTool(),
+		gitTool.NewCommitTool(),
+		gitTool.NewBranchTool(),
+
+		// Notifications — messaging platforms (stubs, IsEnabled=false until implemented)
+		slackTool.NewSendTool(),
+		discordTool.NewSendTool(),
+		telegramTool.NewSendTool(),
+		emailTool.NewSendTool(),
+		whatsappTool.NewSendTool(),
+
+		// Social / community tools (fully implemented, no auth required)
+		hnTool.NewSearchTool(),
+		hnTool.NewStoriesTool(),
+		hnTool.NewItemTool(),
+		devtoTool.NewFeedTool(),
+		devtoTool.NewArticleTool(),
+		devtoTool.NewPublishTool(),
+		// Reddit, Twitter, LinkedIn, WhatsApp: stubs disabled until implemented (IsEnabled=false)
 	}
 
 	for _, builtinTool := range tools {
@@ -161,6 +198,23 @@ func RegisterBuiltinToolsWithConfig(reg *tool.Registry, config *Config) error {
 			continue // Skip tools that couldn't be created (e.g., missing required config)
 		}
 		if err := reg.Register(builtinTool); err != nil {
+			return err
+		}
+	}
+
+	// Math tools use factory functions that return (Tool, error).
+	mathFactories := []func() (tool.Tool, error){
+		calculatorTool.New,
+		unitsTool.New,
+		statisticsTool.New,
+		financialTool.New,
+	}
+	for _, factory := range mathFactories {
+		t, err := factory()
+		if err != nil {
+			return fmt.Errorf("failed to build math tool: %w", err)
+		}
+		if err := reg.Register(t); err != nil {
 			return err
 		}
 	}

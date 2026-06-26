@@ -7,7 +7,7 @@ import (
 	"os"
 	"sync"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
 )
 
 type StorageProvider interface {
@@ -33,7 +33,7 @@ const DefaultS3Region = "us-east-1"
 // DefaultLocalPath returns the root directory for the local artifact store.
 // Using the runtime root directly (not a storage/ subdirectory) so that
 // session-scoped keys (sessions/{id}/images/, sessions/{id}/tools/, …) land
-// at the same level as plans and logs — all under ~/.config/nexus-cli/.
+// at the same level as plans and logs — all under ~/.config/seshat-cli/.
 // Non-session namespaces (documents/, rag/, artifacts/web/) are unaffected.
 func DefaultLocalPath() string {
 	return runtimepath.ResolveRoot("")
@@ -54,24 +54,24 @@ func GetConfigFromEnv() Config {
 	return Config{
 		Provider:          GetProviderType(),
 		LocalPath:         localPathFromEnv(),
-		S3Endpoint:        os.Getenv("NEXUS_S3_ENDPOINT"),
-		S3Bucket:          os.Getenv("NEXUS_S3_BUCKET"),
-		S3AccessKeyID:     os.Getenv("NEXUS_S3_ACCESS_KEY_ID"),
-		S3SecretAccessKey: os.Getenv("NEXUS_S3_SECRET_ACCESS_KEY"),
-		S3Region:          os.Getenv("NEXUS_S3_REGION"),
-		S3KeyPrefix:       os.Getenv("NEXUS_S3_KEY_PREFIX"),
+		S3Endpoint:        os.Getenv("SESHAT_S3_ENDPOINT"),
+		S3Bucket:          os.Getenv("SESHAT_S3_BUCKET"),
+		S3AccessKeyID:     os.Getenv("SESHAT_S3_ACCESS_KEY_ID"),
+		S3SecretAccessKey: os.Getenv("SESHAT_S3_SECRET_ACCESS_KEY"),
+		S3Region:          os.Getenv("SESHAT_S3_REGION"),
+		S3KeyPrefix:       os.Getenv("SESHAT_S3_KEY_PREFIX"),
 	}
 }
 
 func localPathFromEnv() string {
-	if value := os.Getenv("NEXUS_STORAGE_LOCAL_PATH"); value != "" {
+	if value := os.Getenv("SESHAT_STORAGE_LOCAL_PATH"); value != "" {
 		return value
 	}
 	return DefaultLocalPath()
 }
 
 func GetProviderType() ProviderType {
-	provider := os.Getenv("NEXUS_STORAGE_PROVIDER")
+	provider := os.Getenv("SESHAT_STORAGE_PROVIDER")
 	switch provider {
 	case "s3":
 		return ProviderS3

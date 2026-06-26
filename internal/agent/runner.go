@@ -6,11 +6,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/agent/goal"
-	"github.com/EngineerProjects/nexus-engine/internal/engine"
-	"github.com/EngineerProjects/nexus-engine/internal/hooks"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/agent/goal"
+	"github.com/EngineerProjects/seshat/internal/engine"
+	"github.com/EngineerProjects/seshat/internal/hooks"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // RunResult is the result of running an agent
@@ -225,7 +225,7 @@ func RunAgent(config *RunConfig) (*RunResult, error) {
 	}
 
 	// Give the agent its own system prompt identity so it does not inherit the
-	// Nexus Core identity of the parent session. Without this, the agent's
+	// Seshat identity of the parent session. Without this, the agent's
 	// personality was injected only as the first user message, which meant the
 	// model still operated under the parent's rules and workflow sections.
 	if agentDef.GetSystemPrompt != nil {

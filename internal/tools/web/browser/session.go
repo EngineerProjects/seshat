@@ -4,9 +4,9 @@ import (
 	"context"
 	"fmt"
 
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func (t *listPagesTool) Definition() tool.Definition {
@@ -14,7 +14,7 @@ func (t *listPagesTool) Definition() tool.Definition {
 		Name:               ToolNameListPages,
 		DisplayName:        "BrowserListPages",
 		SearchHint:         "list pages in the current browser session",
-		Description:        "List all browser pages associated with the current Nexus session. Use this to inspect the current browser tab set before selecting or closing a page.",
+		Description:        "List all browser pages associated with the current Seshat session. Use this to inspect the current browser tab set before selecting or closing a page.",
 		Category:           "browser",
 		InputSchema:        schema.FromMap(map[string]any{"type": "object", "properties": map[string]any{}}),
 		IsReadOnly:         true,
@@ -260,7 +260,7 @@ func (t *closePageTool) Definition() tool.Definition {
 		Name:        ToolNameClose,
 		DisplayName: "BrowserClosePage",
 		SearchHint:  "close a browser page by page id",
-		Description: "Close a browser page in the current Nexus session. If page_id is omitted, the active page is closed. Use this to reduce browser session state when a tab is no longer needed.",
+		Description: "Close a browser page in the current Seshat session. If page_id is omitted, the active page is closed. Use this to reduce browser session state when a tab is no longer needed.",
 		Category:    "browser",
 		InputSchema: schema.FromMap(map[string]any{
 			"type": "object",

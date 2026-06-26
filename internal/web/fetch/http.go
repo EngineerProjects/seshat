@@ -10,7 +10,7 @@ import (
 	"strings"
 	"time"
 
-	webcore "github.com/EngineerProjects/nexus-engine/internal/web"
+	webcore "github.com/EngineerProjects/seshat/internal/web"
 )
 
 // HTTPClient defines the HTTP client interface
@@ -161,7 +161,7 @@ func (s *Service) doRequest(ctx context.Context, urlStr string) (*http.Response,
 		if err != nil {
 			return nil, currentURL, nil, fmt.Errorf("create request: %w", err)
 		}
-		req.Header.Set("User-Agent", "NexusAI/1.0")
+		req.Header.Set("User-Agent", "SeshatAI/1.0")
 		req.Header.Set("Accept", "text/markdown, text/html, text/plain, */*")
 
 		resp, err := s.httpClient.Do(req)
@@ -231,7 +231,7 @@ func FetchWithRedirect(
 		for k, v := range headers {
 			req.Header.Set(k, v)
 		}
-		req.Header.Set("User-Agent", "NexusAI/1.0")
+		req.Header.Set("User-Agent", "SeshatAI/1.0")
 
 		resp, err = client.Do(req)
 		if err != nil {

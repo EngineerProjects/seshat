@@ -5,10 +5,10 @@ import (
 	"fmt"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/sandbox"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/sandbox"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // ToolName is the canonical name of this tool.
@@ -43,7 +43,7 @@ If the user denies the request (` + "`granted: false`" + `), you must find a saf
 Good reason: "Need to read ~/.ssh/config to verify the SSH key used by the deployment script."
 Bad reason: "Need more permissions."
 
-Good reason: "Writing build artifacts to /tmp/nexus-build/ to avoid polluting the workspace."
+Good reason: "Writing build artifacts to /tmp/seshat-build/ to avoid polluting the workspace."
 Bad reason: "Write access needed."
 `
 

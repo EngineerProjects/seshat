@@ -9,7 +9,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/types"
+	"github.com/EngineerProjects/seshat/internal/auth/types"
 )
 
 // ============================================================================
@@ -219,5 +219,5 @@ func (s *MemoryStore) ListProviders(ctx context.Context) ([]string, error) {
 // DefaultStorePath returns the default store path
 func DefaultStorePath() string {
 	homeDir, _ := os.UserHomeDir()
-	return filepath.Join(homeDir, ".nexus", "auth.json")
+	return filepath.Join(homeDir, ".seshat", "auth.json")
 }

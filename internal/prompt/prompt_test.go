@@ -2,9 +2,9 @@ package prompt
 
 import (
 	"context"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/types"
 	"strings"
 	"testing"
 )

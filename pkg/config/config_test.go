@@ -1,7 +1,7 @@
 package config
 
 import (
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	"os"
 	"path/filepath"
 	"testing"
@@ -52,10 +52,10 @@ func TestResolveAPIKeyUsesProviderSpecificEnv(t *testing.T) {
 func TestApplyRuntimeEnvFromConfig(t *testing.T) {
 	_ = os.Unsetenv("ANTHROPIC_VERTEX_PROJECT_ID")
 	_ = os.Unsetenv("CLOUD_ML_REGION")
-	_ = os.Unsetenv("NEXUS_RUNTIME_ROOT")
+	_ = os.Unsetenv("SESHAT_RUNTIME_ROOT")
 
 	cfg := Config{
-		RuntimeRoot:       "/tmp/nexus-runtime",
+		RuntimeRoot:       "/tmp/seshat-runtime",
 		Model:             "vertex:claude-3-5-sonnet@20241022",
 		ProviderProjectID: "project-123",
 		ProviderRegion:    "us-east5",
@@ -68,14 +68,14 @@ func TestApplyRuntimeEnvFromConfig(t *testing.T) {
 	if got := os.Getenv("CLOUD_ML_REGION"); got != "us-east5" {
 		t.Fatalf("unexpected region env: got %q", got)
 	}
-	if got := os.Getenv("NEXUS_RUNTIME_ROOT"); got != "/tmp/nexus-runtime" {
+	if got := os.Getenv("SESHAT_RUNTIME_ROOT"); got != "/tmp/seshat-runtime" {
 		t.Fatalf("unexpected runtime root env: got %q", got)
 	}
 }
 
 func TestSaveAtWritesLoadableConfig(t *testing.T) {
 	dir := t.TempDir()
-	path := filepath.Join(dir, ".nexus.yaml")
+	path := filepath.Join(dir, ".seshat.yaml")
 
 	cfg := Config{
 		Model:             "openai:gpt-5.5",
@@ -100,8 +100,8 @@ func TestSaveAtWritesLoadableConfig(t *testing.T) {
 }
 
 func TestLoadIntoBindsBrowserRuntimeEnv(t *testing.T) {
-	t.Setenv("NEXUS_BROWSER_REMOTE_CONTROL_URL", "ws://127.0.0.1:9222/devtools/browser/test")
-	t.Setenv("NEXUS_BROWSER_EXECUTABLE_PATH", "/usr/bin/chromium")
+	t.Setenv("SESHAT_BROWSER_REMOTE_CONTROL_URL", "ws://127.0.0.1:9222/devtools/browser/test")
+	t.Setenv("SESHAT_BROWSER_EXECUTABLE_PATH", "/usr/bin/chromium")
 
 	var cfg Config
 	if err := LoadInto(&cfg); err != nil {
@@ -117,10 +117,10 @@ func TestLoadIntoBindsBrowserRuntimeEnv(t *testing.T) {
 }
 
 func TestLoadIntoBindsStorageGCEnv(t *testing.T) {
-	t.Setenv("NEXUS_STORAGE_GC_ENABLED", "true")
-	t.Setenv("NEXUS_STORAGE_GC_INTERVAL", "30m")
-	t.Setenv("NEXUS_STORAGE_GC_LIMIT", "128")
-	t.Setenv("NEXUS_STORAGE_GC_NAMESPACES", "artifacts/web,artifacts/browser/downloads")
+	t.Setenv("SESHAT_STORAGE_GC_ENABLED", "true")
+	t.Setenv("SESHAT_STORAGE_GC_INTERVAL", "30m")
+	t.Setenv("SESHAT_STORAGE_GC_LIMIT", "128")
+	t.Setenv("SESHAT_STORAGE_GC_NAMESPACES", "artifacts/web,artifacts/browser/downloads")
 
 	var cfg Config
 	if err := LoadInto(&cfg); err != nil {
@@ -149,14 +149,14 @@ func TestEffectiveSessionDBPathFallsBackToDBPath(t *testing.T) {
 }
 
 func TestEffectiveRuntimePathsUseUnifiedRoot(t *testing.T) {
-	cfg := Config{RuntimeRoot: "/tmp/nexus-runtime"}
-	if got := EffectiveRuntimeRoot(cfg); got != "/tmp/nexus-runtime" {
+	cfg := Config{RuntimeRoot: "/tmp/seshat-runtime"}
+	if got := EffectiveRuntimeRoot(cfg); got != "/tmp/seshat-runtime" {
 		t.Fatalf("unexpected runtime root: %q", got)
 	}
-	if got := EffectiveDBPath(cfg); got != "/tmp/nexus-runtime/data/nexus.db" {
+	if got := EffectiveDBPath(cfg); got != "/tmp/seshat-runtime/seshat.db" {
 		t.Fatalf("unexpected db path: %q", got)
 	}
-	if got := EffectiveStorageLocalPath(cfg); got != "/tmp/nexus-runtime/storage" {
+	if got := EffectiveStorageLocalPath(cfg); got != "/tmp/seshat-runtime/storage" {
 		t.Fatalf("unexpected storage path: %q", got)
 	}
 }
@@ -172,10 +172,10 @@ func TestEffectiveSessionDBPathPrefersExplicitSessionPath(t *testing.T) {
 }
 
 func TestLoadIntoBindsBackendAndSessionDBEnv(t *testing.T) {
-	t.Setenv("NEXUS_DB_DRIVER", "postgres")
-	t.Setenv("NEXUS_DB_DSN", "postgres://user:pass@localhost:5432/nexus")
-	t.Setenv("NEXUS_DB_AUTO_MIGRATE", "false")
-	t.Setenv("NEXUS_SESSION_DB_PATH", "/tmp/runtime.sqlite")
+	t.Setenv("SESHAT_DB_DRIVER", "postgres")
+	t.Setenv("SESHAT_DB_DSN", "postgres://user:pass@localhost:5432/seshat")
+	t.Setenv("SESHAT_DB_AUTO_MIGRATE", "false")
+	t.Setenv("SESHAT_SESSION_DB_PATH", "/tmp/runtime.sqlite")
 
 	var cfg Config
 	if err := LoadInto(&cfg); err != nil {
@@ -185,7 +185,7 @@ func TestLoadIntoBindsBackendAndSessionDBEnv(t *testing.T) {
 	if cfg.DBDriver != "postgres" {
 		t.Fatalf("unexpected db driver: %q", cfg.DBDriver)
 	}
-	if cfg.DBDSN != "postgres://user:pass@localhost:5432/nexus" {
+	if cfg.DBDSN != "postgres://user:pass@localhost:5432/seshat" {
 		t.Fatalf("unexpected db dsn: %q", cfg.DBDSN)
 	}
 	if cfg.DBAutoMigrate {
@@ -197,12 +197,12 @@ func TestLoadIntoBindsBackendAndSessionDBEnv(t *testing.T) {
 }
 
 func TestLoadIntoBindsPgVectorEnv(t *testing.T) {
-	t.Setenv("NEXUS_PGVECTOR_CREATE_EXTENSION", "false")
-	t.Setenv("NEXUS_PGVECTOR_DSN", "postgres://vector:test@localhost:5432/vectors")
-	t.Setenv("NEXUS_PGVECTOR_INDEX_METHOD", "ivfflat")
-	t.Setenv("NEXUS_PGVECTOR_HNSW_M", "24")
-	t.Setenv("NEXUS_PGVECTOR_HNSW_EF_CONSTRUCTION", "96")
-	t.Setenv("NEXUS_PGVECTOR_IVFFLAT_LISTS", "256")
+	t.Setenv("SESHAT_PGVECTOR_CREATE_EXTENSION", "false")
+	t.Setenv("SESHAT_PGVECTOR_DSN", "postgres://vector:test@localhost:5432/vectors")
+	t.Setenv("SESHAT_PGVECTOR_INDEX_METHOD", "ivfflat")
+	t.Setenv("SESHAT_PGVECTOR_HNSW_M", "24")
+	t.Setenv("SESHAT_PGVECTOR_HNSW_EF_CONSTRUCTION", "96")
+	t.Setenv("SESHAT_PGVECTOR_IVFFLAT_LISTS", "256")
 
 	var cfg Config
 	if err := LoadInto(&cfg); err != nil {

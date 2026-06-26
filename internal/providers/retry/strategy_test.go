@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // TestShouldRetryWithStrategy_NilError verifies nil always returns false.

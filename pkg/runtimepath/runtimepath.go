@@ -6,7 +6,7 @@ import (
 	"strings"
 )
 
-const EnvRuntimeRoot = "NEXUS_RUNTIME_ROOT"
+const EnvRuntimeRoot = "SESHAT_RUNTIME_ROOT"
 
 // ExpandTilde replaces a leading "~" with the current user's home directory.
 // Go's filepath package does not do this automatically.
@@ -37,14 +37,14 @@ func ResolveRoot(explicit string) string {
 
 	home, err := os.UserHomeDir()
 	if err == nil && strings.TrimSpace(home) != "" {
-		return filepath.Join(home, ".config", "nexus")
+		return filepath.Join(home, ".config", "seshat")
 	}
 
 	if home = strings.TrimSpace(os.Getenv("HOME")); home != "" {
-		return filepath.Join(home, ".config", "nexus")
+		return filepath.Join(home, ".config", "seshat")
 	}
 
-	return filepath.Join(os.TempDir(), "nexus")
+	return filepath.Join(os.TempDir(), "seshat")
 }
 
 func Join(root string, parts ...string) string {
@@ -66,7 +66,7 @@ func StorageDir(root string) string { return Join(root, "storage") }
 
 func TmpDir(root string) string { return Join(root, "tmp") }
 
-func BackendDBPath(root string) string { return Join(root, "data", "nexus.db") }
+func BackendDBPath(root string) string { return Join(root, "seshat.db") }
 
 func HNSWDataDir(root string) string { return Join(root, "data", "hnsw") }
 

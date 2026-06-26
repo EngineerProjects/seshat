@@ -11,7 +11,7 @@ import (
 
 // The browser core keeps one background watcher per incognito browser context so
 // pages opened by window.open/target=_blank are folded into the same deterministic
-// Nexus page set without forcing the agent to discover them manually.
+// Seshat page set without forcing the agent to discover them manually.
 func (m *RodManager) startSessionTargetWatcher(session *sessionState) {
 	if session == nil || session.incognito == nil || session.watchCancel != nil {
 		return

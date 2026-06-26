@@ -4,15 +4,15 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/EngineerProjects/nexus-engine/internal/execution"
-	"github.com/EngineerProjects/nexus-engine/internal/memory"
-	"github.com/EngineerProjects/nexus-engine/internal/monitoring"
-	"github.com/EngineerProjects/nexus-engine/internal/permissions"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	compact "github.com/EngineerProjects/nexus-engine/internal/runtime/memory"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/tools/system/mcp"
+	"github.com/EngineerProjects/seshat/internal/execution"
+	"github.com/EngineerProjects/seshat/internal/memory"
+	"github.com/EngineerProjects/seshat/internal/monitoring"
+	"github.com/EngineerProjects/seshat/internal/permissions"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	compact "github.com/EngineerProjects/seshat/internal/runtime/memory"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/system/mcp"
 )
 
 // NewEngineWithRegistry creates a new query engine with a custom tool registry

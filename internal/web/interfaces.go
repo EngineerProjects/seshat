@@ -3,9 +3,9 @@ package web
 import (
 	"context"
 
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
-	browsercore "github.com/EngineerProjects/nexus-engine/internal/web/browser"
+	"github.com/EngineerProjects/seshat/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/types"
+	browsercore "github.com/EngineerProjects/seshat/internal/web/browser"
 )
 
 const (

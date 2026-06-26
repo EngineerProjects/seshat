@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# scripts/setup.sh — One-command setup for nexus-engine on Linux and macOS.
+# scripts/setup.sh — One-command setup for Seshat on Linux and macOS.
 #
 # What it does:
 #   1. Verifies Go 1.21+
 #   2. Installs ripgrep (required for glob/grep tools)
 #   3. Installs uv (Rust-based Python manager — no system Python needed)
 #   4. Creates Python venv + installs docling-serve for document conversion
-#   5. Builds nexus and nexus-grpc binaries to bin/
+#   5. Builds seshat and seshat-grpc binaries to bin/
 #   6. Installs git pre-commit hooks
 #
 # Usage:
@@ -14,10 +14,10 @@
 #   DOCLING_EXTRAS=gpu ./scripts/setup.sh    # GPU-accelerated docling
 #
 # Environment variables:
-#   NEXUS_RUNTIME_ROOT   Override data dir (default: ~/.config/nexus-cli)
-#   DOCLING_EXTRAS       pip extras for docling-serve (e.g. "gpu")
-#   PYTHON_VERSION       Python version for the venv (default: 3.11)
-#   SKIP_PYTHON          Set to 1 to skip the Python/docling setup step
+#   SESHAT_RUNTIME_ROOT   Override data dir (default: ~/.config/seshat-cli)
+#   DOCLING_EXTRAS        pip extras for docling-serve (e.g. "gpu")
+#   PYTHON_VERSION        Python version for the venv (default: 3.11)
+#   SKIP_PYTHON           Set to 1 to skip the Python/docling setup step
 
 set -euo pipefail
 
@@ -25,14 +25,14 @@ OS="$(uname -s)"
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 
 # ── Runtime root (mirrors pkg/runtimepath DefaultConfigDir logic) ─────────────
-if [ -z "${NEXUS_RUNTIME_ROOT:-}" ]; then
+if [ -z "${SESHAT_RUNTIME_ROOT:-}" ]; then
     if [ -n "${XDG_CONFIG_HOME:-}" ]; then
-        NEXUS_RUNTIME_ROOT="$XDG_CONFIG_HOME/nexus-cli"
+        SESHAT_RUNTIME_ROOT="$XDG_CONFIG_HOME/seshat-cli"
     else
-        NEXUS_RUNTIME_ROOT="$HOME/.config/nexus-cli"
+        SESHAT_RUNTIME_ROOT="$HOME/.config/seshat-cli"
     fi
 fi
-export NEXUS_RUNTIME_ROOT
+export SESHAT_RUNTIME_ROOT
 
 # ── Colours ───────────────────────────────────────────────────────────────────
 RED='\033[0;31m'; GREEN='\033[0;32m'; YELLOW='\033[1;33m'
@@ -123,19 +123,19 @@ if [ "${SKIP_PYTHON:-0}" = "1" ]; then
     warn "Skipping Python/docling setup (SKIP_PYTHON=1)"
 else
     step "Setting up Python environment..."
-    NEXUS_CONFIG_DIR="$NEXUS_RUNTIME_ROOT" \
+    SESHAT_CONFIG_DIR="$SESHAT_RUNTIME_ROOT" \
         bash "$REPO_ROOT/scripts/install-python-env.sh"
 fi
 
 # ── 5. Build ──────────────────────────────────────────────────────────────────
-step "Building nexus-engine..."
+step "Building Seshat..."
 
 cd "$REPO_ROOT"
 mkdir -p bin
-go build -o bin/nexus ./cmd/cli
-go build -o bin/nexus-grpc ./cmd/grpc
-ok "bin/nexus"
-ok "bin/nexus-grpc"
+go build -o bin/seshat ./cmd/cli
+go build -o bin/seshat-grpc ./cmd/grpc
+ok "bin/seshat"
+ok "bin/seshat-grpc"
 
 # ── 6. Git hooks ──────────────────────────────────────────────────────────────
 step "Installing git hooks..."
@@ -151,14 +151,14 @@ fi
 echo ""
 echo -e "${BOLD}${GREEN}  Setup complete!${NC}"
 echo ""
-echo "  Runtime data: $NEXUS_RUNTIME_ROOT"
+echo "  Runtime data: $SESHAT_RUNTIME_ROOT"
 echo ""
 echo "  Add bin/ to your PATH:"
 echo "    export PATH=\"\$PATH:$REPO_ROOT/bin\""
 echo ""
 echo "  Configure a provider:"
-echo "    nexus config --provider anthropic --api-key sk-ant-..."
+echo "    seshat config --provider anthropic --api-key sk-ant-..."
 echo ""
 echo "  Start chatting:"
-echo "    nexus chat"
+echo "    seshat chat"
 echo ""

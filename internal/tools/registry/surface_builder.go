@@ -4,7 +4,7 @@ import (
 	"context"
 	"sort"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // SurfaceBuilder is the canonical way to derive the model-visible tool surface

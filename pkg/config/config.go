@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/pkg/runtimepath"
-	"github.com/EngineerProjects/nexus-engine/pkg/sdk"
+	"github.com/EngineerProjects/seshat/pkg/runtimepath"
+	"github.com/EngineerProjects/seshat/pkg/sdk"
 	"github.com/spf13/viper"
 )
 
@@ -93,34 +93,34 @@ type Config struct {
 	EnableAPIKeys   bool   `mapstructure:"enable_api_keys" yaml:"enable_api_keys,omitempty"`
 
 	// Skill repository collections — comma-separated git URLs cloned at startup.
-	// Example: NEXUS_SKILL_REPOS=https://github.com/romainsimon/paperasse
+	// Example: SESHAT_SKILL_REPOS=https://github.com/romainsimon/paperasse
 	SkillRepos string `mapstructure:"skill_repos" yaml:"skill_repos,omitempty"`
 
 	// FeaturedSkillRepos — comma-separated git URLs shown as installable catalog entries in the UI.
-	// Example: NEXUS_FEATURED_SKILL_REPOS=https://github.com/romainsimon/paperasse
+	// Example: SESHAT_FEATURED_SKILL_REPOS=https://github.com/romainsimon/paperasse
 	FeaturedSkillRepos string `mapstructure:"featured_skill_repos" yaml:"featured_skill_repos,omitempty"`
 
 	// TrustedProxies — comma-separated CIDR ranges (or bare IPs) of reverse proxies whose
 	// X-Forwarded-For / X-Real-Ip headers should be trusted for IP resolution.
 	// Leave empty (the default) for a desktop deployment without a reverse proxy.
-	// Example: NEXUS_TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12
+	// Example: SESHAT_TRUSTED_PROXIES=10.0.0.0/8,172.16.0.0/12
 	TrustedProxies string `mapstructure:"trusted_proxies" yaml:"trusted_proxies,omitempty"`
 
 	// SkillRepoHosts — comma-separated list of git hosting domains allowed when installing
 	// a skill repo via the API. Defaults to github.com, gitlab.com, bitbucket.org, codeberg.org.
-	// Example: NEXUS_SKILL_REPO_HOSTS=github.com,mygitlab.company.com
+	// Example: SESHAT_SKILL_REPO_HOSTS=github.com,mygitlab.company.com
 	SkillRepoHosts string `mapstructure:"skill_repo_hosts" yaml:"skill_repo_hosts,omitempty"`
 
-	// DefaultSkillRepo — git URL of the official Nexus skills collection cloned
-	// silently in the background on first boot. Defaults to the canonical nexus-skills
+	// DefaultSkillRepo — git URL of the official Seshat skills collection cloned
+	// silently in the background on first boot. Defaults to the canonical seshat-skills
 	// repo. Set to "none" to disable automatic install.
-	// Example: NEXUS_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/nexus-skills
+	// Example: SESHAT_DEFAULT_SKILL_REPO=https://github.com/EngineerProjects/seshat-skills
 	DefaultSkillRepo string `mapstructure:"default_skill_repo" yaml:"default_skill_repo,omitempty"`
 
 	// Hooks — user-defined shell commands that fire on lifecycle events.
 	// Currently supported event: pre_tool_use (fires before every tool call).
 	//
-	// Example .nexus.yaml:
+	// Example .seshat.yaml:
 	//   hooks:
 	//     pre_tool_use:
 	//       - command: "jq '.command' && exit 0"
@@ -194,48 +194,48 @@ func LoadInto(config *Config) error {
 
 	v := viper.New()
 	v.SetConfigType("yaml")
-	v.SetEnvPrefix("NEXUS")
+	v.SetEnvPrefix("SESHAT")
 
-	// Primary location: derived from NEXUS_RUNTIME_ROOT (or ~/.config/nexus by default).
-	// CLI sets NEXUS_RUNTIME_ROOT=~/.config/nexus-cli before calling Load().
+	// Primary location: derived from SESHAT_RUNTIME_ROOT (or ~/.config/seshat by default).
+	// CLI sets SESHAT_RUNTIME_ROOT=~/.config/seshat-cli before calling Load().
 	v.SetConfigName("config")
 	v.AddConfigPath(runtimepath.ResolveRoot(""))
-	// Fallback: legacy ~/.nexus.yaml for migration
+
 	v.AddConfigPath("$HOME")
 
 	v.BindEnv("runtime_root", runtimepath.EnvRuntimeRoot)
-	v.BindEnv("cwd", "NEXUS_CWD")
-	v.BindEnv("model", "NEXUS_MODEL")
-	v.BindEnv("debug", "NEXUS_DEBUG")
-	v.BindEnv("api_key", "NEXUS_API_KEY")
-	v.BindEnv("db_path", "NEXUS_DB_PATH")
-	v.BindEnv("session_db_path", "NEXUS_SESSION_DB_PATH")
-	v.BindEnv("provider_base_url", "NEXUS_PROVIDER_BASE_URL")
-	v.BindEnv("provider_region", "NEXUS_PROVIDER_REGION")
-	v.BindEnv("provider_project_id", "NEXUS_PROVIDER_PROJECT_ID")
-	v.BindEnv("provider_resource", "NEXUS_PROVIDER_RESOURCE")
-	v.BindEnv("admin_email", "NEXUS_ADMIN_EMAIL")
-	v.BindEnv("admin_password", "NEXUS_ADMIN_PASSWORD")
-	v.BindEnv("admin_password_hash", "NEXUS_ADMIN_PASSWORD_HASH")
+	v.BindEnv("cwd", "SESHAT_CWD")
+	v.BindEnv("model", "SESHAT_MODEL")
+	v.BindEnv("debug", "SESHAT_DEBUG")
+	v.BindEnv("api_key", "SESHAT_API_KEY")
+	v.BindEnv("db_path", "SESHAT_DB_PATH")
+	v.BindEnv("session_db_path", "SESHAT_SESSION_DB_PATH")
+	v.BindEnv("provider_base_url", "SESHAT_PROVIDER_BASE_URL")
+	v.BindEnv("provider_region", "SESHAT_PROVIDER_REGION")
+	v.BindEnv("provider_project_id", "SESHAT_PROVIDER_PROJECT_ID")
+	v.BindEnv("provider_resource", "SESHAT_PROVIDER_RESOURCE")
+	v.BindEnv("admin_email", "SESHAT_ADMIN_EMAIL")
+	v.BindEnv("admin_password", "SESHAT_ADMIN_PASSWORD")
+	v.BindEnv("admin_password_hash", "SESHAT_ADMIN_PASSWORD_HASH")
 	v.BindEnv("web_search_provider", "WEB_SEARCH_PROVIDER")
 
-	v.BindEnv("storage_provider", "NEXUS_STORAGE_PROVIDER")
-	v.BindEnv("storage_local_path", "NEXUS_STORAGE_LOCAL_PATH")
-	v.BindEnv("s3_endpoint", "NEXUS_S3_ENDPOINT")
-	v.BindEnv("s3_bucket", "NEXUS_S3_BUCKET")
-	v.BindEnv("s3_access_key_id", "NEXUS_S3_ACCESS_KEY_ID")
-	v.BindEnv("s3_secret_access_key", "NEXUS_S3_SECRET_ACCESS_KEY")
-	v.BindEnv("s3_region", "NEXUS_S3_REGION")
-	v.BindEnv("s3_key_prefix", "NEXUS_S3_KEY_PREFIX")
-	v.BindEnv("storage_gc_enabled", "NEXUS_STORAGE_GC_ENABLED")
-	v.BindEnv("storage_gc_interval", "NEXUS_STORAGE_GC_INTERVAL")
-	v.BindEnv("storage_gc_limit", "NEXUS_STORAGE_GC_LIMIT")
-	v.BindEnv("storage_gc_namespaces", "NEXUS_STORAGE_GC_NAMESPACES")
-	v.BindEnv("browser_remote_control_url", "NEXUS_BROWSER_REMOTE_CONTROL_URL")
-	v.BindEnv("browser_executable_path", "NEXUS_BROWSER_EXECUTABLE_PATH")
-	v.BindEnv("db_driver", "NEXUS_DB_DRIVER")
-	v.BindEnv("db_dsn", "NEXUS_DB_DSN")
-	v.BindEnv("db_auto_migrate", "NEXUS_DB_AUTO_MIGRATE")
+	v.BindEnv("storage_provider", "SESHAT_STORAGE_PROVIDER")
+	v.BindEnv("storage_local_path", "SESHAT_STORAGE_LOCAL_PATH")
+	v.BindEnv("s3_endpoint", "SESHAT_S3_ENDPOINT")
+	v.BindEnv("s3_bucket", "SESHAT_S3_BUCKET")
+	v.BindEnv("s3_access_key_id", "SESHAT_S3_ACCESS_KEY_ID")
+	v.BindEnv("s3_secret_access_key", "SESHAT_S3_SECRET_ACCESS_KEY")
+	v.BindEnv("s3_region", "SESHAT_S3_REGION")
+	v.BindEnv("s3_key_prefix", "SESHAT_S3_KEY_PREFIX")
+	v.BindEnv("storage_gc_enabled", "SESHAT_STORAGE_GC_ENABLED")
+	v.BindEnv("storage_gc_interval", "SESHAT_STORAGE_GC_INTERVAL")
+	v.BindEnv("storage_gc_limit", "SESHAT_STORAGE_GC_LIMIT")
+	v.BindEnv("storage_gc_namespaces", "SESHAT_STORAGE_GC_NAMESPACES")
+	v.BindEnv("browser_remote_control_url", "SESHAT_BROWSER_REMOTE_CONTROL_URL")
+	v.BindEnv("browser_executable_path", "SESHAT_BROWSER_EXECUTABLE_PATH")
+	v.BindEnv("db_driver", "SESHAT_DB_DRIVER")
+	v.BindEnv("db_dsn", "SESHAT_DB_DSN")
+	v.BindEnv("db_auto_migrate", "SESHAT_DB_AUTO_MIGRATE")
 	v.SetDefault("db_driver", "sqlite")
 	v.SetDefault("db_auto_migrate", true)
 
@@ -244,43 +244,36 @@ func LoadInto(config *Config) error {
 	v.BindEnv("embedder_model", "RAG_EMBEDDING_MODEL")
 	v.BindEnv("embedder_provider", "RAG_EMBEDDING_PROVIDER")
 
-	v.BindEnv("vector_backend", "NEXUS_VECTOR_BACKEND")
+	v.BindEnv("vector_backend", "SESHAT_VECTOR_BACKEND")
 	v.BindEnv("qdrant_host", "QDRANT_HOST")
 	v.BindEnv("qdrant_port", "QDRANT_PORT")
 	v.BindEnv("qdrant_api_key", "QDRANT_API_KEY")
 	v.BindEnv("qdrant_prefix", "QDRANT_PREFIX")
-	v.BindEnv("pgvector_create_extension", "NEXUS_PGVECTOR_CREATE_EXTENSION")
-	v.BindEnv("pgvector_dsn", "NEXUS_PGVECTOR_DSN")
-	v.BindEnv("pgvector_index_method", "NEXUS_PGVECTOR_INDEX_METHOD")
-	v.BindEnv("pgvector_hnsw_m", "NEXUS_PGVECTOR_HNSW_M")
-	v.BindEnv("pgvector_hnsw_ef_construction", "NEXUS_PGVECTOR_HNSW_EF_CONSTRUCTION")
-	v.BindEnv("pgvector_ivfflat_lists", "NEXUS_PGVECTOR_IVFFLAT_LISTS")
+	v.BindEnv("pgvector_create_extension", "SESHAT_PGVECTOR_CREATE_EXTENSION")
+	v.BindEnv("pgvector_dsn", "SESHAT_PGVECTOR_DSN")
+	v.BindEnv("pgvector_index_method", "SESHAT_PGVECTOR_INDEX_METHOD")
+	v.BindEnv("pgvector_hnsw_m", "SESHAT_PGVECTOR_HNSW_M")
+	v.BindEnv("pgvector_hnsw_ef_construction", "SESHAT_PGVECTOR_HNSW_EF_CONSTRUCTION")
+	v.BindEnv("pgvector_ivfflat_lists", "SESHAT_PGVECTOR_IVFFLAT_LISTS")
 	v.BindEnv("chroma_url", "CHROMA_URL")
 	v.BindEnv("chroma_api_key", "CHROMA_API_KEY")
 	v.BindEnv("chroma_tenant", "CHROMA_TENANT")
 	v.BindEnv("chroma_database", "CHROMA_DATABASE")
 
-	v.BindEnv("enable_signup", "NEXUS_ENABLE_SIGNUP")
-	v.BindEnv("default_user_role", "NEXUS_DEFAULT_USER_ROLE")
-	v.BindEnv("enable_api_keys", "NEXUS_ENABLE_API_KEYS")
-	v.BindEnv("skill_repos", "NEXUS_SKILL_REPOS")
-	v.BindEnv("featured_skill_repos", "NEXUS_FEATURED_SKILL_REPOS")
-	v.BindEnv("trusted_proxies", "NEXUS_TRUSTED_PROXIES")
-	v.BindEnv("skill_repo_hosts", "NEXUS_SKILL_REPO_HOSTS")
+	v.BindEnv("enable_signup", "SESHAT_ENABLE_SIGNUP")
+	v.BindEnv("default_user_role", "SESHAT_DEFAULT_USER_ROLE")
+	v.BindEnv("enable_api_keys", "SESHAT_ENABLE_API_KEYS")
+	v.BindEnv("skill_repos", "SESHAT_SKILL_REPOS")
+	v.BindEnv("featured_skill_repos", "SESHAT_FEATURED_SKILL_REPOS")
+	v.BindEnv("trusted_proxies", "SESHAT_TRUSTED_PROXIES")
+	v.BindEnv("skill_repo_hosts", "SESHAT_SKILL_REPO_HOSTS")
 	v.SetDefault("enable_signup", true)
 	v.SetDefault("default_user_role", "member")
 	v.SetDefault("enable_api_keys", true)
 
 	if err := v.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
-			// Primary config not found — try legacy ~/.nexus.yaml as a one-time fallback.
-			if home, herr := os.UserHomeDir(); herr == nil {
-				legacy := filepath.Join(home, ".nexus.yaml")
-				if _, serr := os.Stat(legacy); serr == nil {
-					v.SetConfigFile(legacy)
-					_ = v.ReadInConfig() //nolint:errcheck // best-effort legacy read
-				}
-			}
+			// Config not found — no fallback, config is optional.
 		} else {
 			return fmt.Errorf("failed to read config: %w", err)
 		}
@@ -293,7 +286,7 @@ func LoadInto(config *Config) error {
 	config.RuntimeRoot = runtimepath.ResolveRoot(config.RuntimeRoot)
 
 	// Evaluate any $(...) shell substitutions in credential fields.
-	// This allows api_key: "$(vault kv get -field=token secret/api)" in .nexus.yaml.
+	// This allows api_key: "$(vault kv get -field=token secret/api)" in .seshat.yaml.
 	ExpandShellValues(config)
 
 	ApplyRuntimeEnv(*config)

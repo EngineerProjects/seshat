@@ -1,8 +1,8 @@
 package tools
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/tools/builtin"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/tools/builtin"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
 )
 
 // NewBuiltinRegistry is deprecated. Use internal/core/tools/builtin.NewBuiltinRegistry.

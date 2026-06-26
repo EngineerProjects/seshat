@@ -12,7 +12,7 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // LogLevel represents severity of log messages
@@ -85,7 +85,7 @@ func NewLoggerWithConfig(config *LoggerConfig) *Logger {
 		output = os.Stderr
 	case "file":
 		if config.FilePath == "" {
-			config.FilePath = "nexus_engine.log"
+			config.FilePath = "seshat.log"
 		}
 		file, err := os.OpenFile(config.FilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
 		if err != nil {

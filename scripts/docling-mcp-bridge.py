@@ -2,7 +2,7 @@
 """
 docling-mcp-bridge.py — a stdio MCP server that wraps a running docling-serve instance.
 
-Wire it in .mcp.json (or the global ~/.nexus/mcp.json):
+Wire it in .mcp.json (or the global ~/.seshat/mcp.json):
 
   {
     "mcpServers": {

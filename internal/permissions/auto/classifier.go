@@ -1,4 +1,4 @@
-// Package auto implements the auto mode permission classifier for Nexus.
+// Package auto implements the auto mode permission classifier for Seshat.
 // This aligns with OpenClaude's two-stage security classification system.
 //
 // Two-Stage Classifier Design:
@@ -8,7 +8,7 @@
 // Key Features:
 // - XML-based output parsing (<block>/<reason>/<thinking>)
 // - Transcript building from conversation history
-// - NEXUS.md integration for user preferences
+// - SESHAT.md integration for user preferences
 // - Feature flags for runtime configuration
 package auto
 
@@ -18,7 +18,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // =============================================================================
@@ -212,9 +212,9 @@ func (c *TwoStageClassifier) ClassifyWithTranscript(ctx context.Context, toolNam
 
 	var prefixMessages []types.Message
 
-	nexusMdMsg := BuildNexusMdMessage()
-	if nexusMdMsg != nil {
-		prefixMessages = append(prefixMessages, *nexusMdMsg)
+	seshatMdMsg := BuildSeshatMdMessage()
+	if seshatMdMsg != nil {
+		prefixMessages = append(prefixMessages, *seshatMdMsg)
 	}
 
 	transcript := BuildTranscriptFromMessages(messages)
@@ -233,15 +233,15 @@ func (c *TwoStageClassifier) ClassifyWithTranscript(ctx context.Context, toolNam
 
 	systemPrompt := BuildSystemPrompt()
 
-	nexusMdLen := 0
-	if nexusMdMsg != nil {
-		if tc, ok := nexusMdMsg.Content[0].(types.TextContent); ok {
-			nexusMdLen = len(tc.Text)
+	seshatMdLen := 0
+	if seshatMdMsg != nil {
+		if tc, ok := seshatMdMsg.Content[0].(types.TextContent); ok {
+			seshatMdLen = len(tc.Text)
 		}
 	}
 
 	promptLengths := PromptLengths{
-		SystemPrompt: len(systemPrompt) + nexusMdLen,
+		SystemPrompt: len(systemPrompt) + seshatMdLen,
 		ToolCalls:    len(actionCompact),
 		UserPrompts:  0,
 	}

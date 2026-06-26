@@ -6,8 +6,8 @@ import (
 	"sync"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/auth/store"
-	authTypes "github.com/EngineerProjects/nexus-engine/internal/auth/types"
+	"github.com/EngineerProjects/seshat/internal/auth/store"
+	authTypes "github.com/EngineerProjects/seshat/internal/auth/types"
 )
 
 // ============================================================================

@@ -4,7 +4,7 @@ import (
 	"context"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func emitTaskRuntimeEvent(ctx context.Context, sessionID string, action string, task *Task) {

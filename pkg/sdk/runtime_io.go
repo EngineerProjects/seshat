@@ -4,8 +4,8 @@ import (
 	"context"
 	"io"
 
-	"github.com/EngineerProjects/nexus-engine/internal/runtime/state"
-	"github.com/EngineerProjects/nexus-engine/internal/storage"
+	"github.com/EngineerProjects/seshat/internal/runtime/state"
+	"github.com/EngineerProjects/seshat/internal/storage"
 )
 
 // SessionBackend is the SDK-owned low-level persistence backend contract.

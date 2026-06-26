@@ -3,7 +3,7 @@ package contract
 import (
 	"encoding/json"
 
-	"github.com/EngineerProjects/nexus-engine/internal/tools/schema"
+	"github.com/EngineerProjects/seshat/internal/tools/schema"
 )
 
 // ToolSurface represents the tool surface exposed to the model.

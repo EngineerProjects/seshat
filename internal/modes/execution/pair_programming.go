@@ -6,10 +6,10 @@
 package execution
 
 import (
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
-const DefaultSuggestionsDirectory = ".nexus/suggestions"
+const DefaultSuggestionsDirectory = ".seshat/suggestions"
 
 // PairProgrammingState represents the pair programming mode state for a session.
 type PairProgrammingState struct {

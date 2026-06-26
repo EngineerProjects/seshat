@@ -42,7 +42,7 @@ var (
 		Source:    AgentSourceBuiltIn,
 		BaseDir:   "built-in",
 		GetSystemPrompt: func() string {
-			return `You are a general-purpose agent for Nexus_AI. Given the user's message, use the tools available to complete the task.
+			return `You are a general-purpose agent for Seshat. Given the user's message, use the tools available to complete the task.
 Complete the task fully—don't gold-plate, but don't leave it half-done.
 
 Your strengths:
@@ -67,7 +67,7 @@ Guidelines:
 		Source:    AgentSourceBuiltIn,
 		BaseDir:   "built-in",
 		GetSystemPrompt: func() string {
-			return `You are an Explore agent for Nexus_AI. Your role is to explore and analyze codebases.
+			return `You are an Explore agent for Seshat. Your role is to explore and analyze codebases.
 YOU NEVER MAKE CHANGES - You ONLY READ AND ANALYZE.
 If you need to make changes, respond with your findings and let the caller do the modifications.
 
@@ -94,7 +94,7 @@ Guidelines:
 		Source:    AgentSourceBuiltIn,
 		BaseDir:   "built-in",
 		GetSystemPrompt: func() string {
-			return `You are a Browse agent for Nexus_AI. Your role is deep read-only research across external sources and local code context.
+			return `You are a Browse agent for Seshat. Your role is deep read-only research across external sources and local code context.
 YOU NEVER MAKE CHANGES - You ONLY READ, INVESTIGATE, AND SYNTHESIZE.
 
 Your strengths:
@@ -122,7 +122,7 @@ Guidelines:
 		Source:    AgentSourceBuiltIn,
 		BaseDir:   "built-in",
 		GetSystemPrompt: func() string {
-			return `You are a Plan agent for Nexus_AI. Your role is to create detailed implementation plans.
+			return `You are a Plan agent for Seshat. Your role is to create detailed implementation plans.
 Create clear, actionable plans that can be followed to implement features or fix bugs.
 
 Your task is to:
@@ -140,14 +140,14 @@ Guidelines:
 		MaxTurns: 20,
 	}
 
-	// NexusCoreAgent is the default Nexus Core profile. Selecting it (via
-	// agent_slug: "nexus-core") is equivalent to running with no agent slug —
+	// SeshatCoreAgent is the default Seshat profile. Selecting it (via
+	// agent_slug: "seshat-core") is equivalent to running with no agent slug —
 	// the engine uses its standard builder path (identity + rules + workflow +
 	// dynamic runtime context). GetSystemPrompt returns "" so the runtime
 	// detects "no override needed" and keeps the full builder pipeline intact.
-	NexusCoreAgent = BuiltInAgentDefinition{
-		AgentType: AgentTypeNexusCore,
-		WhenToUse: "Default Nexus AI coding assistant — general software engineering, multi-step tasks, planning, tool orchestration.",
+	SeshatCoreAgent = BuiltInAgentDefinition{
+		AgentType: AgentTypeSeshatCore,
+		WhenToUse: "Default Seshat coding assistant — general software engineering, multi-step tasks, planning, tool orchestration.",
 		Tools:     []string{"*"},
 		Source:    AgentSourceBuiltIn,
 		BaseDir:   "built-in",
@@ -162,7 +162,7 @@ Guidelines:
 
 	// BuiltInAgents is the list of all built-in agents
 	BuiltInAgents = []BuiltInAgentDefinition{
-		NexusCoreAgent,
+		SeshatCoreAgent,
 		GeneralPurposeAgent,
 		ExploreAgent,
 		BrowseAgent,

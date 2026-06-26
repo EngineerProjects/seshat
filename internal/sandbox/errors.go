@@ -3,7 +3,7 @@ package sandbox
 import (
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // PermissionDeniedError is returned when the sandbox denies an action outright.

@@ -345,7 +345,7 @@ description: visual brainstorming
 requires:
   - type: node
     check: "node --version"
-    install-cmd: "cd ${NEXUS_SKILL_DIR}/scripts && npm install"
+    install-cmd: "cd ${SESHAT_SKILL_DIR}/scripts && npm install"
     packages: [express, ws]
 ---
 

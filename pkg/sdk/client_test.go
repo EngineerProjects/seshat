@@ -11,9 +11,9 @@ import (
 	"testing"
 	"time"
 
-	"github.com/EngineerProjects/nexus-engine/internal/providers"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/providers"
+	tool "github.com/EngineerProjects/seshat/internal/tools/contract"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func TestNewClientPropagatesPromptFnToAskUserTool(t *testing.T) {
@@ -745,7 +745,7 @@ func TestNewClientUsesInjectedSessionBackend(t *testing.T) {
 func TestNewClientUsesSQLiteSessionBackend(t *testing.T) {
 	client, err := NewClient(&ClientConfig{
 		PersistSessions:   false,
-		SessionSQLitePath: filepath.Join(t.TempDir(), "nexus.sqlite"),
+		SessionSQLitePath: filepath.Join(t.TempDir(), "seshat.sqlite"),
 	})
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)
@@ -781,7 +781,7 @@ func TestNewClientUsesSQLiteSessionBackend(t *testing.T) {
 func TestClientCloseClosesOwnedSQLiteSessionBackend(t *testing.T) {
 	client, err := NewClient(&ClientConfig{
 		PersistSessions:   false,
-		SessionSQLitePath: filepath.Join(t.TempDir(), "nexus.sqlite"),
+		SessionSQLitePath: filepath.Join(t.TempDir(), "seshat.sqlite"),
 	})
 	if err != nil {
 		t.Fatalf("NewClient failed: %v", err)

@@ -5,11 +5,11 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/modes"
-	"github.com/EngineerProjects/nexus-engine/internal/prompt"
-	contract "github.com/EngineerProjects/nexus-engine/internal/tools/contract"
-	tool "github.com/EngineerProjects/nexus-engine/internal/tools/registry"
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/modes"
+	"github.com/EngineerProjects/seshat/internal/prompt"
+	contract "github.com/EngineerProjects/seshat/internal/tools/contract"
+	tool "github.com/EngineerProjects/seshat/internal/tools/registry"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 // Transition represents a state transition in the query loop
@@ -286,9 +286,20 @@ func (s *SessionState) ToolSurface() map[string]tool.Tool {
 	return s.Tools
 }
 
+// dynamicAvailability is an optional interface for tools whose availability
+// changes at runtime (e.g., after a per-request runner is injected).
+// When implemented, IsAvailableNow is checked at request time in EffectiveToolSurface
+// to hide unconfigured tools from the model without affecting session registration.
+type dynamicAvailability interface {
+	IsAvailableNow() bool
+}
+
 func (s *SessionState) EffectiveToolSurface(reg *tool.Registry) map[string]tool.Tool {
 	surface := make(map[string]tool.Tool, len(s.Tools)+len(s.DiscoveredDeferred))
 	for name, resolved := range s.Tools {
+		if checker, ok := resolved.(dynamicAvailability); ok && !checker.IsAvailableNow() {
+			continue
+		}
 		surface[name] = resolved
 	}
 	if reg == nil {

@@ -1,6 +1,6 @@
 package web
 
-import internalweb "github.com/EngineerProjects/nexus-engine/internal/web"
+import internalweb "github.com/EngineerProjects/seshat/internal/web"
 
 type (
 	DomainCategory = internalweb.DomainCategory

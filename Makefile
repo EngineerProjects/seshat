@@ -1,8 +1,13 @@
-CMD_CLI  := ./cmd/cli
-CMD_GRPC := ./cmd/grpc
+CMD_CLI        := ./cmd/cli
+CMD_GRPC       := ./cmd/grpc
+CMD_SLACK_BOT  := ./cmd/slack-bot
+CMD_AUTOMATION := ./cmd/automation
 
-.PHONY: all build build-cli build-grpc build_linux test test-race fmt vet lint tidy clean hooks \
-        setup install-python start-docling
+# Make built binaries discoverable from the repo root.
+export PATH := $(CURDIR)/bin:$(PATH)
+
+.PHONY: all build build-cli build-grpc build-slack-bot build-automation build_linux test test-race fmt vet lint tidy \
+        clean clean-runtime clean-all hooks setup install-python start-docling slack-bot
 
 # ── Default ────────────────────────────────────────────────────────────────────
 
@@ -31,16 +36,27 @@ setup:
 
 # ── Build ──────────────────────────────────────────────────────────────────────
 
-build: build-cli build-grpc
+build: build-cli build-grpc build-slack-bot build-automation
 
 build-cli:
-	go build -o bin/nexus $(CMD_CLI)
+	go build -o bin/seshat $(CMD_CLI)
+
 
 build-grpc:
-	go build -o bin/nexus-grpc $(CMD_GRPC)
+	go build -o bin/seshat-grpc $(CMD_GRPC)
+
+build-slack-bot:
+	go build -o bin/seshat-slack $(CMD_SLACK_BOT)
+
+build-automation:
+	go build -o bin/seshat-auto $(CMD_AUTOMATION)
+
+slack-bot:
+	@export $$(grep -v '^#' private/.env.slack | xargs) && \
+	go run $(CMD_SLACK_BOT)
 
 build_linux:
-	go build -o /tmp/nexus $(CMD_CLI)
+	go build -o /tmp/seshat $(CMD_CLI)
 
 # ── Test ───────────────────────────────────────────────────────────────────────
 
@@ -68,8 +84,26 @@ tidy:
 
 # ── Maintenance ────────────────────────────────────────────────────────────────
 
+# Remove compiled binaries. Safe to run anytime.
 clean:
 	rm -rf bin/
+
+# Erase all seshat runtime data (DB, credentials, sessions, logs, venv).
+# WARNING: credentials and session history cannot be recovered — you will need
+# to re-run `seshat login` and `seshat config` afterwards.
+# Uses SESHAT_RUNTIME_ROOT if set, otherwise falls back to ~/.config/seshat-*.
+clean-runtime:
+	@confdir="$${SESHAT_RUNTIME_ROOT:-$${XDG_CONFIG_HOME:-$$HOME/.config}}" ; \
+	for d in seshat-cli seshat-tui seshat-slack ; do \
+	    target="$$confdir/$$d" ; \
+	    if [ -d "$$target" ]; then \
+	        rm -rf "$$target" && echo "  removed $$target" ; \
+	    fi ; \
+	done
+	@echo "Runtime data cleared."
+
+# Full wipe: binaries + all runtime data. Useful for a completely fresh start.
+clean-all: clean clean-runtime
 
 # (Re-)install git pre-commit hooks from .githooks/.
 hooks:
@@ -88,7 +122,7 @@ install-python:
 	@./scripts/install-python-env.sh
 
 # Start docling-serve manually.
-# Nexus auto-starts it at launch when the venv is installed — this is only
+# Seshat auto-starts it at launch when the venv is installed — this is only
 # needed if you want to run it as a standalone process.
 
 start-docling:

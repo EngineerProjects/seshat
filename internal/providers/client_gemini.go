@@ -10,7 +10,7 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/EngineerProjects/nexus-engine/internal/types"
+	"github.com/EngineerProjects/seshat/internal/types"
 )
 
 func (c *Client) buildGeminiRequestBody(req types.APIRequest) (io.Reader, error) {
